@@ -65,7 +65,12 @@ TimeLine::TimeLine(GraphicsView *_view, QWidget *_parent)
 
     QTimer *qtimer = new QTimer(this);
     connect(qtimer, &QTimer::timeout, this, &TimeLine::checkTime);
-    qtimer->start(25);
+    qtimer->start(10);
+
+    anim = new QPropertyAnimation(view->horizontalScrollBar(), "value", this);
+    anim->setDuration(10000);
+    anim->setStartValue(0);
+    anim->setEndValue(bars * barResolution);
 }
 
 TimeLine::~TimeLine()
@@ -107,21 +112,19 @@ void TimeLine::drawGrid(int xOffset) {
     scene->addItem(grid);
 }
 
-void TimeLine::wheelEvent(QWheelEvent *event){
-    qDebug() << "Wheee 2";
-}
-
 void TimeLine::setTimeImpl(double time) {
     timer->setPaused(true);
     timer->setCurrentTime((int)(time * 1000.0));
     timer->setPaused(false);
+    if (anim->state() == QAbstractAnimation::State::Running) {
+        anim->setCurrentTime((int)(time * 1000.0));
+    }
+
 }
 
 void TimeLine::checkTime()
 {
-    if (followTime) {
-        view->centerOn(indicator->scenePos());
-    }
+
 }
 
 bool TimeLine::getFollowTime() const
@@ -132,6 +135,16 @@ bool TimeLine::getFollowTime() const
 void TimeLine::setFollowTime(bool newFollowTime)
 {
     followTime = newFollowTime;
+    if (followTime) {
+        if (anim->state() == QAbstractAnimation::State::Paused) {
+            anim->setPaused(false);
+        } else {
+            anim->start();
+        }
+
+    } else {
+        anim->setPaused(true);
+    }
 }
 
 void TimeLine::Clear() {
@@ -142,11 +155,11 @@ void TimeLine::Clear() {
 }
 
 void TimeLine::onZoom(QWheelEvent *event) {
+    qDebug() << "On zoom";
     if (event->angleDelta().x() != 0) {
         view->horizontalScrollBar()->setValue(view->horizontalScrollBar()->value() - event->angleDelta().x());
     } else {
         float oldScrollPos = (float)view->horizontalScrollBar()->value() / zoom;
-        qDebug() << oldScrollPos;
         zoom += (float)event->angleDelta().y() / 1000.0f;
         zoom = std::clamp(zoom, 0.5f, 5.0f);
         drawGrid(barResolution * zoom);
@@ -168,6 +181,8 @@ void TimeLine::AddItem(float start, float length, int lane,  QColor color)
 }
 
 void TimeLine::updateAnimation() {
+    anim->setEndValue(bars * barResolution * zoom - view->width());
+
     animation->clear();
     for (int i = 0; i < bars; i++)
         animation->setPosAt((float)i / bars, QPointF(i * barResolution * zoom, 0));
@@ -178,9 +193,7 @@ void TimeLine::rubberBandChanged(QRect viewportRect, QPointF fromScenePoint, QPo
     QList<QGraphicsItem *> selected = this->scene->items(QRectF(fromScenePoint, toScenePoint));
     for (auto item : selected) {
         auto* track = dynamic_cast<Track *>(item);
-        qDebug() << item;
         if (track) {
-            qDebug() << "isSelected()";
             track->setSelected(true);
         }
     }
@@ -188,10 +201,14 @@ void TimeLine::rubberBandChanged(QRect viewportRect, QPointF fromScenePoint, QPo
 
 void TimeLine::setTrackTime(float time)
 {
-    timer->setDuration(time * 1000.0);
-    bars = time;
-    updateAnimation();
-    timer->setLoopCount(2);
+    if (trackTime != time) {
+        anim->setDuration(time * 1000.0);
+        timer->setDuration(time * 1000.0);
+        bars = (int)time;
+        trackTime = time;
+        updateAnimation();
+        timer->setLoopCount(2);
+    }
 }
 
 std::vector<std::tuple<float, float, int>> TimeLine::Serialize()

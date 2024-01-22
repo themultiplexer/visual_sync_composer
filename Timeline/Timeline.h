@@ -55,7 +55,6 @@ signals:
     void setTime(double time);
 
 private:
-    virtual void wheelEvent(QWheelEvent *event) override;
     void onZoom(QWheelEvent *event);
     void drawGrid(int xOffset = 100);
     void setTimeImpl(double time);
@@ -64,11 +63,13 @@ private:
     int frame, bars;
     int minFrame, maxFrame;
     float zoom;
+    float trackTime;
     bool followTime;
     int barResolution;
     QGraphicsItemGroup *grid;
     std::vector<Track *> tracks;
     QTimeLine *timer;
+    QPropertyAnimation *anim;
 };
 
 #endif // TIMELINE_H

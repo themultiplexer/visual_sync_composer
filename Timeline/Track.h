@@ -70,9 +70,6 @@ public:
     virtual QRectF boundingRect() const override;
     virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
     void setZoomLevel(float zoom);
-    // QGraphicsItem interface
-protected:
-    virtual QVariant itemChange(GraphicsItemChange change, const QVariant &value) override;
 
     // QGraphicsItem interface
 protected:

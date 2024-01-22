@@ -155,25 +155,3 @@ void Track::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event){
     qDebug()<<"Double Click";
 }
 
-
-
-QVariant Track::itemChange(GraphicsItemChange change, const QVariant &value)
-{
-    if (change == QGraphicsItem::ItemSelectedChange)
-    {
-        qDebug() << "Changed";
-        if (value == true)
-        {
-            //brush.setColor(QColor(255,255,255));
-        }
-        else
-        {
-            //outlineColor = QColor(255,255,255);
-        }
-        update();
-    }
-
-    return QGraphicsItem::itemChange(change, value);
-}
-
-
