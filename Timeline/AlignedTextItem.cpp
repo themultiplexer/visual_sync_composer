@@ -10,6 +10,7 @@ AlignedTextItem::AlignedTextItem(QGraphicsItem *parent, QGraphicsScene *scene) :
 void AlignedTextItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
     painter->setPen(this->defaultTextColor());
+    painter->setFont(font());
     painter->drawText(boundingRect(), text, textOp);
     QGraphicsTextItem::paint(painter, option, widget);
 }

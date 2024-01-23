@@ -1,30 +1,40 @@
 #include "Timeline.h"
-#include "AlignedTextItem.h"
+#include <cmath>
 
-TimeLine::TimeLine(QWidget *parent) :
-    QWidget(parent)
-{
-
-}
 
 int Track::penWidth = 4;
 bool Track::hasShadow = false;
 float Track::thresholdShadow=0.0f;
 int Track::rounded = 10;
 
-TimeLine::TimeLine(GraphicsView *_view, QWidget *_parent)
+TimeLine::TimeLine(QWidget *_parent)
 {
+    scene = new GraphicsScene();
+    view = new GraphicsView(scene);
+    view->setOptimizationFlag(QGraphicsView::IndirectPainting, true);
+    view->setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
+    view->setDragMode(QGraphicsView::RubberBandDrag);
+    view->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+    view->setInteractive(true);
+    view->setMouseTracking(true);
+    view->setFocusPolicy(Qt::StrongFocus);
+    view->setFocus(Qt::TabFocusReason);
+
+    connect(view, &GraphicsView::sendKeyPressSignal, this, &TimeLine::keyPressEvent);
+    connect(scene, &GraphicsScene::sendSceneMouseEventSignal, this, &TimeLine::mousePressEvent);
+
     qDebug() << "New Timeline";
     grid = new QGraphicsItemGroup();
     barResolution = 100;
     followTime = false;
-    view = _view;
     zoom = 1.0;
     bars = 400;
+    selected = new QList<Track *>();
+    clipboardGroup = nullptr;
+    selectionGroup = nullptr;
+
     connect(view, &GraphicsView::sendMouseWheelEventSignal, this, &TimeLine::onZoom);
     connect(this, &TimeLine::setTime, this, &TimeLine::setTimeImpl);
-    scene = view->scene();
-    setFocusPolicy(Qt::WheelFocus);
     setMouseTracking(true);
 
     drawGrid();
@@ -35,7 +45,7 @@ TimeLine::TimeLine(GraphicsView *_view, QWidget *_parent)
         textitem->setText(text);
         textitem->setAligment(Qt::AlignLeft | Qt::AlignTop);
         textitem->setDefaultTextColor(Qt::white);
-        textitem->setBoundingRect(-100, i * 35, 100, 50);
+        textitem->setBoundingRect(-50, i * 35, 100, 50);
         QGraphicsLineItem *lineitem = new QGraphicsLineItem(-100, i * 35, 0, i * 35);
         lineitem->setPen(QPen(Qt::white));
         scene->addItem(textitem);
@@ -56,8 +66,7 @@ TimeLine::TimeLine(GraphicsView *_view, QWidget *_parent)
     animation = new QGraphicsItemAnimation;
     animation->setItem(indicator);
     animation->setTimeLine(timer);
-    timer->setLoopCount(2);
-    //connect(timer, &QTimeLine::finished, this, TimeLine::finished);
+    connect(timer, &QTimeLine::finished, this, &TimeLine::timerFinished);
 
     startAnimation();
 
@@ -66,18 +75,42 @@ TimeLine::TimeLine(GraphicsView *_view, QWidget *_parent)
     QTimer *qtimer = new QTimer(this);
     connect(qtimer, &QTimer::timeout, this, &TimeLine::checkTime);
     qtimer->start(10);
-
-    anim = new QPropertyAnimation(view->horizontalScrollBar(), "value", this);
-    anim->setDuration(10000);
-    anim->setStartValue(0);
-    anim->setEndValue(bars * barResolution);
 }
 
 TimeLine::~TimeLine()
 {
 }
 
+void TimeLine::mousePressEvent(QGraphicsSceneMouseEvent *event)
+{
+    if (event) {
+
+    }
+
+    qDebug() << "Press";
+    auto presseditem = this->scene->itemAt(event->scenePos(), QTransform());
+    QGraphicsItem* group = dynamic_cast<QGraphicsItemGroup *>(presseditem);
+    QGraphicsItem* track = dynamic_cast<QGraphicsItemGroup *>(presseditem);
+
+    if(!presseditem) {
+        clearClipboard();
+        clearSelection();
+        qDebug() << "presseditem->group()";
+    }
+
+    if(!group && track && !track->group()) {
+        clearClipboard();
+        clearSelection();
+        qDebug() << presseditem->group();
+    }
+}
+
 void TimeLine::startAnimation() {
+    timer->start();
+}
+
+void TimeLine::timerFinished()
+{
     timer->start();
 }
 
@@ -89,6 +122,11 @@ void TimeLine::drawGrid(int xOffset) {
 
     QFont font = scene->font();
     QFontMetricsF fontMetrics(font);
+    int fontWidth = fontMetrics.boundingRect("000").width();
+    qDebug() << fontWidth << xOffset;
+    if(fontWidth > xOffset) {
+        font.setPointSize(4);
+    }
 
     for(int i = 0; i < bars; i++){
         QString text = QString::number(i);
@@ -116,15 +154,14 @@ void TimeLine::setTimeImpl(double time) {
     timer->setPaused(true);
     timer->setCurrentTime((int)(time * 1000.0));
     timer->setPaused(false);
-    if (anim->state() == QAbstractAnimation::State::Running) {
-        anim->setCurrentTime((int)(time * 1000.0));
-    }
 
 }
 
 void TimeLine::checkTime()
 {
-
+    if (followTime) {
+        view->centerOn(indicator->scenePos());
+    }
 }
 
 bool TimeLine::getFollowTime() const
@@ -135,16 +172,6 @@ bool TimeLine::getFollowTime() const
 void TimeLine::setFollowTime(bool newFollowTime)
 {
     followTime = newFollowTime;
-    if (followTime) {
-        if (anim->state() == QAbstractAnimation::State::Paused) {
-            anim->setPaused(false);
-        } else {
-            anim->start();
-        }
-
-    } else {
-        anim->setPaused(true);
-    }
 }
 
 void TimeLine::Clear() {
@@ -161,10 +188,14 @@ void TimeLine::onZoom(QWheelEvent *event) {
     } else {
         float oldScrollPos = (float)view->horizontalScrollBar()->value() / zoom;
         zoom += (float)event->angleDelta().y() / 1000.0f;
-        zoom = std::clamp(zoom, 0.5f, 5.0f);
+        zoom = std::clamp(zoom, 0.1f, 10.0f);
         drawGrid(barResolution * zoom);
         for (Track * track : tracks) {
             track->setZoomLevel(zoom);
+        }
+        if (selectionGroup) {
+            selectionGroup->setZoomLevel(zoom);
+            selectionGroup->update();
         }
         view->horizontalScrollBar()->setMaximum(barResolution * zoom * bars - view->width());
         view->horizontalScrollBar()->setValue(oldScrollPos * zoom);
@@ -174,27 +205,70 @@ void TimeLine::onZoom(QWheelEvent *event) {
 
 void TimeLine::AddItem(float start, float length, int lane,  QColor color)
 {
-    Track *track = new Track(length * barResolution, color, scene);
+    Track *track = new Track(start * barResolution, length * barResolution, lane, color, scene);
     tracks.push_back(track);
     scene->addItem(track);
-    track->setPos(QPointF(start * barResolution, lane * 35));
 }
 
 void TimeLine::updateAnimation() {
-    anim->setEndValue(bars * barResolution * zoom - view->width());
-
     animation->clear();
     for (int i = 0; i < bars; i++)
         animation->setPosAt((float)i / bars, QPointF(i * barResolution * zoom, 0));
 }
 
+void TimeLine::clearSelection() {
+    if (selectionGroup) {
+        qDebug() << "clearSelection";
+        auto items = selectionGroup->childItems();
+        scene->destroyItemGroup(selectionGroup);
+        for (auto item : items) {
+            item->setSelected(false);
+        }
+        selectionGroup = nullptr;
+    }
+}
+
+void TimeLine::clearClipboard() {
+    if (clipboardGroup) {
+        qDebug() << "clearClipboard";
+        auto items = clipboardGroup->childItems();
+        scene->destroyItemGroup(clipboardGroup);
+        for (auto item : items) {
+            item->setSelected(false);
+        }
+        clipboardGroup = nullptr;
+    }
+}
+
 void TimeLine::rubberBandChanged(QRect viewportRect, QPointF fromScenePoint, QPointF toScenePoint)
 {
-    QList<QGraphicsItem *> selected = this->scene->items(QRectF(fromScenePoint, toScenePoint));
-    for (auto item : selected) {
+    qDebug() << "Rubber";
+    if (viewportRect.isNull()) {
+        qDebug() << "Creating selection";
+        selectionGroup = new TrackGroup(this->scene->activePanel());
+        selectionGroup->setZoomLevel(zoom);
+        selectionGroup->setFlag(QGraphicsItem::ItemIsSelectable);
+        for (Track * t : *selected) {
+            selectionGroup->addToGroup(t);
+            t->setParentItem(selectionGroup);
+            t->setSelected(true);
+        }
+        selectionGroup->update();
+        scene->addItem(selectionGroup);
+        return;
+    }
+
+    clearClipboard();
+    clearSelection();
+
+    QRectF area = fromScenePoint.x() < toScenePoint.x() || fromScenePoint.y() < toScenePoint.y() ? QRectF(fromScenePoint, toScenePoint) : QRectF(toScenePoint, fromScenePoint);
+    selected->clear();
+    QList<QGraphicsItem *> selection = this->scene->items(area);
+    for (auto item : selection) {
         auto* track = dynamic_cast<Track *>(item);
         if (track) {
-            track->setSelected(true);
+            //track->setSelected(true);
+            selected->push_back(track);
         }
     }
 }
@@ -202,12 +276,10 @@ void TimeLine::rubberBandChanged(QRect viewportRect, QPointF fromScenePoint, QPo
 void TimeLine::setTrackTime(float time)
 {
     if (trackTime != time) {
-        anim->setDuration(time * 1000.0);
         timer->setDuration(time * 1000.0);
-        bars = (int)time;
+        bars = ceil(time) + 1;
         trackTime = time;
         updateAnimation();
-        timer->setLoopCount(2);
     }
 }
 
@@ -220,3 +292,37 @@ std::vector<std::tuple<float, float, int>> TimeLine::Serialize()
     }
     return times;
 }
+
+void TimeLine::keyPressEvent(QKeyEvent * event) {
+    switch (event->key()) {
+    case (Qt::Key_C):
+        if (event->modifiers()==Qt::ControlModifier)
+            clipboardGroup = new TrackGroup();
+            clipboardGroup->setZoomLevel(zoom);
+            clipboardGroup->setFlag(QGraphicsItem::ItemIsSelectable);
+            for (Track * t : *selected) {
+                Track * clone = t->clone();
+                clone->setParentItem(clipboardGroup);
+                clipboardGroup->addToGroup(clone);
+                clone->setSelected(true);
+            }
+        break;
+    case (Qt::Key_V):
+        if (event->modifiers()==Qt::ControlModifier)
+            qDebug()<<"Paste";
+
+        if (clipboardGroup) {
+            clearSelection();
+            clipboardGroup->setX(100);
+            scene->addItem(clipboardGroup);
+            for (auto item : clipboardGroup->childItems()) {
+                ((Track *)item)->setZoomLevel(zoom);
+                ((Track *)item)->calculateStartTime();
+                tracks.push_back((Track *)item);
+            }
+        }
+
+        break;
+    }
+}
+

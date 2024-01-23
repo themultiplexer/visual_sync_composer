@@ -70,22 +70,10 @@ MainWindow::MainWindow(QWidget *parent)
     connect(checkbox, &QCheckBox::stateChanged, this, &MainWindow::checkChanged);
     toolLayout->addWidget(checkbox);
 
-    QGraphicsScene *scene= new QGraphicsScene();
-    //scene->setSceneRect(0,-100,2000,1000);
-    GraphicsView *view = new GraphicsView(scene);
-    view->setOptimizationFlag(QGraphicsView::IndirectPainting, true);
-    view->setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
-    view->setDragMode(QGraphicsView::RubberBandDrag);
-    //view->setRubberBandSelectionMode(Qt::ItemSelectionMode:.)
-    timeline = new TimeLine(view);
-    timeline->setGeometry(0,0, 1000, 500);
-    view->setAlignment(Qt::AlignTop | Qt::AlignLeft);
-    view->setInteractive(true);
-    view->setMouseTracking(true);
-    view->setFocus();
 
-    timeline->AddItem(0.0, 1.0, 1, QColor(255,0,0));
-    timeline->AddItem(1.0, 2.0, 2, QColor(255,0,255));
+    timeline = new TimeLine();
+    timeline->AddItem(0.0, 1.0, 0, QColor(255,0,0));
+    timeline->AddItem(1.0, 2.0, 1, QColor(255,0,255));
     timeline->AddItem(2.0, 3.0, 3, QColor(0,255,255));
     timeline->AddItem(3.0, 4.0, 4, QColor(255,255,0));
 
@@ -96,7 +84,7 @@ MainWindow::MainWindow(QWidget *parent)
     mainLayout->addLayout(mediaButtonsLayout);
     mainLayout->addLayout(sliderLayout);
     mainLayout->addLayout(toolLayout);
-    mainLayout->addWidget(view);
+    mainLayout->addWidget(timeline->view);
     mainLayout->addLayout(buttonLayout);
 
     // Set up connections for buttons to slots

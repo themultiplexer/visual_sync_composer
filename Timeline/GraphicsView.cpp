@@ -3,11 +3,6 @@
 
 void GraphicsView::mousePressEvent(QMouseEvent *event)
 {
-    if(!itemAt(event->pos())){
-        std::cout << "Press"<<std::endl;
-    }else{
-        auto item = this->scene()->itemAt(event->pos(),QTransform());
-    }
     QGraphicsView::mousePressEvent(event);
 }
 
@@ -23,6 +18,7 @@ void GraphicsView::mouseReleaseEvent(QMouseEvent *event){
 
 void GraphicsView::keyPressEvent(QKeyEvent *event)
 {
+    emit sendKeyPressSignal(event);
     QGraphicsView::keyPressEvent(event);
 }
 
@@ -36,3 +32,15 @@ void GraphicsView::wheelEvent(QWheelEvent *event){
     event->accept();
     //GraphicsView::wheelEvent(event);
 }
+/*
+void GraphicsView::keyPressEvent(QKeyEvent * event) {
+    qDebug()<<"event";
+    switch (event->key()) {
+    case (Qt::Key_C):
+        if (event->modifiers()==Qt::ControlModifier)
+            qDebug()<<"shift and one";
+        break;
+    }
+    QGraphicsView::keyPressEvent(event);
+}
+*/

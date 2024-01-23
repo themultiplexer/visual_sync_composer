@@ -20,6 +20,7 @@ signals:
     void sendMouseMoveEventSignal(QMouseEvent *event);
     void sendMouseReleaseEventSignal(QMouseEvent *event);
     void sendMouseWheelEventSignal(QWheelEvent *event);
+    void sendKeyPressSignal(QKeyEvent *event);
 
 
     // QWidget interface

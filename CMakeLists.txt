@@ -53,6 +53,8 @@ else()
             EventModel.h
             EventManager.h
             EventManager.cpp
+            Timeline/TrackGroup.h
+            Timeline/TrackGroup.cpp
 
         )
     endif()
