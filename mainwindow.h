@@ -14,6 +14,7 @@
 #include <QThread>
 #include <iostream>
 #include <QGraphicsScene>
+#include <QSpinBox>
 #include <QGraphicsView>
 #include <QGuiApplication>
 #include <QApplication>
@@ -62,16 +63,21 @@ public:
     void updateTrackInfo();
     void sliderChanged();
     void setAlbumArtwork(QPixmap *);
+    void bpmChanged(int bpm);
+
     ~MainWindow();
     TimeLine * timeline;
 
 
 private:
+
+
     Ui::MainWindow *ui;
     WorkerThread *workerThread;
     QLabel *titleLabel, *artistLabel, *imageLabel, *remainingLabel, *pastLabel;
     QSlider *progressSlider;
     QCheckBox *checkbox;
+    QSpinBox *bpm;
 
 
 };

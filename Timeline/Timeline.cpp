@@ -1,4 +1,5 @@
 #include "Timeline.h"
+#include "Track.h"
 #include <cmath>
 
 
@@ -6,6 +7,8 @@ int Track::penWidth = 4;
 bool Track::hasShadow = false;
 float Track::thresholdShadow=0.0f;
 int Track::rounded = 10;
+bool TimeLine::snapToGrid = true;
+
 
 TimeLine::TimeLine(QWidget *_parent)
 {
@@ -25,9 +28,9 @@ TimeLine::TimeLine(QWidget *_parent)
 
     qDebug() << "New Timeline";
     grid = new QGraphicsItemGroup();
-    barResolution = 100;
     followTime = false;
     zoom = 1.0;
+    bpm = 100;
     bars = 400;
     selected = new QList<Track *>();
     clipboardGroup = nullptr;
@@ -39,6 +42,7 @@ TimeLine::TimeLine(QWidget *_parent)
 
     drawGrid();
 
+    // Side "lanes"
     for(int i = 0; i < 5; i++){
         QString text = QString::number(i);
         AlignedTextItem *textitem = new AlignedTextItem(grid);
@@ -56,12 +60,14 @@ TimeLine::TimeLine(QWidget *_parent)
     lineitem->setPen(QPen(Qt::white));
     scene->addItem(lineitem);
 
-    indicator = new Indicator(220);
+
+    timer = new QTimeLine(500000);
+    indicator = new Indicator(220, timer);
     scene->addItem(indicator);
     indicator->setZValue(101);
     indicator->show();
 
-    timer = new QTimeLine(500000);
+
     timer->setEasingCurve(QEasingCurve::Linear);
     animation = new QGraphicsItemAnimation;
     animation->setItem(indicator);
@@ -83,11 +89,6 @@ TimeLine::~TimeLine()
 
 void TimeLine::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
-    if (event) {
-
-    }
-
-    qDebug() << "Press";
     auto presseditem = this->scene->itemAt(event->scenePos(), QTransform());
     QGraphicsItem* group = dynamic_cast<QGraphicsItemGroup *>(presseditem);
     QGraphicsItem* track = dynamic_cast<QGraphicsItemGroup *>(presseditem);
@@ -95,13 +96,20 @@ void TimeLine::mousePressEvent(QGraphicsSceneMouseEvent *event)
     if(!presseditem) {
         clearClipboard();
         clearSelection();
-        qDebug() << "presseditem->group()";
+
+        bool ok;
+        QString text = QInputDialog::getText(this, tr("QInputDialog::getText()"),
+                                             tr("User name:"), QLineEdit::Normal,
+                                             "", &ok);
+        if (ok && !text.isEmpty()) {
+            AddItem(event->scenePos().x() / zoom / Track::barResolution, 1.0, event->scenePos().y() / 35, QColor(0,255,0));
+        }
+
     }
 
     if(!group && track && !track->group()) {
         clearClipboard();
         clearSelection();
-        qDebug() << presseditem->group();
     }
 }
 
@@ -153,15 +161,79 @@ void TimeLine::drawGrid(int xOffset) {
 void TimeLine::setTimeImpl(double time) {
     timer->setPaused(true);
     timer->setCurrentTime((int)(time * 1000.0));
-    timer->setPaused(false);
-
+    if (!paused) {
+        timer->setPaused(false);
+    }
 }
 
 void TimeLine::checkTime()
 {
+    if(events.size() > 0 && nextEvent != events.end() && (*nextEvent)->start < (float)timer->currentTime() / 1000.0) {
+
+        activeEvents.push_back(*nextEvent);
+        nextEvent++;
+    }
+    std::list<EventModel*>::iterator i = activeEvents.begin();
+    while(i != activeEvents.end()) {
+        if ((*i)->start + (*i)->duration < (float)timer->currentTime() / 1000.0) {
+            i = activeEvents.erase(i);
+            continue;
+        }
+        qDebug() << activeEvents.size();
+        i++;
+    }
+
     if (followTime) {
         view->centerOn(indicator->scenePos());
     }
+}
+
+void TimeLine::buildEventList() {
+    activeEvents.clear();
+    events.clear();
+    for (Track * t : tracks) {
+        EventModel *m = new EventModel();
+        m->start = t->startTime;
+        m->duration = t->duration;
+        events.push_back(m);
+    }
+    std::sort(events.begin(),
+              events.end(),
+              [](const EventModel * lhs, const EventModel * rhs)
+              {
+                  return lhs->start < rhs->start;
+              });
+    nextEvent = events.begin();
+
+    while(events.size() > 0 && nextEvent != events.end() && (*nextEvent)->start < (float)timer->currentTime() / 1000.0) {
+        qDebug("Skipping passed events");
+        nextEvent++;
+    }
+}
+
+int TimeLine::getBpm() const
+{
+    return bpm;
+}
+
+float TimeLine::getZoom() const
+{
+    return zoom;
+}
+
+void TimeLine::setPaused(bool newPaused)
+{
+    paused = newPaused;
+    timer->setPaused(paused);
+}
+
+void TimeLine::setBpm(int newBpm)
+{
+    bpm = newBpm;
+    bars = ceil(trackTime) * (bpm / 60.0);
+    drawGrid(Track::barResolution * (60.0 / bpm) * zoom);
+    updateAnimation();
+    update();
 }
 
 bool TimeLine::getFollowTime() const
@@ -182,22 +254,21 @@ void TimeLine::Clear() {
 }
 
 void TimeLine::onZoom(QWheelEvent *event) {
-    qDebug() << "On zoom";
     if (event->angleDelta().x() != 0) {
         view->horizontalScrollBar()->setValue(view->horizontalScrollBar()->value() - event->angleDelta().x());
     } else {
         float oldScrollPos = (float)view->horizontalScrollBar()->value() / zoom;
         zoom += (float)event->angleDelta().y() / 1000.0f;
         zoom = std::clamp(zoom, 0.1f, 10.0f);
-        drawGrid(barResolution * zoom);
+        drawGrid(Track::barResolution * (60.0 / bpm) * zoom);
         for (Track * track : tracks) {
-            track->setZoomLevel(zoom);
+            track->updatePosition();
         }
         if (selectionGroup) {
             selectionGroup->setZoomLevel(zoom);
             selectionGroup->update();
         }
-        view->horizontalScrollBar()->setMaximum(barResolution * zoom * bars - view->width());
+        view->horizontalScrollBar()->setMaximum(Track::barResolution * (60.0 / bpm) * zoom * bars - view->width());
         view->horizontalScrollBar()->setValue(oldScrollPos * zoom);
         updateAnimation();
     }
@@ -205,20 +276,19 @@ void TimeLine::onZoom(QWheelEvent *event) {
 
 void TimeLine::AddItem(float start, float length, int lane,  QColor color)
 {
-    Track *track = new Track(start * barResolution, length * barResolution, lane, color, scene);
+    Track *track = new Track(start, length, lane, color, this);
     tracks.push_back(track);
     scene->addItem(track);
 }
 
 void TimeLine::updateAnimation() {
     animation->clear();
-    for (int i = 0; i < bars; i++)
-        animation->setPosAt((float)i / bars, QPointF(i * barResolution * zoom, 0));
+    for (float i = 0.0; i < bars; i+=0.1)
+        animation->setPosAt((float)i / bars, QPointF(i * Track::barResolution * (60.0 / bpm) * zoom, 0));
 }
 
 void TimeLine::clearSelection() {
     if (selectionGroup) {
-        qDebug() << "clearSelection";
         auto items = selectionGroup->childItems();
         scene->destroyItemGroup(selectionGroup);
         for (auto item : items) {
@@ -230,7 +300,6 @@ void TimeLine::clearSelection() {
 
 void TimeLine::clearClipboard() {
     if (clipboardGroup) {
-        qDebug() << "clearClipboard";
         auto items = clipboardGroup->childItems();
         scene->destroyItemGroup(clipboardGroup);
         for (auto item : items) {
@@ -242,7 +311,6 @@ void TimeLine::clearClipboard() {
 
 void TimeLine::rubberBandChanged(QRect viewportRect, QPointF fromScenePoint, QPointF toScenePoint)
 {
-    qDebug() << "Rubber";
     if (viewportRect.isNull()) {
         qDebug() << "Creating selection";
         selectionGroup = new TrackGroup(this->scene->activePanel());
@@ -267,7 +335,6 @@ void TimeLine::rubberBandChanged(QRect viewportRect, QPointF fromScenePoint, QPo
     for (auto item : selection) {
         auto* track = dynamic_cast<Track *>(item);
         if (track) {
-            //track->setSelected(true);
             selected->push_back(track);
         }
     }
@@ -277,17 +344,16 @@ void TimeLine::setTrackTime(float time)
 {
     if (trackTime != time) {
         timer->setDuration(time * 1000.0);
-        bars = ceil(time) + 1;
         trackTime = time;
+        bars = ceil(trackTime) * (bpm / 60.0);
         updateAnimation();
     }
 }
 
-std::vector<std::tuple<float, float, int>> TimeLine::Serialize()
-{
+std::vector<std::tuple<float, float, int>> TimeLine::Serialize() {
     std::vector<std::tuple<float, float, int>> times;
     for (Track * t : tracks) {
-        auto tu = std::make_tuple(t->scenePos().x() / (float)barResolution, t->length / (float)barResolution, (int)t->scenePos().y() / 35);
+        auto tu = std::make_tuple(t->startTime, t->duration, (int)t->scenePos().y() / 35);
         times.push_back(tu);
     }
     return times;
@@ -295,8 +361,22 @@ std::vector<std::tuple<float, float, int>> TimeLine::Serialize()
 
 void TimeLine::keyPressEvent(QKeyEvent * event) {
     switch (event->key()) {
+    case (Qt::Key_Delete):
+
+        if(selectionGroup){
+            for (auto item : selectionGroup->childItems()) {
+                auto itr = std::remove_if(tracks.begin(),tracks.end(), [&](Track* a){return a == (Track *)item;});
+                tracks.erase(itr,tracks.end());
+            }
+            scene->removeItem(selectionGroup);
+        } else {
+
+        }
+        qDebug() << tracks.size();
+        break;
+
     case (Qt::Key_C):
-        if (event->modifiers()==Qt::ControlModifier)
+        if (event->modifiers()==Qt::ControlModifier){
             clipboardGroup = new TrackGroup();
             clipboardGroup->setZoomLevel(zoom);
             clipboardGroup->setFlag(QGraphicsItem::ItemIsSelectable);
@@ -306,22 +386,21 @@ void TimeLine::keyPressEvent(QKeyEvent * event) {
                 clipboardGroup->addToGroup(clone);
                 clone->setSelected(true);
             }
+        }
         break;
     case (Qt::Key_V):
-        if (event->modifiers()==Qt::ControlModifier)
-            qDebug()<<"Paste";
-
-        if (clipboardGroup) {
-            clearSelection();
-            clipboardGroup->setX(100);
-            scene->addItem(clipboardGroup);
-            for (auto item : clipboardGroup->childItems()) {
-                ((Track *)item)->setZoomLevel(zoom);
-                ((Track *)item)->calculateStartTime();
-                tracks.push_back((Track *)item);
+        if (event->modifiers()==Qt::ControlModifier){
+            if (clipboardGroup) {
+                clearSelection();
+                clipboardGroup->setX(100);
+                clipboardGroup->update();
+                scene->addItem(clipboardGroup);
+                for (auto item : clipboardGroup->childItems()) {
+                    ((Track *)item)->calculateStartTime();
+                    tracks.push_back((Track *)item);
+                }
             }
         }
-
         break;
     }
 }

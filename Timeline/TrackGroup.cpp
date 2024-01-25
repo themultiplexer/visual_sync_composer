@@ -54,22 +54,17 @@ float TrackGroup::getZoomLevel() const
 
 void TrackGroup::setZoomLevel(float newZoomLevel)
 {
+    setX((scenePos().x() / zoomLevel) * newZoomLevel);
     zoomLevel = newZoomLevel;
-    /*
-    QTransform transform;
-    transform.translate(zoomLevel * boundingRect().x() - boundingRect().x(), 0);
-    setTransform(transform);*/
 }
 
 void TrackGroup::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
-    qDebug() << "Item Group Transform:" << transformOriginPoint();
     setCursor(Qt::ClosedHandCursor);
     this->setZValue(101);
     pressed = true;
     oldMousePos = event->scenePos();
     oldPos = pos();
-    qDebug() << "Setting " << scenePos();
 }
 
 void TrackGroup::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
@@ -94,22 +89,11 @@ void TrackGroup::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
             t->calculateStartTime();
             t->update();
         }
-
-        /*
-        QPointF newPos = event->scenePos();
-        int yDiff = newPos.y() - oldPos.y();
-        int dx = (newPos - oldMousePos).x();
-
-        for (auto item : childItems()) {
-            qDebug() << item->pos() << item->scenePos();
-            //((Track *)item)->setStartTime((oldPos.x()+dx / zoom));
-        }*/
     }
 }
 
 void TrackGroup::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 {
-    qDebug() << "Setting " << scenePos();
     pressed = false;
     oldMousePos = event->scenePos();
     oldPos = pos();

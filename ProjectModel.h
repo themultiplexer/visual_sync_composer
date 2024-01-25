@@ -10,7 +10,7 @@
 class ProjectModel {
     friend class boost::serialization::access;
     template <class Archive> void serialize(Archive& ar, unsigned) {
-        ar &name &events;
+        ar &name &bpm &events;
     }
 
     inline friend std::ostream& operator<<(std::ostream &out, ProjectModel &project) {
@@ -25,6 +25,7 @@ class ProjectModel {
 public:
     std::vector<EventModel> events;
     std::string name;
+    int bpm;
 };
 
 #endif // PROJECTMODEL_H

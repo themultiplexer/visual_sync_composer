@@ -7,18 +7,18 @@
 class EventModel {
     friend class boost::serialization::access;
     template <class Archive> void serialize(Archive& ar, unsigned) {
-        ar &start &length &lane;
+        ar &start &duration &lane;
     }
 
     inline friend std::ostream& operator<<(std::ostream &out, EventModel & model) {
-        out << model.start << " - " << model.length;
+        out << model.start << " - " << model.duration;
 
         return out;
     }
 
 public:
     std::string name;
-    float start, length;
+    float start, duration;
     int lane;
 };
 

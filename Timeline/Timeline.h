@@ -19,10 +19,14 @@
 #include <QGraphicsRectItem>
 #include "GraphicsScene.h"
 #include "Indicator.h"
-#include "Track.h"
 #include "GraphicsView.h"
 #include "TrackGroup.h"
 #include "AlignedTextItem.h"
+#include <QInputDialog>
+#include "../EventModel.h"
+#include <QSpinBox>
+
+class Track;
 
 class TimeLine : public QWidget
 {
@@ -50,11 +54,18 @@ public:
     Indicator *indicator;
     QGraphicsItemAnimation *animation;
 
+    static bool snapToGrid;
     bool getFollowTime() const;
-
     void setFollowTime(bool newFollowTime);
     virtual void keyPressEvent(QKeyEvent * event) override;
 
+    void setBpm(int newBpm);
+    int getBpm() const;
+    void setPaused(bool newPaused);
+    void setZoom(float newZoom);
+    float getZoom() const;
+
+    void buildEventList();
 
 signals:
     void setTime(double time);
@@ -69,20 +80,28 @@ private:
     void setTimeImpl(double time);
     void checkTime();
 
+    int bpm;
     int frame, bars;
     int minFrame, maxFrame;
     float zoom;
     float trackTime;
-    bool followTime;
-    int barResolution;
+    bool followTime, paused;
+
     QGraphicsItemGroup *grid;
     std::vector<Track *> tracks;
+
     QTimeLine *timer;
+
+    std::vector<EventModel *> events;
+    std::list<EventModel *> activeEvents;
+    std::vector<EventModel *>::iterator nextEvent;
+
     QList<Track *> *selected;
     TrackGroup *selectionGroup;
     TrackGroup *clipboardGroup;
     void clearSelection();
     void clearClipboard();
+
 };
 
 #endif // TIMELINE_H

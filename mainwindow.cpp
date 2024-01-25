@@ -69,7 +69,12 @@ MainWindow::MainWindow(QWidget *parent)
     checkbox->setText("Follow Time");
     connect(checkbox, &QCheckBox::stateChanged, this, &MainWindow::checkChanged);
     toolLayout->addWidget(checkbox);
+    bpm = new QSpinBox();
+    bpm->setMinimum(1);
+    bpm->setMaximum(500);
+    toolLayout->addWidget(bpm);
 
+    connect(bpm, qOverload<int>(&QSpinBox::valueChanged), this, &MainWindow::bpmChanged);
 
     timeline = new TimeLine();
     timeline->AddItem(0.0, 1.0, 0, QColor(255,0,0));
@@ -88,16 +93,18 @@ MainWindow::MainWindow(QWidget *parent)
     mainLayout->addLayout(buttonLayout);
 
     // Set up connections for buttons to slots
-    QObject::connect(playPauseButton, &QPushButton::clicked, this, &MainWindow::playpause);
-    QObject::connect(stopButton, &QPushButton::clicked, this, &MainWindow::stop);
-    QObject::connect(seekButton, &QPushButton::clicked, this, &MainWindow::seek);
+    connect(playPauseButton, &QPushButton::clicked, this, &MainWindow::playpause);
+    connect(stopButton, &QPushButton::clicked, this, &MainWindow::stop);
+    connect(seekButton, &QPushButton::clicked, this, &MainWindow::seek);
 
-    QObject::connect(saveButton, &QPushButton::clicked, this, &MainWindow::save);
-    QObject::connect(loadButton, &QPushButton::clicked, this, &MainWindow::load);
+    connect(saveButton, &QPushButton::clicked, this, &MainWindow::save);
+    connect(loadButton, &QPushButton::clicked, this, &MainWindow::load);
 
     workerThread = new WorkerThread();
-    QObject::connect(workerThread, &QThread::started, workerThread, &WorkerThread::onThreadStarted);
+    connect(workerThread, &QThread::started, workerThread, &WorkerThread::onThreadStarted);
     workerThread->start();
+
+    bpm->setValue(120);
 }
 
 
@@ -163,7 +170,15 @@ void MainWindow::updateTrackInfo() {
         std::cerr << "Error: 'xesam:title' key not found in metadata." << std::endl;
     }
 
-    //string playbackStatus = concatenatorProxy->getProperty("PlaybackStatus").onInterface("org.mpris.MediaPlayer2.Player").get<std::string>();
+    std::string playbackStatus = concatenatorProxy->getProperty("PlaybackStatus").onInterface("org.mpris.MediaPlayer2.Player").get<std::string>();
+
+    if(playbackStatus == "Playing") {
+        timeline->setPaused(false);
+    } else if(playbackStatus == "Paused") {
+        timeline->setPaused(true);
+    }
+
+
     int64_t position = concatenatorProxy->getProperty("Position").onInterface("org.mpris.MediaPlayer2.Player").get<int64_t>();
     if (!progressSlider->isSliderDown()) {
         progressSlider->setSliderPosition(static_cast<double>(position) / 1e6);
@@ -219,6 +234,7 @@ void MainWindow::save() {
     }
 
     ProjectModel project;
+    project.bpm = bpm->value();
     project.name = "LOL WTF";
 
     auto tracks = timeline->Serialize();
@@ -226,7 +242,7 @@ void MainWindow::save() {
     for (auto track : tracks) {
         EventModel event;
         event.start = std::get<0>(track);
-        event.length = std::get<1>(track);
+        event.duration = std::get<1>(track);
         event.lane = std::get<2>(track);
         project.events.push_back(event);
     }
@@ -251,8 +267,10 @@ void MainWindow::load() {
         boost::archive::binary_iarchive ia(ifs);
         ia >> project;
 
+        bpm->setValue(project.bpm);
+
         for (EventModel e : project.events) {
-            timeline->AddItem(e.start, e.length, e.lane, QColor(255,0,0));
+            timeline->AddItem(e.start, e.duration, e.lane, QColor(255,0,0));
         }
 
         std::cout << project;
@@ -272,4 +290,9 @@ void MainWindow::setAlbumArtwork(QPixmap *artwork) {
 MainWindow::~MainWindow()
 {
     delete ui;
+}
+
+void MainWindow::bpmChanged(int bpm)
+{
+    timeline->setBpm(bpm);
 }

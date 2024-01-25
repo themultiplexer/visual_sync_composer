@@ -1,6 +1,7 @@
 #ifndef TRACK_H
 #define TRACK_H
 
+#include "Timeline.h"
 #include <QGraphicsItem>
 #include <QGraphicsView>
 #include <QBrush>
@@ -28,41 +29,39 @@ class Track : public QGraphicsItem
 {
 public:
 
-    Track(float start, int _length, int lane, QColor _color, QGraphicsScene *_scene){
+    Track(float start, float _duration, int lane, QColor _color, TimeLine *_timeline){
+        timeline = _timeline;
         setFlags(ItemIsMovable);
         setFlag(ItemIsSelectable);
         setAcceptHoverEvents(true);
         setFlag(QGraphicsItem::ItemSendsGeometryChanges);
         setFlags(flags() | QGraphicsItem::ItemIsMovable);
-        zoom = 1.0;
         startTime = start;
+        duration = _duration;
         color = _color;
         outlineColor = color;
         brush = QBrush(color);
         pen = QPen(outlineColor, penWidth);
         pen.setCapStyle(Qt::RoundCap);
-        length = _length;
         height = 30;
 
-        setPos(QPointF(start * zoom, lane * 35));
+        setPos(QPointF(start * barResolution * timeline->getZoom(), lane * 35));
 
         oldPos = scenePos();
-        scene = _scene;
+
 
 
         text = QString("tReplaySong1");
     }
 
+    static const int barResolution = 100;
+
     static Track * fromTrack(const Track *originalTrack){
-        return new Track(originalTrack->startTime, originalTrack->length, (int)originalTrack->pos().y() / 35, originalTrack->color, originalTrack->scene);
+        return new Track(originalTrack->startTime, originalTrack->duration, (int)originalTrack->pos().y() / 35, originalTrack->color, originalTrack->timeline);
     }
 
     Track* clone() const { return Track::fromTrack(this); }
 
-    void SetLength(float _length){
-        length = _length;
-        update();
-    }
 
     QColor color;
     QColor outlineColor;
@@ -74,25 +73,26 @@ public:
     static float thresholdShadow;
     QBrush brush;
     QPen pen;
-    float startTime;
-    int length, oldLength, height;
+    float startTime, duration;
+    int oldLength, height;
     EditMode mode = EditMode::None;
     HoverState hoverState = HoverState::None;
     QPointF oldPos,oldMousePos;
-    QGraphicsScene *scene;
-    float zoom;
+    TimeLine *timeline;
     QString text;
     // QGraphicsItem interface
 public:
     virtual QRectF boundingRect() const override;
     virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
-    void setZoomLevel(float zoom);
 
     // QGraphicsItem interface
     void setStartTime(float newStartTime);
     void update(const QRectF &rect = QRectF());
 
     void calculateStartTime();
+    void setDuration(float newDuration);
+
+    void updatePosition();
 protected:
     virtual void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
     virtual void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override;
@@ -105,6 +105,7 @@ protected:
 private:
 
     QVariant itemChange(GraphicsItemChange change, const QVariant &value) override;
+    float length() const;
 };
 
 #endif // TRACK_H

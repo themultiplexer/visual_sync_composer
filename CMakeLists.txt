@@ -51,10 +51,11 @@ else()
 
             ProjectModel.h
             EventModel.h
-            EventManager.h
-            EventManager.cpp
+
+
             Timeline/TrackGroup.h
             Timeline/TrackGroup.cpp
+            TODO.md
 
         )
     endif()

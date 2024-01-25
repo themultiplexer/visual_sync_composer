@@ -1,11 +1,11 @@
 #include "Indicator.h"
-#include "qgraphicsscene.h"
 
-Indicator::Indicator(float height):QGraphicsItem ()
+Indicator::Indicator(float height, QTimeLine *timer):QGraphicsItem ()
 {
+    mytimer = timer;
     pen = QPen(Qt::white,2);
     brush = QBrush(Qt::RoundCap);
-    brush.setColor(QColor("#50f"));
+    brush.setColor(QColor(0,0, 200));
     points<<QPointF(-10,-20)<<QPointF(0,0)<<QPointF(10,-20);
     setHeight(height);
     setAcceptHoverEvents(true);
@@ -27,6 +27,12 @@ void Indicator::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
     painter->drawLine(line);
     painter->setBrush(brush);
     painter->drawPolygon(points);
+
+    painter->drawText(10, -30, 100, 50, Qt::AlignBaseline, QString(std::to_string(mytimer->currentTime() / 1000.0).c_str()));
+}
+
+void Indicator::setHeight(float height) {
+    line.setP2(QPoint(0,height));
 }
 
 void Indicator::mousePressEvent(QGraphicsSceneMouseEvent *event)
@@ -73,12 +79,7 @@ void Indicator::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
 QVariant Indicator::itemChange(GraphicsItemChange change, const QVariant &value)
 {
     if (change == ItemPositionChange && scene()) {
-        QPointF newPos = value.toPointF();
-        newPos.setY(y());
-        if(newPos.x() < 0){
-            newPos.setX(0);
-        }
-        return newPos;
+
     }
     //scene()->update();
     return QGraphicsItem::itemChange(change, value);
