@@ -19,14 +19,10 @@ signals:
     void sendMousePressEventSignal(QMouseEvent *event);
     void sendMouseMoveEventSignal(QMouseEvent *event);
     void sendMouseReleaseEventSignal(QMouseEvent *event);
-    void sendMouseWheelEventSignal(QWheelEvent *event);
     void sendKeyPressSignal(QKeyEvent *event);
-
-
     // QWidget interface
 protected:
     virtual void keyPressEvent(QKeyEvent *event) override;
-    virtual void wheelEvent(QWheelEvent *event) override;
 
     // QGraphicsView interface
 protected:

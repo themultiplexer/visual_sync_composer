@@ -50,9 +50,10 @@ void Indicator::mousePressEvent(QGraphicsSceneMouseEvent *event)
 
 void Indicator::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 {
+    qDebug() << "WTH";
     QPointF pos = event->scenePos();
     if(pressed){
-        this->setPos(pos.x(),y());  
+        this->setPos(pos.x(), 0);
     }
     QGraphicsItem::mouseMoveEvent(event);
     update();

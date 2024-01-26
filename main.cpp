@@ -32,9 +32,8 @@ MainWindow *mainWindow;
 
 void WorkerThread::run() {
     while (!isInterruptionRequested()) {
-        msleep(1000);
+        msleep(250);
         mainWindow->updateTrackInfo();
-
     }
 }
 

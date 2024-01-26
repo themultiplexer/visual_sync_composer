@@ -2,6 +2,8 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QCloseEvent>
+#include <QMessageBox>
 #include <QLabel>
 #include <QSlider>
 #include "downloader.h"
@@ -69,6 +71,7 @@ public:
     TimeLine * timeline;
 
 
+    void loadLyrics();
 private:
 
 
@@ -80,5 +83,6 @@ private:
     QSpinBox *bpm;
 
 
+    void closeEvent(QCloseEvent *event);
 };
 #endif // MAINWINDOW_H

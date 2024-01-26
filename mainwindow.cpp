@@ -50,8 +50,10 @@ MainWindow::MainWindow(QWidget *parent)
 
     QPushButton *saveButton = new QPushButton("Save", centralWidget);
     QPushButton *loadButton = new QPushButton("Load", centralWidget);
+    QPushButton *loadLyricsButton = new QPushButton("Load Lyrics", centralWidget);
     QHBoxLayout* buttonLayout = new QHBoxLayout(centralWidget);
     buttonLayout->addWidget(loadButton);
+    buttonLayout->addWidget(loadLyricsButton);
     buttonLayout->addWidget(saveButton);
 
     QHBoxLayout* sliderLayout = new QHBoxLayout(centralWidget);
@@ -77,10 +79,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(bpm, qOverload<int>(&QSpinBox::valueChanged), this, &MainWindow::bpmChanged);
 
     timeline = new TimeLine();
-    timeline->AddItem(0.0, 1.0, 0, QColor(255,0,0));
-    timeline->AddItem(1.0, 2.0, 1, QColor(255,0,255));
-    timeline->AddItem(2.0, 3.0, 3, QColor(0,255,255));
-    timeline->AddItem(3.0, 4.0, 4, QColor(255,255,0));
+    timeline->addItem(1.0, 1.0, 0, "Fuck", QColor(255,0,0));
 
     // Add widgets to the layout
     mainLayout->addWidget(imageLabel);
@@ -92,6 +91,8 @@ MainWindow::MainWindow(QWidget *parent)
     mainLayout->addWidget(timeline->view);
     mainLayout->addLayout(buttonLayout);
 
+    timeline->update();
+
     // Set up connections for buttons to slots
     connect(playPauseButton, &QPushButton::clicked, this, &MainWindow::playpause);
     connect(stopButton, &QPushButton::clicked, this, &MainWindow::stop);
@@ -99,6 +100,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(saveButton, &QPushButton::clicked, this, &MainWindow::save);
     connect(loadButton, &QPushButton::clicked, this, &MainWindow::load);
+    connect(loadLyricsButton, &QPushButton::clicked, this, &MainWindow::loadLyrics);
 
     workerThread = new WorkerThread();
     connect(workerThread, &QThread::started, workerThread, &WorkerThread::onThreadStarted);
@@ -224,6 +226,8 @@ void MainWindow::sliderChanged() {
     auto trackid = metadata["mpris:trackid"].get<std::string>();
     auto trackObject = sdbus::ObjectPath(trackid);
     concatenatorProxy->callMethod("SetPosition").onInterface("org.mpris.MediaPlayer2.Player").withArguments(trackObject, (int64_t)(progressSlider->value() * 1e6));
+    timeline->setTimeImpl(progressSlider->value());
+    timeline->buildEventList();
 }
 
 void MainWindow::save() {
@@ -237,14 +241,10 @@ void MainWindow::save() {
     project.bpm = bpm->value();
     project.name = "LOL WTF";
 
-    auto tracks = timeline->Serialize();
+    auto tracks = timeline->getTracks();
 
     for (auto track : tracks) {
-        EventModel event;
-        event.start = std::get<0>(track);
-        event.duration = std::get<1>(track);
-        event.lane = std::get<2>(track);
-        project.events.push_back(event);
+        project.events.push_back(EventModel(track));
     }
 
     std::ofstream ofs(filePath.toStdString(), std::ios::binary);
@@ -260,7 +260,7 @@ void MainWindow::load() {
     if (!filePath.isEmpty()) {
         qDebug() << "gotFile";
 
-        timeline->Clear();
+        timeline->clear();
 
         ProjectModel project;
         std::ifstream ifs(filePath.toStdString(), std::ios::binary);
@@ -270,16 +270,50 @@ void MainWindow::load() {
         bpm->setValue(project.bpm);
 
         for (EventModel e : project.events) {
-            timeline->AddItem(e.start, e.duration, e.lane, QColor(255,0,0));
+            timeline->addItem(e.start, e.duration, e.lane, e.text, QColor(255,0,0));
         }
 
         std::cout << project;
     }
 }
 
+void MainWindow::loadLyrics() {
+    QString filePath = QFileDialog::getOpenFileName(this, tr("Load Composition"), QDir::currentPath(), tr("Text (*.txt)"));
+
+    if (!filePath.isEmpty()) {
+        std::ifstream file;
+        file.open(filePath.toStdString());
+        if (!file.is_open()) return;
+        std::string aword;
+        std::vector<std::string> words;
+        while (file >> aword)
+        {
+            words.push_back(aword);
+        }
+
+        for (int i = 0; i < words.size(); ++i) {
+            timeline->addItem(((float)i/words.size()) * 150.0, (float)words[i].size() / 10.0, i % 4, words[i], QColor(255,0,0));
+        }
+    }
+}
+
 void MainWindow::checkChanged(int state)
 {
     timeline->setFollowTime(checkbox->isChecked());
+}
+
+
+void MainWindow::closeEvent (QCloseEvent *event)
+{
+    QMessageBox::StandardButton resBtn = QMessageBox::question( this, "APP_NAME",
+                                                               tr("Are you sure?\n"),
+                                                               QMessageBox::No | QMessageBox::Yes,
+                                                               QMessageBox::Yes);
+    if (resBtn != QMessageBox::Yes) {
+        event->ignore();
+    } else {
+        event->accept();
+    }
 }
 
 

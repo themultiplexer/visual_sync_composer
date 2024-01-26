@@ -27,11 +27,7 @@ void GraphicsView::drawBackground(QPainter *painter, const QRectF &rect){
     painter->fillRect(rect,brush);
 }
 
-void GraphicsView::wheelEvent(QWheelEvent *event){
-    emit sendMouseWheelEventSignal(event);
-    event->accept();
-    //GraphicsView::wheelEvent(event);
-}
+
 /*
 void GraphicsView::keyPressEvent(QKeyEvent * event) {
     qDebug()<<"event";

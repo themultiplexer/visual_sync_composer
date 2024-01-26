@@ -2,13 +2,6 @@
 #include <cmath>
 #include <iomanip>
 
-void Track::setStartTime(float newStartTime)
-{
-    startTime = newStartTime;
-    setX(startTime * timeline->getZoom());
-    update();
-}
-
 float Track::length() const {
     return duration * 100 * timeline->getZoom();
 }
@@ -44,17 +37,21 @@ void Track::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWi
 }
 
 void Track::update(const QRectF &rect) {
+    /*
     std::stringstream s;
     s << " " << std::fixed << std::showpoint << std::setprecision(2) << startTime  << " " << duration;
     text = QString(s.str().c_str());
+    */
 }
 
 void Track::updatePosition() {
-    setX(startTime * barResolution * timeline->getZoom());
+    setX(startTime * TimeLine::barResolution * timeline->getZoom());
+    update();
 }
 
 void Track::calculateStartTime(){
-    startTime = scenePos().x() / barResolution / timeline->getZoom();
+    startTime = scenePos().x() / TimeLine::barResolution / timeline->getZoom();
+    qDebug() << "Setting start time: " << startTime;
 }
 
 void Track::mousePressEvent(QGraphicsSceneMouseEvent *event){
@@ -75,7 +72,7 @@ void Track::mousePressEvent(QGraphicsSceneMouseEvent *event){
     }
 
     oldMousePos = event->scenePos();
-    oldPos = scenePos() - QPointF(transform().dx(), transform().dy());
+    oldPos = scenePos();
     oldLength = length();
 }
 
@@ -102,12 +99,12 @@ void Track::mouseMoveEvent(QGraphicsSceneMouseEvent *event){
                 if(TimeLine::snapToGrid) {
                     setY(oldPos.y());
                     qreal newx = (oldPos.x()+dx);
-                    int gridWidth = barResolution * (60.0 / timeline->getBpm()) * timeline->getZoom();
+                    float gridWidth = timeline->barWidth() * timeline->getZoom();
+                    gridWidth /= 2.0f; // TODO make grid snap intervals
                     qreal snappedX = round(newx/gridWidth) * gridWidth;
                     qreal distance = std::abs(newx - snappedX);
 
-                    if (distance <= 25.0)
-                    {
+                    if (distance <= 25.0) {
                         newPos.setX(snappedX);
                     } else {
                         newPos.setX(newx);
@@ -135,17 +132,17 @@ void Track::mouseMoveEvent(QGraphicsSceneMouseEvent *event){
                 if (oldLength - dx > 0) {
                     if(oldPos.x()+dx >= 0) {
                         setX(oldPos.x()+dx);
-                        setDuration((float)(oldLength - dx) / timeline->getZoom() / barResolution);
+                        setDuration((float)(oldLength - dx) / timeline->getZoom() / TimeLine::barResolution);
                     } else {
                         setX(0);
-                        setDuration((oldLength + oldMousePos.x()) / timeline->getZoom() / barResolution);
+                        setDuration((oldLength + oldMousePos.x()) / timeline->getZoom() / TimeLine::barResolution);
                     }
                 }
             }
             break;
         case EditMode::ResizeRight:
             if (event->pos().x() > 0) {
-                setDuration(event->pos().x() / timeline->getZoom() / barResolution);
+                setDuration(event->pos().x() / timeline->getZoom() / TimeLine::barResolution);
             }
             break;
         default:
@@ -184,17 +181,17 @@ void Track::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
 void Track::mouseReleaseEvent(QGraphicsSceneMouseEvent *event){
     mode = EditMode::None;
     oldMousePos = event->scenePos();
-
-    if (oldPos != scenePos() || length() != oldLength) {
-        qDebug("Moved");
-        timeline->buildEventList();
-    }
-
+    bool wasChanged = oldPos != scenePos() || length() != oldLength;
     oldPos = scenePos();
     calculateStartTime();
     this->setZValue(0);
     setCursor(Qt::ArrowCursor);
     update();
+
+    if (wasChanged) {
+        qDebug("Changed");
+        timeline->buildEventList();
+    }
 }
 void Track::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event){
     qDebug()<<"Double Click";

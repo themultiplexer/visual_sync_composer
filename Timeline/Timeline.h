@@ -36,15 +36,13 @@ public:
     explicit TimeLine(QWidget *parent = nullptr);
     ~TimeLine();
     QGraphicsItem* ItemAt(QPointF position){return scene->itemAt(position,QTransform());}
-    void AddItem(float start, float length, int lane,  QColor color);
-    void SetFrame(int _frame){if(_frame < maxFrame)frame=_frame;}
+    void addItem(float start, float length, int lane, std::string text,  QColor color);
     void setTrackTime(float time);
-    void Clear();
+    void clear();
     void startAnimation();
     void timerFinished();
     void updateAnimation();
     void rubberBandChanged(QRect viewportRect, QPointF fromScenePoint, QPointF toScenePoint);
-    std::vector<std::tuple<float, float, int>> Serialize();
 
     GraphicsScene *scene;
     GraphicsView *view;
@@ -57,15 +55,22 @@ public:
     static bool snapToGrid;
     bool getFollowTime() const;
     void setFollowTime(bool newFollowTime);
-    virtual void keyPressEvent(QKeyEvent * event) override;
 
     void setBpm(int newBpm);
     int getBpm() const;
     void setPaused(bool newPaused);
-    void setZoom(float newZoom);
-    float getZoom() const;
-
+    void setZoom(double newZoom);
+    double getZoom() const;
     void buildEventList();
+    std::vector<Track *> getTracks() const;
+    float barWidth();
+    void setTimeImpl(double time);
+
+    virtual void keyPressEvent(QKeyEvent * event) override;
+
+    static const int barResolution = 100;
+
+
 
 signals:
     void setTime(double time);
@@ -75,15 +80,15 @@ signals:
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event);
 private:
-    void onZoom(QWheelEvent *event);
-    void drawGrid(int xOffset = 100);
-    void setTimeImpl(double time);
+    void onZoom(QGraphicsSceneWheelEvent *event);
+    void drawGrid(float xOffset = 100.0f);
+
     void checkTime();
 
     int bpm;
     int frame, bars;
     int minFrame, maxFrame;
-    float zoom;
+    double zoom;
     float trackTime;
     bool followTime, paused;
 

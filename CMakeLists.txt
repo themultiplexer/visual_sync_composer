@@ -56,6 +56,7 @@ else()
             Timeline/TrackGroup.h
             Timeline/TrackGroup.cpp
             TODO.md
+            EventModel.cpp
 
         )
     endif()
