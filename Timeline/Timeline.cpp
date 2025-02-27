@@ -1,7 +1,8 @@
 #include "Timeline.h"
+#include "EventProcessor.h"
+#include "GridGraphicsGroup.h"
 #include "Track.h"
 #include <cmath>
-
 
 int Track::penWidth = 4;
 bool Track::hasShadow = false;
@@ -10,8 +11,9 @@ int Track::rounded = 10;
 bool TimeLine::snapToGrid = true;
 
 
-TimeLine::TimeLine(QWidget *_parent)
+TimeLine::TimeLine(EventProcessor *ep, QWidget *_parent)
 {
+    eventProcessor = ep;
     scene = new GraphicsScene();
     view = new GraphicsView(scene);
     view->setOptimizationFlag(QGraphicsView::IndirectPainting, true);
@@ -32,6 +34,7 @@ TimeLine::TimeLine(QWidget *_parent)
     zoom = 1.0;
     bpm = 100;
     bars = 400;
+    gridSnapInterval = 4;
     selected = new QList<Track *>();
     clipboardGroup = nullptr;
     selectionGroup = nullptr;
@@ -41,25 +44,6 @@ TimeLine::TimeLine(QWidget *_parent)
     setMouseTracking(true);
 
     drawGrid();
-
-    // Side "lanes"
-    for(int i = 0; i < 5; i++){
-        QString text = QString::number(i);
-        AlignedTextItem *textitem = new AlignedTextItem(grid);
-        textitem->setText(text);
-        textitem->setAligment(Qt::AlignLeft | Qt::AlignTop);
-        textitem->setDefaultTextColor(Qt::white);
-        textitem->setBoundingRect(-50, i * 35, 100, 50);
-        QGraphicsLineItem *lineitem = new QGraphicsLineItem(-100, i * 35, 0, i * 35);
-        lineitem->setPen(QPen(Qt::white));
-        scene->addItem(textitem);
-        scene->addItem(lineitem);
-    }
-
-    QGraphicsLineItem *lineitem = new QGraphicsLineItem(0, 0, 0, 200);
-    lineitem->setPen(QPen(Qt::white));
-    scene->addItem(lineitem);
-
 
     timer = new QTimeLine(500000);
     indicator = new Indicator(220, timer);
@@ -92,9 +76,10 @@ void TimeLine::mousePressEvent(QGraphicsSceneMouseEvent *event)
 
     auto presseditem = this->scene->itemAt(event->scenePos(), QTransform());
     QGraphicsItem* group = dynamic_cast<QGraphicsItemGroup *>(presseditem);
-    QGraphicsItem* track = dynamic_cast<QGraphicsItemGroup *>(presseditem);
+    QGraphicsItem* gridgroup = dynamic_cast<GridGraphicsGroup *>(presseditem);
+    QGraphicsItem* track = dynamic_cast<Track *>(presseditem);
 
-    if(!presseditem) {
+    if(!presseditem || gridgroup || !group && track && !track->group()) {
 
         if(!selectionGroup) {
             bool ok;
@@ -109,11 +94,6 @@ void TimeLine::mousePressEvent(QGraphicsSceneMouseEvent *event)
         clearClipboard();
         clearSelection();
     }
-
-    if(!group && track && !track->group()) {
-        clearClipboard();
-        clearSelection();
-    }
 }
 
 void TimeLine::startAnimation() {
@@ -122,6 +102,7 @@ void TimeLine::startAnimation() {
 
 void TimeLine::timerFinished()
 {
+    qDebug()<< "Timer finished";
     timer->start();
 }
 
@@ -132,8 +113,25 @@ float TimeLine::barWidth() {
 void TimeLine::drawGrid(float barWidth) {
     if (grid->childItems().size() > 0) {
         scene->removeItem(grid);
-        grid = new QGraphicsItemGroup();
+        grid = new GridGraphicsGroup();
     }
+    // Side "lanes"
+    for(int i = 0; i < 10; i++){
+        QString text = QString(std::to_string(i).c_str());
+        AlignedTextItem *textitem = new AlignedTextItem(grid);
+        textitem->setText(text);
+        textitem->setAligment(Qt::AlignLeft);
+        textitem->setDefaultTextColor(Qt::white);
+        textitem->setBoundingRect(-100, i * 35, 100, 50);
+        grid->addToGroup(textitem);
+        QGraphicsLineItem *lineitem = new QGraphicsLineItem(-100, (i + 1) * 35, 0, (i + 1) * 35);
+        lineitem->setPen(QPen(Qt::white));
+        grid->addToGroup(lineitem);
+    }
+
+    QGraphicsLineItem *lineitem = new QGraphicsLineItem(0, 0, 0, 350);
+    lineitem->setPen(QPen(Qt::white));
+    grid->addToGroup(lineitem);
 
     QFont font = scene->font();
     QFontMetricsF fontMetrics(font);
@@ -158,8 +156,8 @@ void TimeLine::drawGrid(float barWidth) {
         lineitem->setPen(QPen(Qt::white));
         grid->addToGroup(lineitem);
 
-        QGraphicsLineItem *lineitem2 = new QGraphicsLineItem(i * barWidth, 0, i * barWidth, 100);
-        lineitem2->setPen(QPen(Qt::white));
+        QGraphicsLineItem *lineitem2 = new QGraphicsLineItem(i * barWidth, 0, i * barWidth, 350);
+        lineitem2->setPen(QPen(QColor(100,100,100)));
         grid->addToGroup(lineitem2);
     }
 
@@ -183,23 +181,37 @@ void TimeLine::setTimeImpl(double time) {
 
 void TimeLine::checkTime()
 {
-    if(events.size() > 0 && nextEvent != events.end() && (*nextEvent)->start < (float)timer->currentTime() / 1000.0) {
-        activeEvents.push_back(*nextEvent);
-        qDebug() << (*nextEvent)->text.c_str();
-        nextEvent++;
-    }
+
     std::list<EventModel*>::iterator i = activeEvents.begin();
     while(i != activeEvents.end()) {
         if ((*i)->start + (*i)->duration < (float)timer->currentTime() / 1000.0) {
+            eventProcessor->textEvent(" ");
             i = activeEvents.erase(i);
             continue;
         }
         i++;
     }
 
+    if(events.size() > 0 && nextEvent != events.end() && (*nextEvent)->start < (float)timer->currentTime() / 1000.0) {
+        activeEvents.push_back(*nextEvent);
+        eventProcessor->textEvent((*nextEvent)->text);
+        nextEvent++;
+    }
+
+
     if (followTime) {
         view->centerOn(indicator->scenePos());
     }
+}
+
+int TimeLine::getGridSnapInterval() const
+{
+    return gridSnapInterval;
+}
+
+void TimeLine::setGridSnapInterval(int newGridSnapInterval)
+{
+    gridSnapInterval = newGridSnapInterval;
 }
 
 std::vector<Track *> TimeLine::getTracks() const
@@ -246,9 +258,6 @@ void TimeLine::setPaused(bool newPaused)
 void TimeLine::setBpm(int newBpm)
 {
     bpm = newBpm;
-    bars = ceil(trackTime) * (bpm / 60.0);
-    drawGrid(barWidth() * zoom);
-    updateAnimation();
     update();
 }
 
@@ -256,8 +265,6 @@ bool TimeLine::getFollowTime() const
 {
     return followTime;
 }
-
-
 
 void TimeLine::setFollowTime(bool newFollowTime)
 {
@@ -279,7 +286,7 @@ void TimeLine::onZoom(QGraphicsSceneWheelEvent *event) {
         auto oldCenter = view->mapToScene(view->viewport()->rect().center()) / zoom;
         zoom += (float)event->delta() / 1000.0f;
         zoom = std::clamp(zoom, 0.1, 10.0);
-        drawGrid(barWidth() * zoom);
+
         for (Track * track : tracks) {
             track->updatePosition();
         }
@@ -287,11 +294,11 @@ void TimeLine::onZoom(QGraphicsSceneWheelEvent *event) {
             selectionGroup->setZoomLevel(zoom);
             selectionGroup->update();
         }
-        view->horizontalScrollBar()->setMaximum(barResolution * zoom * bars - view->width());
+        view->horizontalScrollBar()->setMaximum(barWidth() * zoom * (bars + 1) - view->width());
         view->centerOn(oldCenter * zoom);
-        updateAnimation();
-        indicator->setX((timer->currentTime() / 1000.0) * barResolution * zoom);
 
+        indicator->setX((timer->currentTime() / 1000.0) * barResolution * zoom);
+        update();
     }
 }
 
@@ -367,8 +374,14 @@ void TimeLine::setTrackTime(float time)
         timer->setDuration(time * 1000.0);
         trackTime = time;
         bars = ceil(trackTime) * (bpm / 60.0);
-        drawGrid();
+        update();
     }
+}
+
+void TimeLine::update(const QRectF &rect) {
+    bars = ceil(trackTime) * (bpm / 60.0);
+    drawGrid(barWidth() * zoom);
+    updateAnimation();
 }
 
 void TimeLine::keyPressEvent(QKeyEvent * event) {
@@ -404,7 +417,7 @@ void TimeLine::keyPressEvent(QKeyEvent * event) {
         if (event->modifiers()==Qt::ControlModifier){
             if (clipboardGroup) {
                 clearSelection();
-                clipboardGroup->setX(100);
+                clipboardGroup->setX(view->mapToScene(view->viewport()->rect().center()).x() / zoom);
                 clipboardGroup->update();
                 scene->addItem(clipboardGroup);
                 for (auto item : clipboardGroup->childItems()) {

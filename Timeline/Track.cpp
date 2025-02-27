@@ -19,6 +19,8 @@ void Track::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWi
     Q_UNUSED(widget);
     if (isSelected()) {
         painter->setBrush(brush);
+    } else {
+        painter->setBrush(Qt::black);
     }
 
     painter->setPen(pen);
@@ -100,7 +102,7 @@ void Track::mouseMoveEvent(QGraphicsSceneMouseEvent *event){
                     setY(oldPos.y());
                     qreal newx = (oldPos.x()+dx);
                     float gridWidth = timeline->barWidth() * timeline->getZoom();
-                    gridWidth /= 2.0f; // TODO make grid snap intervals
+                    gridWidth /= timeline->getGridSnapInterval();
                     qreal snappedX = round(newx/gridWidth) * gridWidth;
                     qreal distance = std::abs(newx - snappedX);
 

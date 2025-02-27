@@ -1,7 +1,7 @@
 #ifndef PROJECTMODEL_H
 #define PROJECTMODEL_H
 
-#include "EventModel.h"
+#include "Timeline/EventModel.h"
 #include <boost/serialization/access.hpp>
 #include <vector>
 #include <iostream>

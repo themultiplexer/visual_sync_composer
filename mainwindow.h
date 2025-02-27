@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include <QCloseEvent>
+#include <QOpenGLWidget>
 #include <QMessageBox>
 #include <QLabel>
 #include <QSlider>
@@ -36,8 +37,12 @@
 #include <QFileDialog>
 #include <QThread>
 #include <QCheckBox>
-#include "./ui_mainwindow.h"
+#include "ui_mainwindow.h"
+#include "vscslider.h"
 #include "thread.h"
+#include "audioanalyzer.h"
+#include "oglwidget.h"
+#include "wifieventprocessor.h"
 #include <sdbus-c++/sdbus-c++.h>
 #include <fstream>
 #include <boost/archive/binary_oarchive.hpp>
@@ -55,7 +60,9 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    MainWindow(QWidget *parent = nullptr);
+    MainWindow(WifiEventProcessor *ep, QWidget *parent = nullptr);
+    ~MainWindow();
+
     void playpause();
     void stop();
     void seek();
@@ -66,23 +73,20 @@ public:
     void sliderChanged();
     void setAlbumArtwork(QPixmap *);
     void bpmChanged(int bpm);
-
-    ~MainWindow();
-    TimeLine * timeline;
-
-
     void loadLyrics();
+
+protected:
+    void checkTime();
 private:
-
-
     Ui::MainWindow *ui;
+    TimeLine * timeline;
     WorkerThread *workerThread;
+    WifiEventProcessor *ep;
     QLabel *titleLabel, *artistLabel, *imageLabel, *remainingLabel, *pastLabel;
     QSlider *progressSlider;
     QCheckBox *checkbox;
     QSpinBox *bpm;
-
-
     void closeEvent(QCloseEvent *event);
+    void spinboxChanged(int bpm);
 };
 #endif // MAINWINDOW_H

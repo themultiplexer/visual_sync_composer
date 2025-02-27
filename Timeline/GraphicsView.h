@@ -6,7 +6,7 @@
 #include <iostream>
 #include <QDebug>
 
-class GraphicsView:public QGraphicsView{
+class GraphicsView: public QGraphicsView {
 Q_OBJECT
 public:
     GraphicsView(QGraphicsScene *scene):QGraphicsView(scene){}

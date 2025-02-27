@@ -1,4 +1,5 @@
-
+#include <GL/glew.h>
+#include "audiowindow.h"
 #include "downloader.h"
 #include "mainwindow.h"
 #include "thread.h"
@@ -28,31 +29,38 @@
 
 using namespace std;
 
-MainWindow *mainWindow;
-
-void WorkerThread::run() {
-    while (!isInterruptionRequested()) {
-        msleep(250);
-        mainWindow->updateTrackInfo();
-    }
-}
-
-void Downloader::downloadFinished(QNetworkReply *reply) {
-    QPixmap pm;
-    pm.loadFromData(reply->readAll());
-    mainWindow->setAlbumArtwork(&pm);
-    reply->deleteLater();
-}
-
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
+    a.setStyle("fusion");
 
-    mainWindow = new MainWindow();
+    QPalette palette = QPalette();
+    palette.setColor(QPalette::Window, QColor(53, 53, 53));
+    palette.setColor(QPalette::WindowText, Qt::white);
+    palette.setColor(QPalette::Base, QColor(25, 25, 25));
+    palette.setColor(QPalette::AlternateBase, QColor(53, 53, 53));
+    palette.setColor(QPalette::ToolTipBase, Qt::black);
+    palette.setColor(QPalette::ToolTipText, Qt::white);
+    palette.setColor(QPalette::Text, Qt::white);
+    palette.setColor(QPalette::Button, QColor(53, 53, 53));
+    palette.setColor(QPalette::ButtonText, Qt::white);
+    palette.setColor(QPalette::BrightText, Qt::red);
+    palette.setColor(QPalette::Link, QColor(42, 130, 218));
+    palette.setColor(QPalette::Highlight, QColor(42, 130, 218));
+    palette.setColor(QPalette::HighlightedText, Qt::black);
+    a.setPalette(palette);
+
+    WifiEventProcessor *ep = new WifiEventProcessor();
+
+    AudioWindow *audioWindow = new AudioWindow(ep);
+    audioWindow->setWindowTitle("Hello World");
+    audioWindow->resize(1920, 1080);
+    audioWindow->show();
+    /*
+    MainWindow *mainWindow = new MainWindow(ep);
     mainWindow->setWindowTitle("Hello World");
     mainWindow->resize(1920, 1080);
-
-    // Show the main window
     mainWindow->show();
+    */
     return a.exec();
 }

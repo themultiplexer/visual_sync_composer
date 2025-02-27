@@ -17,13 +17,14 @@
 #include <QTimer>
 #include <tuple>
 #include <QGraphicsRectItem>
+#include "EventProcessor.h"
 #include "GraphicsScene.h"
 #include "Indicator.h"
 #include "GraphicsView.h"
 #include "TrackGroup.h"
 #include "AlignedTextItem.h"
 #include <QInputDialog>
-#include "../EventModel.h"
+#include "EventModel.h"
 #include <QSpinBox>
 
 class Track;
@@ -33,7 +34,7 @@ class TimeLine : public QWidget
     Q_OBJECT
 
 public:
-    explicit TimeLine(QWidget *parent = nullptr);
+    explicit TimeLine(EventProcessor *ep, QWidget *_parent = nullptr);
     ~TimeLine();
     QGraphicsItem* ItemAt(QPointF position){return scene->itemAt(position,QTransform());}
     void addItem(float start, float length, int lane, std::string text,  QColor color);
@@ -69,8 +70,9 @@ public:
     virtual void keyPressEvent(QKeyEvent * event) override;
 
     static const int barResolution = 100;
-
-
+    void update(const QRectF &rect = QRectF());
+    int getGridSnapInterval() const;
+    void setGridSnapInterval(int newGridSnapInterval);
 
 signals:
     void setTime(double time);
@@ -88,6 +90,7 @@ private:
     int bpm;
     int frame, bars;
     int minFrame, maxFrame;
+    int gridSnapInterval;
     double zoom;
     float trackTime;
     bool followTime, paused;
@@ -96,6 +99,7 @@ private:
     std::vector<Track *> tracks;
 
     QTimeLine *timer;
+    EventProcessor *eventProcessor;
 
     std::vector<EventModel *> events;
     std::list<EventModel *> activeEvents;

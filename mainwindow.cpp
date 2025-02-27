@@ -1,11 +1,38 @@
 #include "mainwindow.h"
 #include "ProjectModel.h"
+#include "gltext.h"
+#include "wifieventprocessor.h"
+#include <boost/circular_buffer.hpp>
+#include <QRadioButton>
+#include "netdevice.h"
+#include "helper.h"
 
-MainWindow::MainWindow(QWidget *parent)
+
+void WorkerThread::run() {
+    while (!isInterruptionRequested()) {
+        msleep(250);
+        //mainWindow->updateTrackInfo();
+    }
+}
+
+void Downloader::downloadFinished(QNetworkReply *reply) {
+    QPixmap pm;
+    pm.loadFromData(reply->readAll());
+    //mainWindow->setAlbumArtwork(&pm);
+    reply->deleteLater();
+}
+
+MainWindow::MainWindow(WifiEventProcessor *ep, QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
-    ui->setupUi(this);
+    GLText *test = new GLText(this);
+    test->setMinimumHeight(100);
+    this->ep->registerReceiver((WifiTextEventReceiver *)test);
+
+    timeline = new TimeLine(ep);
+    timeline->setMaximumHeight(200);
+    timeline->addItem(1.0, 1.0, 0, "Fuck", QColor(255,0,0));
 
     // Create menu bar and actions
     QMenuBar *menuBar = new QMenuBar(this);
@@ -60,8 +87,12 @@ MainWindow::MainWindow(QWidget *parent)
     progressSlider = new QSlider(Qt::Horizontal, centralWidget);
     progressSlider->setRange(0, 100);
     connect(progressSlider, &QSlider::sliderReleased, this, &MainWindow::sliderChanged);
+    QFont font("Monospace");
+    font.setStyleHint(QFont::TypeWriter);
     pastLabel = new QLabel("00:00", centralWidget);
+    pastLabel->setFont(font);
     remainingLabel = new QLabel("00:00", centralWidget);
+    remainingLabel->setFont(font);
     sliderLayout->addWidget(pastLabel);
     sliderLayout->addWidget(progressSlider);
     sliderLayout->addWidget(remainingLabel);
@@ -73,15 +104,37 @@ MainWindow::MainWindow(QWidget *parent)
     toolLayout->addWidget(checkbox);
     bpm = new QSpinBox();
     bpm->setMinimum(1);
+    bpm->setMaximumWidth(100);
     bpm->setMaximum(500);
+    toolLayout->addStretch(1);
+    toolLayout->addWidget(new QLabel("BPM"));
     toolLayout->addWidget(bpm);
+    QSpinBox * snapInterval = new QSpinBox();
+    snapInterval->setMinimum(1);
+    snapInterval->setValue(timeline->getGridSnapInterval());
+    snapInterval->setMaximum(4);
+    snapInterval->setMaximumWidth(100);
+    toolLayout->addWidget(new QLabel("Snap"));
+    toolLayout->addWidget(snapInterval);
 
-    connect(bpm, qOverload<int>(&QSpinBox::valueChanged), this, &MainWindow::bpmChanged);
+    connect(bpm, qOverload<int>(&QSpinBox::valueChanged), this, &MainWindow::spinboxChanged);
+    connect(snapInterval, qOverload<int>(&QSpinBox::valueChanged), this, &MainWindow::spinboxChanged);
 
-    timeline = new TimeLine();
-    timeline->addItem(1.0, 1.0, 0, "Fuck", QColor(255,0,0));
+    // Create a layout
+    QWidget *gridWidget = new QWidget;
+    QGridLayout *gridLayout = new QGridLayout;
+
+    // Loop to create buttons and add them to the layout
+    for (int row = 0; row < 10; ++row) {
+        for (int col = 0; col < 10; ++col) {
+            QPushButton *button = new QPushButton(QString("Button %1").arg(row * 10 + col + 1));
+            gridLayout->addWidget(button, row, col);
+        }
+    }
+    gridWidget->setLayout(gridLayout);
 
     // Add widgets to the layout
+    mainLayout->addWidget(test);
     mainLayout->addWidget(imageLabel);
     mainLayout->addWidget(titleLabel);
     mainLayout->addWidget(artistLabel);
@@ -90,8 +143,10 @@ MainWindow::MainWindow(QWidget *parent)
     mainLayout->addLayout(toolLayout);
     mainLayout->addWidget(timeline->view);
     mainLayout->addLayout(buttonLayout);
+    mainLayout->addWidget(gridWidget);
 
     timeline->update();
+
 
     // Set up connections for buttons to slots
     connect(playPauseButton, &QPushButton::clicked, this, &MainWindow::playpause);
@@ -102,13 +157,12 @@ MainWindow::MainWindow(QWidget *parent)
     connect(loadButton, &QPushButton::clicked, this, &MainWindow::load);
     connect(loadLyricsButton, &QPushButton::clicked, this, &MainWindow::loadLyrics);
 
+    bpm->setValue(120);
+
     workerThread = new WorkerThread();
     connect(workerThread, &QThread::started, workerThread, &WorkerThread::onThreadStarted);
     workerThread->start();
-
-    bpm->setValue(120);
 }
-
 
 std::string currentUrl = "";
 
@@ -118,13 +172,6 @@ void MainWindow::updateTrackInfo() {
     auto c = sdbus::createSessionBusConnection();
     auto concatenatorProxy = sdbus::createProxy(*c, destinationName, objectPath);
     std::map<std::string, sdbus::Variant> metadata = concatenatorProxy->getProperty("Metadata").onInterface("org.mpris.MediaPlayer2.Player");
-    /*
-    for (auto a : metadata) {
-        std::cout << a.first << std::endl;
-    }
-    auto trackid = metadata["mpris:trackid"].get<std::string>();
-    std::cout << trackid << std::endl;
-    */
 
     auto test = metadata["mpris:artUrl"].get<std::string>();
 
@@ -217,17 +264,19 @@ void MainWindow::seek() {
     concatenatorProxy->callMethod("Seek").onInterface("org.mpris.MediaPlayer2.Player").withArguments((int64_t)-1000000);
 }
 void MainWindow::sliderChanged() {
-    std::cout << "Slider Changed " << progressSlider->value() << std::endl;
-    const char* destinationName = "org.mpris.MediaPlayer2.spotify";
-    const char* objectPath = "/org/mpris/MediaPlayer2";
-    auto c = sdbus::createSessionBusConnection();
-    auto concatenatorProxy = sdbus::createProxy(*c, destinationName, objectPath);
-    std::map<std::string, sdbus::Variant> metadata = concatenatorProxy->getProperty("Metadata").onInterface("org.mpris.MediaPlayer2.Player");
-    auto trackid = metadata["mpris:trackid"].get<std::string>();
-    auto trackObject = sdbus::ObjectPath(trackid);
-    concatenatorProxy->callMethod("SetPosition").onInterface("org.mpris.MediaPlayer2.Player").withArguments(trackObject, (int64_t)(progressSlider->value() * 1e6));
-    timeline->setTimeImpl(progressSlider->value());
-    timeline->buildEventList();
+    if (sender() == progressSlider) {
+        std::cout << "Slider Changed " << progressSlider->value() << std::endl;
+        const char* destinationName = "org.mpris.MediaPlayer2.spotify";
+        const char* objectPath = "/org/mpris/MediaPlayer2";
+        auto c = sdbus::createSessionBusConnection();
+        auto concatenatorProxy = sdbus::createProxy(*c, destinationName, objectPath);
+        std::map<std::string, sdbus::Variant> metadata = concatenatorProxy->getProperty("Metadata").onInterface("org.mpris.MediaPlayer2.Player");
+        auto trackid = metadata["mpris:trackid"].get<std::string>();
+        auto trackObject = sdbus::ObjectPath(trackid);
+        concatenatorProxy->callMethod("SetPosition").onInterface("org.mpris.MediaPlayer2.Player").withArguments(trackObject, (int64_t)(progressSlider->value() * 1e6));
+        timeline->setTimeImpl(progressSlider->value());
+        timeline->buildEventList();
+    }
 }
 
 void MainWindow::save() {
@@ -272,6 +321,8 @@ void MainWindow::load() {
         for (EventModel e : project.events) {
             timeline->addItem(e.start, e.duration, e.lane, e.text, QColor(255,0,0));
         }
+
+        timeline->buildEventList();
 
         std::cout << project;
     }
@@ -326,7 +377,12 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::bpmChanged(int bpm)
+void MainWindow::spinboxChanged(int value)
 {
-    timeline->setBpm(bpm);
+    if (sender() == bpm) {
+        timeline->setBpm(value);
+    } else {
+        timeline->setGridSnapInterval(value);
+    }
+
 }
