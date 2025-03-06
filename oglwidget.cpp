@@ -2,24 +2,8 @@
 #include "qdebug.h"
 #include <cmath>
 
-const char* vertexShaderSource = R"(
-    #version 330 core
-    layout (location = 0) in vec2 aPos;
-    out vec2 p;
-    void main() {
-        gl_Position = vec4(aPos, 0.0, 1.0);
-        p = aPos;
-    }
-)";
 
-const char* fragmentShaderSource = R"(
-    #version 330 core
-    out vec4 FragColor;
-    in vec2 p;
-    void main() {
-        FragColor = vec4(1.0, 1.0, 1.0, 1.0); // White color
-    }
-)";
+#define PROGRAM_VERTEX_ATTRIBUTE 0
 
 
 OGLWidget::OGLWidget(QWidget *parent)
@@ -28,6 +12,12 @@ OGLWidget::OGLWidget(QWidget *parent)
     for (int i = 0; i < NUM_POINTS; ++i) {
             frequencies.push_back(0.0);
     }
+    setMouseTracking(true);
+    installEventFilter(this);
+    setSizePolicy(QSizePolicy::MinimumExpanding,QSizePolicy::Expanding);
+
+    start = 0.0;
+    end = 1.0;
 }
 
 OGLWidget::~OGLWidget()
@@ -45,51 +35,98 @@ void OGLWidget::createVBO() {
         vertices.push_back(from);
         vertices.push_back(frequencies[i] - 0.9);
     }
-    context()->extraFunctions()->glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-    context()->extraFunctions()->glBufferData(GL_ARRAY_BUFFER, sizeof(float) * vertices.size(), &vertices[0], GL_STATIC_DRAW);
+    vertexBuffer.bind();
+    vertexBuffer.allocate(vertices.data(), vertices.size() * sizeof(float));
+    //vertexBuffer.release();
 }
 
 void OGLWidget::initializeGL()
 {
+    initializeOpenGLFunctions();
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
     setUpdateBehavior(NoPartialUpdate);
-    glClearColor(0,0,0,1);
+    glClearColor(0,0,0,0);
     glEnable(GL_DEPTH_TEST);
-    glEnable(GL_LIGHT0);
-    glEnable(GL_LIGHTING);
-    glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
-    glEnable(GL_COLOR_MATERIAL);
+    //glEnable(GL_LIGHT0);
+    //glEnable(GL_LIGHTING);
+    //glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
+    //glEnable(GL_COLOR_MATERIAL);
     glLineWidth(5.0);
     glPointSize(10.0);
 
-    context()->extraFunctions()->glGenVertexArrays(1, &vertexArray);
-    context()->extraFunctions()->glBindVertexArray(vertexArray);
-
-    context()->extraFunctions()->glGenBuffers(1, &vertexBuffer);
+    vao1.create();
+    vao1.bind();
+    vertexBuffer.create();
+    vertexBuffer.bind();
     OGLWidget::createVBO();
-    context()->extraFunctions()->glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-    context()->extraFunctions()->glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), nullptr);
-    context()->extraFunctions()->glEnableVertexAttribArray(0);
-    context()->extraFunctions()->glBindBuffer(GL_ARRAY_BUFFER, 0);
-    context()->extraFunctions()->glBindVertexArray(0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), nullptr);
+    glEnableVertexAttribArray(0);
+    vertexBuffer.release();
+    vao1.release();
 
 
-    // Compile and link shaders
-    GLuint vertexShader = context()->extraFunctions()->glCreateShader(GL_VERTEX_SHADER);
-    context()->extraFunctions()->glShaderSource(vertexShader, 1, &vertexShaderSource, nullptr);
-    context()->extraFunctions()->glCompileShader(vertexShader);
+    // Create and compile the vertex shader using a raw string literal.
+    QOpenGLShader *vshader = new QOpenGLShader(QOpenGLShader::Vertex, this);
+    const char *vsrc = R"(
+            #version 330 core
+            layout (location = 0) in vec2 vertex;
+            uniform int pressed;
+            uniform float start;
+            uniform float end;
+            out vec2 pos;
 
-    GLuint fragmentShader = context()->extraFunctions()->glCreateShader(GL_FRAGMENT_SHADER);
-    context()->extraFunctions()->glShaderSource(fragmentShader, 1, &fragmentShaderSource, nullptr);
-    context()->extraFunctions()->glCompileShader(fragmentShader);
+            void main() {
+                pos = vertex;
+                gl_Position = vec4(vertex, 0.0, 1.0);
+            }
+        )";
+    vshader->compileSourceCode(vsrc);
 
-    shaderProgram = context()->extraFunctions()->glCreateProgram();
-    //context()->extraFunctions()->glAttachShader(shaderProgram, vertexShader);
-    //context()->extraFunctions()->glAttachShader(shaderProgram, fragmentShader);
-    context()->extraFunctions()->glLinkProgram(shaderProgram);
+    // Create and compile the fragment shader.
+    QOpenGLShader *fshader = new QOpenGLShader(QOpenGLShader::Fragment, this);
+    const char *fsrc = R"(
+            #version 330 core
+            in vec2 pos;
+            out vec4 FragColor;
+            uniform int pressed;
+            uniform float start;
+            uniform float end;
+            void main() {
+                int visible = (int)(pos.x > start && pos.x < end);
+                FragColor = vec4(visible, visible, visible, 0.5); // White color
+            }
+        )";
+    fshader->compileSourceCode(fsrc);
 
-    context()->extraFunctions()->glDeleteShader(vertexShader);
-    context()->extraFunctions()->glDeleteShader(fragmentShader);
+    program = new QOpenGLShaderProgram(this);
+    program->addShader(vshader);
+    program->addShader(fshader);
+    program->link();
 
+    QVector<QVector2D> vertices;
+    vertices << QVector2D(-1.f,  1.f)
+             << QVector2D(-1.f, -1.f)
+             << QVector2D( 1.f, -1.f)
+             << QVector2D(-1.f,  1.f)
+             << QVector2D( 1.f, -1.f)
+             << QVector2D( 1.f, 1.f);
+
+    vao.create();
+    vao.bind();
+    vertexPositionBuffer.create();
+    vertexPositionBuffer.setUsagePattern(QOpenGLBuffer::StaticDraw);
+    vertexPositionBuffer.bind();
+    vertexPositionBuffer.allocate(vertices.constData(), vertices.size() * sizeof(QVector2D));
+    program->bind();
+    program->enableAttributeArray(0);
+    program->setAttributeBuffer(0, GL_FLOAT, 0, 2, sizeof(QVector2D));
+
+    vertexPositionBuffer.release();
+    vao.release();
+    program->release();
 }
 
 void OGLWidget::paintGL()
@@ -100,12 +137,46 @@ void OGLWidget::paintGL()
         glClearColor(0,0,0,1);
     }
 
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
     OGLWidget::createVBO();
-    context()->extraFunctions()->glUseProgram(shaderProgram);
-    context()->extraFunctions()->glBindVertexArray(vertexArray);
+    vao1.bind();
     glDrawArrays(GL_LINE_STRIP, 0, NUM_POINTS);
+    vao1.release();
+
+    program->bind();
+    program->setUniformValue("pressed", mouseDown);
+    program->setUniformValue("start", start);
+    program->setUniformValue("end", end);
+    vao.bind();
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+    vao.release();
+    program->release();
+
     peaked = false;
 }
+
+
+bool OGLWidget::eventFilter(QObject *obj, QEvent *event) {
+    auto mouseEvent = dynamic_cast<QMouseEvent *>(event);
+    if (mouseEvent != nullptr) {
+        if (mouseEvent->button() == Qt::LeftButton) {
+            if (event->type() == QEvent::MouseButtonPress) {
+                mouseDown = true;
+                start = -1.0 + 2*((float)mouseEvent->pos().x() / (float)width());
+            } else if (event->type() == QEvent::MouseButtonRelease) {
+                mouseDown = false;
+                end = -1.0 + 2*((float)mouseEvent->pos().x() / (float)width());
+            }
+            qDebug() << start << end;
+        }
+        if (mouseDown) {
+            end = -1.0 + 2*((float)mouseEvent->pos().x() / (float)width());
+        }
+        //current = mouseEvent->pos().x();
+    }
+}
+
 
 void OGLWidget::setFrequencies(const std::vector<float> &newFrequencies, bool peak)
 {
@@ -116,5 +187,5 @@ void OGLWidget::setFrequencies(const std::vector<float> &newFrequencies, bool pe
 
 void OGLWidget::resizeGL(int w, int h)
 {
-
+    //glViewport(0, 0, w, h);
 }

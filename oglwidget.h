@@ -9,10 +9,13 @@
 #include <QOpenGLExtraFunctions>
 #include <QOpenGLShader>
 #include <QOpenGLShaderProgram>
+#include <QOpenGLVertexArrayObject>
+#include <QOpenGLBuffer>
+#include <QOpenGLFunctions>
 
 #define NUM_POINTS 512
 
-class OGLWidget : public QOpenGLWidget
+class OGLWidget : public QOpenGLWidget, protected QOpenGLFunctions
 {
 public:
     OGLWidget(QWidget *parent = 0);
@@ -26,7 +29,8 @@ protected:
     void paintGL();
 
     QOpenGLShaderProgram *program;
-    GLuint vertexArray, vertexBuffer;
+    QOpenGLVertexArrayObject vao, vao1;
+    QOpenGLBuffer vertexPositionBuffer, vertexBuffer;
     GLuint shaderProgram;
     std::vector<float> frequencies;
     bool peaked;
@@ -36,6 +40,7 @@ protected:
     void createVBO();
 private:
     bool eventFilter(QObject *obj, QEvent *event);
+    GLuint m_vbo;
 };
 
 #endif // OGLWIDGET_H
