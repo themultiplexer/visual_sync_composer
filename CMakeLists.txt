@@ -84,7 +84,11 @@ else()
             audiowindow.h
             effectpresetbutton.h effectpresetbutton.cpp
             effectpresetmodel.h effectpresetmodel.cpp
-
+            espreceiver.h espreceiver.cpp
+            vsctube.cpp
+            vsctube.h
+            tubewidget.cpp
+            tubewidget.h
         )
     endif()
 endif()

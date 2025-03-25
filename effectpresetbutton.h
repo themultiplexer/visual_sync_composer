@@ -10,7 +10,7 @@ class EffectPresetButton : public QPushButton
     Q_OBJECT
 
 public:
-    explicit EffectPresetButton(QString title, EffectPresetModel *model, QWidget *parent = nullptr);
+    explicit EffectPresetButton(EffectPresetModel *model, QWidget *parent = nullptr);
     ~EffectPresetButton();
 
 
@@ -28,8 +28,9 @@ private slots:
     void onLongPress();
 
 private:
-    QTimer *m_timer;
+    QString title;
     EffectPresetModel *model;
+    QTimer *m_timer;
 };
 
 #endif // EFFECTPRESETBUTTON_H

@@ -5,17 +5,13 @@
 #include <QTimer>
 #include <QDebug>
 
-EffectPresetButton::EffectPresetButton(QString title, EffectPresetModel *model, QWidget *parent)
-    : QPushButton(title, parent), m_timer(new QTimer(this)), model(model)
+EffectPresetButton::EffectPresetButton(EffectPresetModel *model, QWidget *parent) : QPushButton(parent), title(model->getName()), m_timer(new QTimer(this)), model(model)
 {
-    // Timer to detect long press
-    m_timer->setSingleShot(true);  // Only trigger once
-    m_timer->setInterval(500);    // Set long press duration (1000 ms = 1 second)
+    setText(title);
+    m_timer->setSingleShot(true);
+    m_timer->setInterval(500);
 
-    // Connect timer timeout to longPress signal
     connect(m_timer, &QTimer::timeout, this, &EffectPresetButton::onLongPress);
-
-    // Connect button's press and release events to handle long press logic
     connect(this, &QPushButton::pressed, this, &EffectPresetButton::onPressed);
     connect(this, &QPushButton::released, this, &EffectPresetButton::onReleased);
 }
@@ -50,5 +46,6 @@ EffectPresetModel *EffectPresetButton::getModel() const
 void EffectPresetButton::setModel(EffectPresetModel *newModel)
 {
     model = newModel;
+    setText(model->getName());
 }
 

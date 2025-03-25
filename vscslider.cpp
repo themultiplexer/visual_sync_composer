@@ -5,6 +5,7 @@
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 #include <QApplication>
+#include <QFontDatabase>
 
 int VSCSlider::minimum() const
 {
@@ -37,17 +38,18 @@ void VSCSlider::setValue(int val)
 }
 
 VSCSlider::VSCSlider(QString name, Qt::Orientation orientation, QWidget *parent) : QWidget(parent) {
-    // Create a slider, a left label and a right label
     slider = new QSlider(orientation);
+
     leftButton = new QPushButton("-");
 
-    name.resize(15, ' ');
+    name.resize(12, ' ');
 
     leftLabel = new QLabel(name);
+    //leftLabel->setFont(QFontDatabase::systemFont(QFontDatabase::FixedFont));
+    leftLabel->setMinimumWidth(150);
     rightLabel = new QLabel("Right");
     rightButton = new QPushButton("+");
 
-    // Optionally, set the minimum and maximum values for the slider
     slider->setMinimum(0);
     slider->setMaximum(100);
 
@@ -66,28 +68,31 @@ VSCSlider::VSCSlider(QString name, Qt::Orientation orientation, QWidget *parent)
     connect(slider, &QSlider::valueChanged, this, &VSCSlider::onSliderValueChanged);
 }
 
-// Slot to update the labels when the slider value changes
 void VSCSlider::onSliderValueChanged(int value)
 {
-    // You can customize the labels' content based on the slider value
-    rightLabel->setText(QString("%1").arg(slider->value())); // For example, show complementary value on right
+    rightLabel->setText(QString("%1").arg(slider->value()));
+    emit valueChanged();
 }
 
 void VSCSlider::onMinusClicked()
 {
     slider->setValue(slider->value() - 1);
+    emit sliderReleased();
 }
 
 void VSCSlider::onPlusClicked()
 {
     slider->setValue(slider->value() + 1);
+    emit sliderReleased();
 }
 
-// Slot to update the labels when the slider value changes
+float VSCSlider::pct(){
+    return slider->value() / 100.0;
+}
+
 void VSCSlider::onSliderReleased()
 {
-    // You can customize the labels' content based on the slider value
-    rightLabel->setText(QString("%1").arg(slider->value())); // For example, show complementary value on right
+    rightLabel->setText(QString("%1").arg(slider->value()));
     emit sliderReleased();
 }
 

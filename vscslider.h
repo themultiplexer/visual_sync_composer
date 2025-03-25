@@ -17,6 +17,7 @@ public:
 signals:
     // Define a custom signal that emits the slider's value
     void sliderReleased();
+    void valueChanged();
 
 public:
     VSCSlider(QString name, Qt::Orientation orientation, QWidget *parent);
@@ -28,6 +29,7 @@ public:
     void setMaximum(int max);
     int value() const;
     void setValue(int val);
+    float pct();
 private slots:
     void onSliderReleased();
     void onSliderValueChanged(int value);

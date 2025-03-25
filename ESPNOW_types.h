@@ -33,6 +33,11 @@
 #define ACTIONFRAME_HEADER_LEN 8
 #define VENDORSPECIFIC_CONTENT_LEN 7
 
+#define MAC_2_MSBytes(MAC)  MAC == NULL ? 0 : (MAC[0] << 8) | MAC[1]
+#define MAC_4_LSBytes(MAC)  MAC == NULL ? 0 : (((((MAC[2] << 8) | MAC[3]) << 8) | MAC[4]) << 8) | MAC[5]
+
+#define LEN_RAWBYTES_MAX 512
+
 struct IEEE80211_radiotap {
 	uint8_t version;
     uint8_t pad;

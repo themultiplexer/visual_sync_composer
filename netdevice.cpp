@@ -47,7 +47,7 @@ bool NetDevice::setInterface(bool up) {
         exit(EXIT_FAILURE);
     }
 
-    printf("Interface %s is now down.\n", interface);
+    printf("Interface %s is now %s.\n", up ? "up" : "down", interface);
 
     // Close the socket
     close(sockfd);

@@ -1,12 +1,5 @@
 #include "audiowindow.h"
-#include "ProjectModel.h"
-#include "effectpresetmodel.h"
-#include "gltext.h"
-#include "wifieventprocessor.h"
-#include <boost/circular_buffer.hpp>
-#include <QRadioButton>
-#include "netdevice.h"
-#include "helper.h"
+
 
 AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     : QMainWindow(parent)
@@ -18,6 +11,8 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     h.setInterface(false);
     h.enableMonitorMode();
     h.setInterface(true);
+
+    ep->initHandlers();
 
     // Create menu bar and actions
     QMenuBar *menuBar = new QMenuBar(this);
@@ -54,10 +49,51 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
         modesLayout->addWidget(radio);
     }
 
+
+    QHBoxLayout* modifiersLayout = new QHBoxLayout(centralWidget);
+    for (std::string effect : {"Fadeout After Peak","2","3","4","5","6","7","8"}) {
+        QCheckBox *check = new QCheckBox();
+        check->setText(effect.c_str());
+        connect(check, &QCheckBox::stateChanged, this, &AudioWindow::modifierChanged);
+        ledModifierCheckboxes.push_back(check);
+        modifiersLayout->addWidget(check);
+    }
+
+    QHBoxLayout* tubesLayout = new QHBoxLayout(centralWidget);
+    std::vector<VSCTube*> tubes;
+    for (std::string effect : {"1","2","3","4","5","6","7","8","9","10"}) {
+        VSCTube *tube = new VSCTube(QString(effect.c_str()), this);
+        connect(tube, &VSCTube::buttonPressed, this, [=](bool right){
+            int index = tubesLayout->indexOf(tube);
+            tubesLayout->removeWidget(tube);
+            if (right) {
+                tubesLayout->insertWidget(index + 1, tube);
+            } else {
+                tubesLayout->insertWidget(index - 1, tube);
+            }
+
+            std::vector<int> offsets;
+            for (auto t : tubes ) {
+                offsets.push_back(t->value());
+            }
+            ep->setTubeOffsets(offsets);
+            ep->sendConfig();
+        });
+        tubes.push_back(tube);
+        tubesLayout->addWidget(tube, 1);
+    }
+
     sensitivitySlider = new VSCSlider("Sensitivity", Qt::Horizontal, centralWidget);
     sensitivitySlider->setMinimum(0);
-    sensitivitySlider->setValue(50);
+    sensitivitySlider->setValue(80);
     sensitivitySlider->setMaximum(100);
+    connect(sensitivitySlider, &VSCSlider::valueChanged, this, &AudioWindow::sliderChanged);
+
+    saturationSlider = new VSCSlider("Saturation", Qt::Horizontal, centralWidget);
+    saturationSlider->setMinimum(0);
+    saturationSlider->setValue(50);
+    saturationSlider->setMaximum(255);
+    connect(saturationSlider, &VSCSlider::valueChanged, this, &AudioWindow::sliderChanged);
 
     brightnessSlider = new VSCSlider("Brightness", Qt::Horizontal, centralWidget);
     brightnessSlider->setMinimum(0);
@@ -71,32 +107,53 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     speedSlider->setMaximum(255);
     connect(speedSlider, &VSCSlider::sliderReleased, this, &AudioWindow::sliderChanged);
 
-    effect1Slider = new VSCSlider("Effect 1", Qt::Horizontal, centralWidget);
+    effect1Slider = new VSCSlider("Param 1", Qt::Horizontal, centralWidget);
     effect1Slider->setMinimum(1);
     effect1Slider->setValue(5);
     effect1Slider->setMaximum(255);
     connect(effect1Slider, &VSCSlider::sliderReleased, this, &AudioWindow::sliderChanged);
 
-    effect2Slider = new VSCSlider("Effect 2", Qt::Horizontal, centralWidget);
+    effect2Slider = new VSCSlider("Param 2", Qt::Horizontal, centralWidget);
     effect2Slider->setMinimum(1);
     effect2Slider->setValue(5);
     effect2Slider->setMaximum(255);
     connect(effect2Slider, &VSCSlider::sliderReleased, this, &AudioWindow::sliderChanged);
 
+    effect3Slider = new VSCSlider("Param 3", Qt::Horizontal, centralWidget);
+    effect3Slider->setMinimum(1);
+    effect3Slider->setValue(128);
+    effect3Slider->setMaximum(255);
+    connect(effect3Slider, &VSCSlider::sliderReleased, this, &AudioWindow::sliderChanged);
+
+    effect4Slider = new VSCSlider("Param 4", Qt::Horizontal, centralWidget);
+    effect4Slider->setMinimum(1);
+    effect4Slider->setValue(128);
+    effect4Slider->setMaximum(255);
+    connect(effect4Slider, &VSCSlider::sliderReleased, this, &AudioWindow::sliderChanged);
+
+    QVBoxLayout* slidersLayout = new QVBoxLayout(centralWidget);
+    slidersLayout->addWidget(sensitivitySlider);
+    slidersLayout->addWidget(brightnessSlider);
+    slidersLayout->addWidget(saturationSlider);
+    slidersLayout->addWidget(speedSlider);
+    slidersLayout->addWidget(effect1Slider);
+    slidersLayout->addWidget(effect2Slider);
+    slidersLayout->addWidget(effect3Slider);
+    slidersLayout->addWidget(effect4Slider);
+    slidersLayout->setSpacing(0);
+
     // Create a layout
     QWidget *gridWidget = new QWidget;
     QGridLayout *gridLayout = new QGridLayout;
 
-    Helper::readJson();
-    std::vector<EffectPresetModel> presets = std::vector<EffectPresetModel>();
-    for (int i = 0; i < 100; ++i) {
-        presets.push_back(EffectPresetModel());
-    }
+    std::vector<EffectPresetModel *> presets = EffectPresetModel::readJson("effects.json");
+    std::vector<EffectPresetButton*> buttons{};
+
 
     // Loop to create buttons and add them to the layout
     for (int row = 0; row < 10; ++row) {
         for (int col = 0; col < 10; ++col) {
-            EffectPresetButton *button = new EffectPresetButton(QString("Button %1").arg(row * 10 + col + 1), &presets[row * 10 + col + 1]);
+            EffectPresetButton *button = new EffectPresetButton(presets[row * 10 + col], this);
             gridLayout->addWidget(button, row, col);
             connect(button, &EffectPresetButton::releasedInstantly, [=](){
                 EffectPresetModel *model = button->getModel();
@@ -104,43 +161,60 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
                 this->speedSlider->setValue(model->config.speed_factor);
                 this->effect1Slider->setValue(model->config.parameter1);
                 this->effect2Slider->setValue(model->config.parameter2);
-                ledModeRadioButtons[model->config.led_mode]->setEnabled(true);
+                this->effect3Slider->setValue(model->config.parameter3);
+                this->saturationSlider->setValue(model->config.sat);
+                ledModeRadioButtons[model->config.led_mode]->setChecked(true);
+                ep->masterconfig = model->config;
+                ep->sendConfig();
             });
-            connect(button, &EffectPresetButton::longPressed, [this, button](){
+            connect(button, &EffectPresetButton::longPressed, [=](){
                 bool ok;
                 QString text = QInputDialog::getText(this, tr("QInputDialog::getText()"),
                                                      tr("User name:"), QLineEdit::Normal,
                                                      "", &ok);
                 if (ok && !text.isEmpty()) {
                     EffectPresetModel *model = button->getModel();
-                    model->config.brightness = this->brightnessSlider->value();
-                    model->config.speed_factor = this->speedSlider->value();
-                    //model->config.led_mode = ledModeRadioButtons.;
-                    model->config.parameter1 = this->effect1Slider->value();
-                    model->config.parameter2 = this->effect2Slider->value();
-                    button->setText(text);
+                    model->config = ep->masterconfig;
+                    model->setName(text);
                     button->setModel(model);
-
-                    //Helper::saveJson();
+                    EffectPresetModel::saveToJsonFile(presets, "effects.json");
                 }
             });
+            buttons.push_back(button);
         }
     }
     gridWidget->setLayout(gridLayout);
 
-    glv = new OGLWidget(centralWidget);
+
+    QHBoxLayout *header = new QHBoxLayout(centralWidget);
+
+    bpmLabel = new QLabel("bpm");
+    tmpLabel = new QLabel("name");
+
+    header->addWidget(bpmLabel);
+    header->addWidget(tmpLabel);
+
+    glv = new OGLWidget(0, 10, 512, centralWidget);
     glv->setMinimumHeight(300);
-    //connect(glv, QOpenGLWidget::)
+    connect(glv, &OGLWidget::valueChanged, this, &AudioWindow::sliderChanged);
+    connect(glv, &OGLWidget::mouseEnterEvent, this, [this](){setCursor(Qt::ArrowCursor);});
+    connect(glv, &OGLWidget::mouseLeaveEvent, this, [this](){setCursor(Qt::OpenHandCursor);});
+
+    QPushButton *button = new QPushButton("Update Firmware");
+    connect(button, &QPushButton::pressed, [=](){
+        ep->updateFirmware();
+    });
+
 
     // Add widgets to the layout
+    mainLayout->addLayout(tubesLayout);
+    mainLayout->addLayout(header);
     mainLayout->addWidget(glv);
     mainLayout->addLayout(modesLayout);
-    mainLayout->addWidget(sensitivitySlider);
-    mainLayout->addWidget(brightnessSlider);
-    mainLayout->addWidget(speedSlider);
-    mainLayout->addWidget(effect1Slider);
-    mainLayout->addWidget(effect2Slider);
+    mainLayout->addLayout(modifiersLayout);
+    mainLayout->addLayout(slidersLayout);
     mainLayout->addWidget(gridWidget);
+    mainLayout->addWidget(button);
 
     if (getuid() == 0) {
         printf("Dropping privs\n");
@@ -162,35 +236,57 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     qtimer->start(10);
 }
 
-std::chrono::time_point<std::chrono::steady_clock> lastPeak;
-
 void AudioWindow::checkTime(){
     auto f = a->getFullFrequencies();
     auto now = std::chrono::steady_clock::now();
 
-    float lowFreqIntensity = 0.0;
-    for (int i = 1; i < 3; ++i) {
-        lowFreqIntensity += f[i];
-    }
-
-    bool lowpeak = (lowFreqIntensity > sensitivitySlider->value() * 5.0);
-    bool debounce = (std::chrono::duration_cast<std::chrono::milliseconds>(now - lastPeak).count() > 100);
-
-    if (lowpeak && debounce) {
-        lastPeak = now;
-        ep->peakEvent();
-    }
-
     for (int i = 0; i < FRAMES/2; i++) {
         f[i] *= log10(((float)i/(FRAMES/2)) * 5 + 1.01);
     }
-    glv->setFrequencies(f, lowpeak && debounce);
+
+    double lowFreqIntensity = 0.0;
+    for (int i = glv->getMin(); i < glv->getMax(); ++i) {
+        lowFreqIntensity += f[i];
+    }
+    lowFreqIntensity /= (glv->getMax() - glv->getMin());
+
+    samples.push(lowFreqIntensity);
+    double deriv = 0.0;
+    if (samples.size() == 5) {
+        deriv = ((-samples[4] + 8 * samples[3] - 8 * samples[1] + samples[0]) / 12.0) * 2.0;
+    }
+
+    bool lowpeak = (lowFreqIntensity > sensitivitySlider->pct());
+    lastFreqIntensity = lowFreqIntensity;
+    int beatMillis = std::chrono::duration_cast<std::chrono::milliseconds>(now - lastBeat).count();
+    bool debounce = (beatMillis > 100);
+
+    if (lowpeak && debounce) {
+        lastBeat = now;
+        ep->peakEvent();
+        std::chrono::time_point<std::chrono::system_clock> now = std::chrono::system_clock::now();
+        beats.push(beatMillis);
+
+
+        float sum = std::accumulate(beats.begin(), beats.end(), 0.0);
+        float mean = sum / beats.size();
+        bpmLabel->setText(std::to_string((int)std::round(60.0 / (mean / 1000.0))).c_str());
+        tmpLabel->setText(std::to_string(mean).c_str());
+    }
+    glv->setFrequencies(f, lowpeak, lowFreqIntensity);
 }
 
 void AudioWindow::sliderChanged()
 {
-    if (sender() == brightnessSlider) {
+    if (sender() == glv) {
+        sensitivitySlider->setValue(glv->getThresh() * 100);
+    } else if (sender() == sensitivitySlider) {
+        glv->setThresh(sensitivitySlider->pct());
+    } else if (sender() == brightnessSlider) {
         ep->masterconfig.brightness = brightnessSlider->value();
+        ep->sendConfig();
+    } else if (sender() == saturationSlider) {
+        ep->masterconfig.sat = saturationSlider->value();
         ep->sendConfig();
     } else if (sender() == speedSlider) {
         ep->masterconfig.speed_factor = speedSlider->value();
@@ -200,6 +296,12 @@ void AudioWindow::sliderChanged()
         ep->sendConfig();
     } else if (sender() == effect2Slider) {
         ep->masterconfig.parameter2 = effect2Slider->value();
+        ep->sendConfig();
+    } else if (sender() == effect3Slider) {
+        ep->masterconfig.parameter3 = effect3Slider->value();
+        ep->sendConfig();
+    } else if (sender() == effect4Slider) {
+        ep->masterconfig.offset = effect4Slider->value();
         ep->sendConfig();
     }
 }
@@ -213,6 +315,17 @@ void AudioWindow::effectChanged(bool state)
         ep->masterconfig.led_mode = index;
         ep->sendConfig();
     }
+}
+
+void AudioWindow::modifierChanged(bool state)
+{
+    std::vector<uint8_t> bits;
+    for (auto ch : ledModifierCheckboxes) {
+        bits.push_back(ch->isChecked() ? 1 : 0);
+    }
+    qDebug() << bits << " " << bitsToBytes(bits.data());
+    ep->masterconfig.modifiers = bitsToBytes(bits.data());
+    ep->sendConfig();
 }
 
 void AudioWindow::closeEvent(QCloseEvent *event)

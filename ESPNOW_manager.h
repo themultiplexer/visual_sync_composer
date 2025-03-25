@@ -10,14 +10,6 @@
 
 #include "ESPNOW_types.h"
 
-
-#define LEN_RAWBYTES_MAX 512
-
-struct thread_args {
-	int sock_fd;
-	void (*callback)(uint8_t src_mac[6], uint8_t *data, int len);
-};
-
 class ESPNOW_manager {
 	public:
 		ESPNOW_manager() {
@@ -36,19 +28,9 @@ class ESPNOW_manager {
 			set_datarate(datarate);
 			set_src_mac(src_mac);
 			set_dst_mac(dst_mac);
-			
-			if(filterOn) {
-				set_filter(dst_mac, src_mac);
-			} else {
-				set_filter(NULL, NULL);
-			}
-			
 		}
 
-		void unset_filter();
-		void set_filter(uint8_t *src_mac, uint8_t *dst_mac);
 		void set_interface(char* interface);
-		void set_recv_callback(void (*callback)(uint8_t src_mac[6], uint8_t *data, int len));
 		
 		void start();
 		void stop();
@@ -67,18 +49,12 @@ class ESPNOW_manager {
 		ESPNOW_packet mypacket;
 	private:
 		int sock_fd;
-		struct sock_fprog bpf;
 		int socket_priority;
 		char* interface;
 
-		pthread_t recv_thd_id;
-		struct thread_args recv_thread_params;
-		static void* sock_recv_thread (void *p_arg);
-
 		void default_values() {
-			bpf.len = 0;
 			socket_priority = 7; //Priority
-			recv_thread_params.callback = NULL;
+
 		}
 
 };

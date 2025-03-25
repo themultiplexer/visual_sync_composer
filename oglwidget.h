@@ -1,6 +1,7 @@
 #ifndef OGLWIDGET_H
 #define OGLWIDGET_H
 
+#include "helper.h"
 #include <GL/gl.h>
 #include <QWidget>
 #include <QOpenGLWidget>
@@ -17,11 +18,31 @@
 
 class OGLWidget : public QOpenGLWidget, protected QOpenGLFunctions
 {
+    Q_OBJECT
+
 public:
-    OGLWidget(QWidget *parent = 0);
+    OGLWidget(int min, int max, int step, QWidget *parent = 0);
     ~OGLWidget();
 
-    void setFrequencies(const std::vector<float> &newFrequencies, bool peak);
+    void setFrequencies(const std::vector<float> &newFrequencies, bool peak, float level);
+
+    int getMin() const;
+    int getMax() const;
+
+    void setThresh(float newThresh);
+
+    float getThresh() const;
+
+    float getStart() const;
+    void setStart(float newStart);
+
+    float getEnd() const;
+    void setEnd(float newEnd);
+
+signals:
+    void valueChanged();
+    void mouseEnterEvent();
+    void mouseLeaveEvent();
 
 protected:
     void initializeGL();
@@ -35,12 +56,21 @@ protected:
     std::vector<float> frequencies;
     bool peaked;
     bool mouseDown;
-    float start, end;
-
+    float start, end, peak, level, smoothLevel, thresh;
+    FixedQueue<float, 2> levels;
+    int min, max, step;
     void createVBO();
 private:
     bool eventFilter(QObject *obj, QEvent *event);
     GLuint m_vbo;
+    bool dragging;
+
+    bool onLine;
+
+    float dx;
+    float prestart;
+    float preend;
+    bool inside;
 };
 
 #endif // OGLWIDGET_H

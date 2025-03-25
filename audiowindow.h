@@ -47,6 +47,16 @@
 #include <boost/archive/binary_iarchive.hpp>
 #include <boost/serialization/vector.hpp>
 
+#include "ProjectModel.h"
+#include "effectpresetmodel.h"
+#include "gltext.h"
+#include "wifieventprocessor.h"
+#include <boost/circular_buffer.hpp>
+#include <QRadioButton>
+#include "netdevice.h"
+#include "helper.h"
+#include "vsctube.h"
+
 QT_BEGIN_NAMESPACE
 namespace Ui {
 class MainWindow;
@@ -69,18 +79,29 @@ public:
 
 protected:
     void checkTime();
+    void modifierChanged(bool state);
 private:
     Ui::MainWindow *ui;
     WorkerThread *workerThread;
     WifiEventProcessor *ep;
     VSCSlider *sensitivitySlider, *brightnessSlider, *speedSlider, *effect1Slider, *effect2Slider;
+    QLabel *bpmLabel, *tmpLabel;
     AudioAnalyzer* a;
     OGLWidget *glv;
     std::string values[16] = {"Hue", "Pump","Tube", "Pump Limiter","Duck","FadeToColor","Sparkle","Fire","Bounce", "Colorcycle", "11", "Strobe", "Random Flicker", "Tunnel", "Tunnel2", "Placeholder"};
+
+    std::vector<QCheckBox*> ledModifierCheckboxes;
+    std::chrono::time_point<std::chrono::steady_clock> lastBeat;
+    FixedQueue<uint64_t, 10> beats;
+    FixedQueue<double, 5> samples;
 
     CONFIG_DATA currentEffectConfig;
 
     void closeEvent(QCloseEvent *event);
     void spinboxChanged(int bpm);
+    float lastFreqIntensity;
+    VSCSlider *saturationSlider;
+    VSCSlider *effect3Slider;
+    VSCSlider *effect4Slider;
 };
 #endif // AUDIOWINDOW_H
