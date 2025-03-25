@@ -1,4 +1,5 @@
 #include "audiowindow.h"
+#include "tubewidget.h"
 
 
 AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
@@ -60,10 +61,27 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     }
 
     QHBoxLayout* tubesLayout = new QHBoxLayout(centralWidget);
-    std::vector<VSCTube*> tubes;
+
     for (std::string effect : {"1","2","3","4","5","6","7","8","9","10"}) {
         VSCTube *tube = new VSCTube(QString(effect.c_str()), this);
+        connect(tube, &VSCTube::valueChanged, this, [=](){
+            std::vector<int> offsets;
+            for (auto t : tubes ) {
+                offsets.push_back(t->value());
+            }
+            ep->setTubeOffsets(offsets);
+            ep->sendConfig();
+        });
+
         connect(tube, &VSCTube::buttonPressed, this, [=](bool right){
+            auto ind = std::remove(tubes.begin(), tubes.end(), tube);
+            tubes.erase(ind, tubes.end());
+            if (right) {
+                //tubes.insert(ind + 1, tube);
+            } else {
+                //tubes.insert(ind - 1, tube);
+            }
+
             int index = tubesLayout->indexOf(tube);
             tubesLayout->removeWidget(tube);
             if (right) {
@@ -71,13 +89,10 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
             } else {
                 tubesLayout->insertWidget(index - 1, tube);
             }
+            for (auto t : tubes) {
 
-            std::vector<int> offsets;
-            for (auto t : tubes ) {
-                offsets.push_back(t->value());
             }
-            ep->setTubeOffsets(offsets);
-            ep->sendConfig();
+
         });
         tubes.push_back(tube);
         tubesLayout->addWidget(tube, 1);
@@ -204,7 +219,6 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     connect(button, &QPushButton::pressed, [=](){
         ep->updateFirmware();
     });
-
 
     // Add widgets to the layout
     mainLayout->addLayout(tubesLayout);

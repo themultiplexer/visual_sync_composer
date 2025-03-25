@@ -41,6 +41,7 @@
 #include "thread.h"
 #include "audioanalyzer.h"
 #include "oglwidget.h"
+#include "tubewidget.h"
 #include "wifieventprocessor.h"
 #include <sdbus-c++/sdbus-c++.h>
 #include <boost/archive/binary_oarchive.hpp>
@@ -103,5 +104,7 @@ private:
     VSCSlider *saturationSlider;
     VSCSlider *effect3Slider;
     VSCSlider *effect4Slider;
+    TubeWidget *ftube;
+    std::vector<VSCTube*> tubes;
 };
 #endif // AUDIOWINDOW_H

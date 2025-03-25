@@ -58,6 +58,7 @@ std::vector<int> WifiEventProcessor::getTubeOffsets() const
 
 void WifiEventProcessor::setTubeOffsets(const std::vector<int> &newTubeOffsets)
 {
+    qDebug() << tubeOffsets;
     tubeOffsets = newTubeOffsets;
 }
 
