@@ -38,31 +38,44 @@ VSCTube::VSCTube(QString name, QWidget *parent) : QWidget(parent) {
     textEdit = new QSpinBox();
     textEdit->setValue(0);
     textEdit->setMaximumHeight(50);
+    textEdit->setMaximum(1000);
 
     leftButton = new QPushButton("<");
     leftButton->setMinimumWidth(20);
-
-    name.resize(12, ' ');
+    rightButton = new QPushButton(">");
+    rightButton->setMinimumWidth(20);
 
     ftube = new TubeWidget(this);
     ftube->setMinimumHeight(150);
     ftube->setMaximumHeight(150);
-    ftube->setMinimumWidth(25);
-    ftube->setMaximumWidth(25);
+    ftube->setMinimumWidth(100);
+    ftube->setMaximumWidth(100);
+    label = new QLabel(name);
 
-    leftLabel = new QLabel(name);
-    rightButton = new QPushButton(">");
-    rightButton->setMinimumWidth(20);
+    QHBoxLayout *buttonLayout = new QHBoxLayout;
+    buttonLayout->addWidget(leftButton);
+    buttonLayout->addWidget(rightButton);
+
+
     // Create a layout for this widget
-    QHBoxLayout *layout = new QHBoxLayout;
-    layout->addWidget(leftLabel);
+    QVBoxLayout *layout = new QVBoxLayout;
     layout->addWidget(ftube);
+    layout->addWidget(label);
+    layout->addLayout(buttonLayout);
     layout->addWidget(textEdit);
     layout->addWidget(leftButton);
     layout->addWidget(rightButton);
     setLayout(layout);
 
-    connect(leftButton, &QPushButton::pressed, this, &VSCTube::onMinusClicked);
-    connect(rightButton, &QPushButton::pressed, this, &VSCTube::onPlusClicked);
+    connect(leftButton, &QPushButton::released, this, &VSCTube::onMinusClicked);
+    connect(rightButton, &QPushButton::released, this, &VSCTube::onPlusClicked);
     connect(textEdit, QOverload<int>::of(&QSpinBox::valueChanged), this, &VSCTube::onValueChanged);
+}
+
+void VSCTube::setPeaked(QColor color) {
+    ftube->setPeaked(color);
+}
+
+void VSCTube::updateGL() {
+    ftube->update();
 }

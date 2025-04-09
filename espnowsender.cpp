@@ -13,16 +13,15 @@
 #include <arpa/inet.h>
 #include <assert.h>
 
-#include "ESPNOW_manager.h"
+#include "espnowsender.h"
+#include "espnowtypes.h"
 
-#include "ESPNOW_types.h"
-
-void ESPNOW_manager::set_interface(char* interface) {
+void espnowsender::set_interface(char* interface) {
 	this->interface = (char*) malloc(strlen(interface)*sizeof(char));	
 	strcpy(this->interface, interface);
 }
 
-void ESPNOW_manager::start() {
+void espnowsender::start() {
 	struct sockaddr_ll s_dest_addr;
     struct ifreq ifr;
 	
@@ -56,13 +55,13 @@ void ESPNOW_manager::start() {
 	this->sock_fd = fd;
 }
 
-void ESPNOW_manager::stop() {
+void espnowsender::stop() {
     if (this->sock_fd > 0) {
         close(this->sock_fd);
     }
 }
 
-void ESPNOW_manager::end() {
+void espnowsender::end() {
 	stop();
 
 	if(this->interface != NULL) {
@@ -71,7 +70,8 @@ void ESPNOW_manager::end() {
 	}
 }
 
-int ESPNOW_manager::send(uint8_t *payload, int len) {
+int espnowsender::send(uint8_t *payload, int len, uint8_t dst_mac[6]) {
+    mypacket.set_dst_mac(dst_mac);
 	uint8_t raw_bytes[LEN_RAWBYTES_MAX];
 
 	//Not the most fastest way to do this : 
@@ -83,7 +83,7 @@ int ESPNOW_manager::send(uint8_t *payload, int len) {
 	return sendto(this->sock_fd, raw_bytes, raw_len, 0, NULL, 0);
 }
 
-int ESPNOW_manager::send() {
+int espnowsender::send() {
 	uint8_t raw_bytes[LEN_RAWBYTES_MAX];
 	int raw_len = mypacket.toBytes(raw_bytes, LEN_RAWBYTES_MAX);
 	return sendto(this->sock_fd, raw_bytes, raw_len, 0, NULL, 0);

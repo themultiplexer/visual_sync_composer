@@ -34,7 +34,10 @@ int VSCSlider::value() const
 
 void VSCSlider::setValue(int val)
 {
+    slider->blockSignals(true);
+    rightLabel->setText(QString("%1").arg(slider->value()));
     slider->setValue(val);
+    slider->blockSignals(false);
 }
 
 VSCSlider::VSCSlider(QString name, Qt::Orientation orientation, QWidget *parent) : QWidget(parent) {

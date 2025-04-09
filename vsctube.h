@@ -23,8 +23,10 @@ public:
     VSCTube(QString name, QWidget *parent);
     int value() const;
     void setValue(int val);
+    void setPeaked(QColor color);
+    void updateGL();
 private:
-    QLabel *leftLabel;
+    QLabel *label;
     QLabel *rightLabel;
     QPushButton *leftButton;
     QPushButton *rightButton;

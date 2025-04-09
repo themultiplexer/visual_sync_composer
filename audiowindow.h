@@ -94,7 +94,12 @@ private:
     std::vector<QCheckBox*> ledModifierCheckboxes;
     std::chrono::time_point<std::chrono::steady_clock> lastBeat;
     FixedQueue<uint64_t, 10> beats;
+    FixedQueue<uint64_t, 10> colors;
     FixedQueue<double, 5> samples;
+
+    std::random_device dev;
+    std::mt19937 *rng;
+    std::uniform_int_distribution<std::mt19937::result_type> *hueRandom;
 
     CONFIG_DATA currentEffectConfig;
 

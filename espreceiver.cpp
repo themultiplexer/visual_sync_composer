@@ -1,5 +1,5 @@
 #include "espreceiver.h"
-#include "ESPNOW_types.h"
+#include "espnowtypes.h"
 #include <cassert>
 
 void espreceiver::set_recv_callback(std::function<void (uint8_t[6], uint8_t *, int)> recv_callback) {

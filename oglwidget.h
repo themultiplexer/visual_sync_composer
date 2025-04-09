@@ -14,7 +14,7 @@
 #include <QOpenGLBuffer>
 #include <QOpenGLFunctions>
 
-#define NUM_POINTS 512
+#define NUM_POINTS 640
 
 class OGLWidget : public QOpenGLWidget, protected QOpenGLFunctions
 {
@@ -54,10 +54,11 @@ protected:
     QOpenGLBuffer vertexPositionBuffer, vertexBuffer;
     GLuint shaderProgram;
     std::vector<float> frequencies;
+    std::vector<float> smoothFrequencies;
     bool peaked;
     bool mouseDown;
     float start, end, peak, level, smoothLevel, thresh;
-    FixedQueue<float, 2> levels;
+    FixedQueue<float, 1> levels;
     int min, max, step;
     void createVBO();
 private:
@@ -71,6 +72,7 @@ private:
     float prestart;
     float preend;
     bool inside;
+    double gap;
 };
 
 #endif // OGLWIDGET_H

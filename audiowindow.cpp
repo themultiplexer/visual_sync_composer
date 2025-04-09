@@ -1,4 +1,5 @@
 #include "audiowindow.h"
+#include "mdnsflasher.h"
 #include "tubewidget.h"
 
 
@@ -14,6 +15,13 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     h.setInterface(true);
 
     ep->initHandlers();
+
+    rng = new std::mt19937(dev());
+    hueRandom = new std::uniform_int_distribution<std::mt19937::result_type>(0, 255);
+
+    for (auto color : colors) {
+        color = (*hueRandom)(*rng);
+    }
 
     // Create menu bar and actions
     QMenuBar *menuBar = new QMenuBar(this);
@@ -50,12 +58,11 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
         modesLayout->addWidget(radio);
     }
 
-
     QHBoxLayout* modifiersLayout = new QHBoxLayout(centralWidget);
     for (std::string effect : {"Fadeout After Peak","2","3","4","5","6","7","8"}) {
         QCheckBox *check = new QCheckBox();
         check->setText(effect.c_str());
-        connect(check, &QCheckBox::stateChanged, this, &AudioWindow::modifierChanged);
+        connect(check, &QCheckBox::toggled, this, &AudioWindow::modifierChanged);
         ledModifierCheckboxes.push_back(check);
         modifiersLayout->addWidget(check);
     }
@@ -66,7 +73,7 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
         VSCTube *tube = new VSCTube(QString(effect.c_str()), this);
         connect(tube, &VSCTube::valueChanged, this, [=](){
             std::vector<int> offsets;
-            for (auto t : tubes ) {
+            for (auto t : tubes) {
                 offsets.push_back(t->value());
             }
             ep->setTubeOffsets(offsets);
@@ -74,23 +81,27 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
         });
 
         connect(tube, &VSCTube::buttonPressed, this, [=](bool right){
-            auto ind = std::remove(tubes.begin(), tubes.end(), tube);
-            tubes.erase(ind, tubes.end());
-            if (right) {
-                //tubes.insert(ind + 1, tube);
-            } else {
-                //tubes.insert(ind - 1, tube);
+            auto it = std::find(tubes.begin(), tubes.end(), tube);
+            if (it != tubes.end()) {
+                int index = std::distance(tubes.begin(), it);
+                if (right) {
+                    if (index < tubes.size() - 1) {
+                        std::swap(tubes[index], tubes[index + 1]);
+                    }
+                } else {
+                    if (index > 0) {
+                        std::swap(tubes[index], tubes[index - 1]);
+                    }
+                }
             }
 
-            int index = tubesLayout->indexOf(tube);
-            tubesLayout->removeWidget(tube);
-            if (right) {
-                tubesLayout->insertWidget(index + 1, tube);
-            } else {
-                tubesLayout->insertWidget(index - 1, tube);
+            while (tubesLayout->count() > 0) {
+                QWidget *widget = tubesLayout->itemAt(0)->widget();
+                tubesLayout->removeWidget(widget);
             }
+
             for (auto t : tubes) {
-
+                tubesLayout->addWidget(t);
             }
 
         });
@@ -147,6 +158,7 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     connect(effect4Slider, &VSCSlider::sliderReleased, this, &AudioWindow::sliderChanged);
 
     QVBoxLayout* slidersLayout = new QVBoxLayout(centralWidget);
+    slidersLayout->addStretch();
     slidersLayout->addWidget(sensitivitySlider);
     slidersLayout->addWidget(brightnessSlider);
     slidersLayout->addWidget(saturationSlider);
@@ -155,16 +167,15 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     slidersLayout->addWidget(effect2Slider);
     slidersLayout->addWidget(effect3Slider);
     slidersLayout->addWidget(effect4Slider);
+    slidersLayout->addStretch();
     slidersLayout->setSpacing(0);
 
     // Create a layout
-    QWidget *gridWidget = new QWidget;
-    QGridLayout *gridLayout = new QGridLayout;
+    QHBoxLayout *bottomLayout = new QHBoxLayout;
 
+    QGridLayout *gridLayout = new QGridLayout;
     std::vector<EffectPresetModel *> presets = EffectPresetModel::readJson("effects.json");
     std::vector<EffectPresetButton*> buttons{};
-
-
     // Loop to create buttons and add them to the layout
     for (int row = 0; row < 10; ++row) {
         for (int col = 0; col < 10; ++col) {
@@ -178,7 +189,15 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
                 this->effect2Slider->setValue(model->config.parameter2);
                 this->effect3Slider->setValue(model->config.parameter3);
                 this->saturationSlider->setValue(model->config.sat);
+                for (int i = 0; i < 8; ++i) {
+                    this->ledModifierCheckboxes[i]->blockSignals(true);
+                    this->ledModifierCheckboxes[i]->setChecked(((model->config.modifiers >> (7 - i)) & 0x01));
+                    this->ledModifierCheckboxes[i]->blockSignals(false);
+                }
+                ledModeRadioButtons[model->config.led_mode]->blockSignals(true);
                 ledModeRadioButtons[model->config.led_mode]->setChecked(true);
+                ledModeRadioButtons[model->config.led_mode]->blockSignals(false);
+
                 ep->masterconfig = model->config;
                 ep->sendConfig();
             });
@@ -198,8 +217,8 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
             buttons.push_back(button);
         }
     }
-    gridWidget->setLayout(gridLayout);
-
+    bottomLayout->addLayout(slidersLayout);
+    bottomLayout->addLayout(gridLayout);
 
     QHBoxLayout *header = new QHBoxLayout(centralWidget);
 
@@ -209,15 +228,29 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     header->addWidget(bpmLabel);
     header->addWidget(tmpLabel);
 
-    glv = new OGLWidget(0, 10, 512, centralWidget);
+    glv = new OGLWidget(0, 10, 640, centralWidget);
     glv->setMinimumHeight(300);
     connect(glv, &OGLWidget::valueChanged, this, &AudioWindow::sliderChanged);
-    connect(glv, &OGLWidget::mouseEnterEvent, this, [this](){setCursor(Qt::ArrowCursor);});
-    connect(glv, &OGLWidget::mouseLeaveEvent, this, [this](){setCursor(Qt::OpenHandCursor);});
 
-    QPushButton *button = new QPushButton("Update Firmware");
-    connect(button, &QPushButton::pressed, [=](){
+    QHBoxLayout *fwButtons = new QHBoxLayout(centralWidget);
+
+    QPushButton *fwbutton = new QPushButton("Put All in Firmwareupdate Mode");
+    connect(fwbutton, &QPushButton::pressed, [=](){
         ep->updateFirmware();
+    });
+
+    QPushButton *flashbutton = new QPushButton("FW Update");
+    connect(flashbutton, &QPushButton::pressed, [=](){
+        auto flasher = mdnsflasher();
+        flasher.flash("./asdasd");
+    });
+
+    fwButtons->addWidget(fwbutton);
+    fwButtons->addWidget(flashbutton);
+
+    QPushButton *syncbutton = new QPushButton("Sync");
+    connect(syncbutton, &QPushButton::pressed, [=](){
+        ep->sendSync();
     });
 
     // Add widgets to the layout
@@ -226,9 +259,9 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     mainLayout->addWidget(glv);
     mainLayout->addLayout(modesLayout);
     mainLayout->addLayout(modifiersLayout);
-    mainLayout->addLayout(slidersLayout);
-    mainLayout->addWidget(gridWidget);
-    mainLayout->addWidget(button);
+    mainLayout->addLayout(bottomLayout);
+    mainLayout->addLayout(fwButtons);
+    mainLayout->addWidget(syncbutton);
 
     if (getuid() == 0) {
         printf("Dropping privs\n");
@@ -247,7 +280,7 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
 
     QTimer *qtimer = new QTimer(this);
     connect(qtimer, &QTimer::timeout, this, &AudioWindow::checkTime);
-    qtimer->start(10);
+    qtimer->start(5);
 }
 
 void AudioWindow::checkTime(){
@@ -277,7 +310,10 @@ void AudioWindow::checkTime(){
 
     if (lowpeak && debounce) {
         lastBeat = now;
-        ep->peakEvent();
+        colors.push((*hueRandom)(*rng));
+
+        int selectedHue = colors.front();
+        ep->peakEvent(selectedHue);
         std::chrono::time_point<std::chrono::system_clock> now = std::chrono::system_clock::now();
         beats.push(beatMillis);
 
@@ -286,8 +322,15 @@ void AudioWindow::checkTime(){
         float mean = sum / beats.size();
         bpmLabel->setText(std::to_string((int)std::round(60.0 / (mean / 1000.0))).c_str());
         tmpLabel->setText(std::to_string(mean).c_str());
+
+        for (auto t : tubes) {
+            t->setPeaked(QColor::fromHsv(selectedHue, saturationSlider->value(), brightnessSlider->value()).toRgb());
+        }
     }
     glv->setFrequencies(f, lowpeak, lowFreqIntensity);
+    for (auto t : tubes) {
+        t->updateGL();
+    }
 }
 
 void AudioWindow::sliderChanged()
@@ -354,7 +397,6 @@ void AudioWindow::closeEvent(QCloseEvent *event)
         event->accept();
     }
 }
-
 
 AudioWindow::~AudioWindow()
 {

@@ -6,7 +6,7 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
@@ -17,6 +17,10 @@ find_package(kissfft REQUIRED)
 find_package(RtAudio REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(Freetype REQUIRED)
+
+find_package(PkgConfig REQUIRED)
+
+pkg_check_modules(AVAHI REQUIRED avahi-client)
 
 set(PROJECT_SOURCES
         main.cpp
@@ -64,10 +68,10 @@ else()
             Timeline/EventProcessor.h
             Timeline/EventModel.h
             Timeline/EventModel.cpp
-            ESPNOW_manager.cpp
-            ESPNOW_manager.h
-            ESPNOW_types.cpp
-            ESPNOW_types.h
+            espnowsender.cpp
+            espnowsender.h
+            espnowtypes.cpp
+            espnowtypes.h
             ProjectModel.h
             TODO.md
             audioanalyzer.h audioanalyzer.cpp
@@ -89,13 +93,14 @@ else()
             vsctube.h
             tubewidget.cpp
             tubewidget.h
+            mdnsflasher.h mdnsflasher.cpp
         )
     endif()
 endif()
 
-include_directories( ${FREETYPE_INCLUDE_DIRS} )
+include_directories( ${FREETYPE_INCLUDE_DIRS} ${AVAHI_INCLUDE_DIRS} )
 
-target_link_libraries(VisualSyncComposer PRIVATE Qt${QT_VERSION_MAJOR}::Widgets ${OPENGL_LIBRARIES}  Qt${QT_VERSION_MAJOR}::Network ${FREETYPE_LIBRARIES} SDBusCpp::sdbus-c++ RtAudio::rtaudio ${Boost_LIBRARIES} "/usr/lib/x86_64-linux-gnu/libkissfft-float.so.131.1.0")
+target_link_libraries(VisualSyncComposer PRIVATE Qt${QT_VERSION_MAJOR}::Widgets ${OPENGL_LIBRARIES}  Qt${QT_VERSION_MAJOR}::Network ${FREETYPE_LIBRARIES} ${AVAHI_LIBRARIES} SDBusCpp::sdbus-c++ RtAudio::rtaudio ${Boost_LIBRARIES} "/usr/lib/x86_64-linux-gnu/libkissfft-float.so.131.1.0")
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
 # If you are developing for iOS or macOS you should consider setting an

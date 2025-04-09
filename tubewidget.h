@@ -25,6 +25,9 @@ public:
 
     void setFrequencies(const std::vector<float> &newFrequencies, bool peak, float level);
 
+    bool peaked;
+    void setPeaked(QColor color);
+    QColor color;
 protected:
     void initializeGL();
     void paintGL();
@@ -33,6 +36,9 @@ protected:
     QOpenGLVertexArrayObject vao, vao1;
     QOpenGLBuffer vertexPositionBuffer, vertexBuffer;
     GLuint shaderProgram;
+private:
+    float peak;
+    float time;
 };
 
 #endif // TUBEWIDGET_H

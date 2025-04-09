@@ -1,11 +1,12 @@
 #include "tubewidget.h"
+#include <cmath>
 
 
 #define PROGRAM_VERTEX_ATTRIBUTE 0
 
 
 TubeWidget::TubeWidget(QWidget *parent)
-    : QOpenGLWidget(parent)
+    : QOpenGLWidget(parent), peak(0.0), time(0.0)
 {
 
     setMouseTracking(true);
@@ -47,6 +48,8 @@ void TubeWidget::initializeGL()
             #version 330 core
             layout (location = 0) in vec2 vertex;
             out vec2 pos;
+            uniform float peak;
+
 
             void main() {
                 pos = vertex;
@@ -61,12 +64,13 @@ void TubeWidget::initializeGL()
             #version 330 core
             in vec2 pos;
             out vec4 FragColor;
-            uniform int pressed;
-
-            #define PI 3.14159265359
+            uniform float peak;
+            uniform vec3 color;
 
             void main() {
-                FragColor = vec4(pos.x, pos.y, 0.0, 1.0);
+                float y = smoothstep(-0.75, -0.2, pos.x) - smoothstep(0.2, 0.75, pos.x);
+                vec3 c = color * y;
+                FragColor = vec4(c * (float)(pos.y < (-1.0 + 2 * peak)), 1.0);
             }
         )";
     fshader->compileSourceCode(fsrc);
@@ -100,11 +104,30 @@ void TubeWidget::initializeGL()
 
 void TubeWidget::paintGL()
 {
+    if (peaked) {
+        glClearColor(1,0,0,1);
+        peak = 1.0;
+        peaked = false;
+    } else {
+        glClearColor(0,0,0,1);
+        if (peak > 0) {
+            peak -= 0.05;
+        }
+    }
+
     program->bind();
-    program->setUniformValue("pressed", false);
+    program->setUniformValue("peak", peak);
+    program->setUniformValue("color", QVector3D(color.red(), color.green(), color.blue()));
     vao.bind();
     glDrawArrays(GL_TRIANGLES, 0, 6);
     vao.release();
     program->release();
+    time += 0.05;
+}
+
+void TubeWidget::setPeaked(QColor newColor) {
+    peaked = true;
+    //qDebug() << newColor;
+    color = newColor.toRgb();
 }
 

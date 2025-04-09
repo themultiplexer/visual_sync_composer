@@ -8,26 +8,25 @@
 #include <stdint.h>
 #include <pthread.h>
 
-#include "ESPNOW_types.h"
+#include "espnowtypes.h"
 
-class ESPNOW_manager {
+class espnowsender {
 	public:
-		ESPNOW_manager() {
+    espnowsender() {
 			default_values();
 		}
 
-		ESPNOW_manager(char* interface) {
+    espnowsender(char* interface) {
 			default_values();
 			set_interface(interface);
 		}
 
-		ESPNOW_manager(char* interface, uint8_t datarate, uint16_t channel_freq, uint8_t src_mac[6], uint8_t dst_mac[6], bool filterOn) {
+    espnowsender(char* interface, uint8_t datarate, uint16_t channel_freq, uint8_t src_mac[6]) {
 			default_values();
 			set_interface(interface);
 			set_channel(channel_freq);
 			set_datarate(datarate);
 			set_src_mac(src_mac);
-			set_dst_mac(dst_mac);
 		}
 
 		void set_interface(char* interface);
@@ -37,14 +36,12 @@ class ESPNOW_manager {
 		void end();
 		
 		//int send(ESPNOW_packet p);
-		int send(uint8_t *payload, int len);
+        int send(uint8_t *payload, int len, uint8_t dst_mac[6]);
 		int send();
 		
 		void set_channel(uint16_t channel_freq) { mypacket.set_channel(channel_freq); }
 		void set_datarate(uint8_t datarate) { mypacket.set_datarate(datarate); }
-		void set_src_mac(uint8_t src_mac[6]) { mypacket.set_src_mac(src_mac); }
-		void set_dst_mac(uint8_t dst_mac[6]) { mypacket.set_dst_mac(dst_mac); }
-	
+		void set_src_mac(uint8_t src_mac[6]) { mypacket.set_src_mac(src_mac); }	
 
 		ESPNOW_packet mypacket;
 	private:

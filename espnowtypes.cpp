@@ -1,4 +1,4 @@
-#include "ESPNOW_types.h"
+#include "espnowtypes.h"
 
 #include <stdint.h>
 #include <string.h>

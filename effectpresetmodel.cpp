@@ -1,4 +1,5 @@
 #include "effectpresetmodel.h"
+#include "qjsonobject.h"
 
 EffectPresetModel::EffectPresetModel(QString name) {
     this->name = name;
@@ -56,6 +57,13 @@ EffectPresetModel* EffectPresetModel::fromJson(const QJsonObject &obj) {
     preset.modifiers = obj["modifiers"].toInt();
     preset.sat = obj["sat"].toInt();
     preset.offset = 0;
+    for (int i = 0; i < 144; i++){
+        if (i % 2 == 0) {
+            preset.pattern[i] = 0xFF;
+        } else {
+            preset.pattern[i] = 0x00;
+        }
+    }
     return new EffectPresetModel(name, preset);
 }
 

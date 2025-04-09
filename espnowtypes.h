@@ -1,5 +1,5 @@
-#ifndef ESPNOW_TYPES_H
-#define ESPNOW_TYPES_H
+#ifndef ESPNOWTYPES_H
+#define ESPNOWTYPES_H
 
 #include <string.h>
 #include <stdint.h>
