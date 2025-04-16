@@ -28,6 +28,12 @@ void VSCTube::onPlusClicked()
     emit buttonPressed(true);
 }
 
+void VSCTube::onFlashClicked()
+{
+    emit flashClicked();
+}
+
+
 void VSCTube::onValueChanged(int s)
 {
     emit valueChanged();
@@ -42,8 +48,10 @@ VSCTube::VSCTube(QString name, QWidget *parent) : QWidget(parent) {
 
     leftButton = new QPushButton("<");
     leftButton->setMinimumWidth(20);
+    leftButton->setMaximumWidth(50);
     rightButton = new QPushButton(">");
     rightButton->setMinimumWidth(20);
+    rightButton->setMaximumWidth(50);
 
     ftube = new TubeWidget(this);
     ftube->setMinimumHeight(150);
@@ -55,7 +63,11 @@ VSCTube::VSCTube(QString name, QWidget *parent) : QWidget(parent) {
     QHBoxLayout *buttonLayout = new QHBoxLayout;
     buttonLayout->addWidget(leftButton);
     buttonLayout->addWidget(rightButton);
+    buttonLayout->setAlignment(Qt::AlignHCenter);
 
+    flashButton = new QPushButton("Flash");
+    flashButton->setMinimumWidth(20);
+    flashButton->setMaximumWidth(50);
 
     // Create a layout for this widget
     QVBoxLayout *layout = new QVBoxLayout;
@@ -65,10 +77,12 @@ VSCTube::VSCTube(QString name, QWidget *parent) : QWidget(parent) {
     layout->addWidget(textEdit);
     layout->addWidget(leftButton);
     layout->addWidget(rightButton);
+    layout->addWidget(flashButton);
     setLayout(layout);
 
     connect(leftButton, &QPushButton::released, this, &VSCTube::onMinusClicked);
     connect(rightButton, &QPushButton::released, this, &VSCTube::onPlusClicked);
+    connect(flashButton, &QPushButton::released, this, &VSCTube::onFlashClicked);
     connect(textEdit, QOverload<int>::of(&QSpinBox::valueChanged), this, &VSCTube::onValueChanged);
 }
 

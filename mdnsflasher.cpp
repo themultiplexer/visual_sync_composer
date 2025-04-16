@@ -13,6 +13,10 @@
 std::vector<std::string> found_hosts;
 AvahiSimplePoll *simple_poll = nullptr;
 
+int services = 0;
+int serviceCount = 0;
+int devices = 0;
+
 void resolve_callback(
     AvahiServiceResolver *,
     AvahiIfIndex,
@@ -35,6 +39,12 @@ void resolve_callback(
         found_hosts.push_back(addr_str);
     } else {
         std::cerr << "Failed to resolve service '" << name << "': " << avahi_strerror(avahi_client_errno((AvahiClient *)userdata)) << std::endl;
+    }
+
+    devices++;
+
+    if (devices == serviceCount) {
+        avahi_simple_poll_quit(simple_poll);
     }
 }
 
@@ -77,7 +87,7 @@ void browse_callback(
     }
 }
 
-void client_callback(AvahiClient *client, AvahiClientState state, void *userdata) {
+static void client_callback(AvahiClient *client, AvahiClientState state, void *userdata) {
     if (state == AVAHI_CLIENT_FAILURE) {
         std::cerr << "Avahi client failure: " << avahi_strerror(avahi_client_errno(client)) << std::endl;
         avahi_simple_poll_quit(simple_poll);
@@ -88,6 +98,9 @@ void client_callback(AvahiClient *client, AvahiClientState state, void *userdata
 
 int mdnsflasher::flash(std::string firmware)
 {
+    services = 0;
+    serviceCount = 0;
+    devices = 0;
     int error;
 
     simple_poll = avahi_simple_poll_new();
@@ -117,7 +130,7 @@ int mdnsflasher::flash(std::string firmware)
 
     std::cout << "Found " << found_hosts.size() << " devices.\n";
     for (const auto &ip : found_hosts) {
-        std::string cmd = "python3 ./espota.py -i " + ip + " -f " + firmware;
+        std::string cmd = "python3 ../espota.py -p 8266 -i " + ip + " -f " + firmware;
         std::cout << "Flashing " << ip << "...\n";
         std::system(cmd.c_str());
     }

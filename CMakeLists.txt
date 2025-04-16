@@ -94,6 +94,8 @@ else()
             tubewidget.cpp
             tubewidget.h
             mdnsflasher.h mdnsflasher.cpp
+            devicereqistry.h devicereqistry.cpp
+            frequencyregion.h frequencyregion.cpp
         )
     endif()
 endif()

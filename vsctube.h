@@ -18,6 +18,7 @@ public:
 signals:
     void valueChanged();
     void buttonPressed(bool right);
+    void flashClicked();
 
 public:
     VSCTube(QString name, QWidget *parent);
@@ -35,6 +36,8 @@ private:
     void onPlusClicked();
     void onValueChanged(int);
     TubeWidget *ftube;
+    QPushButton *flashButton;
+    void onFlashClicked();
 };
 
 #endif // VSCTUBE_H

@@ -7,7 +7,7 @@
 #include <sys/time.h>
 #include <iostream>
 #include <random>
-
+#include "devicereqistry.h"
 #include "espnowsender.h"
 #include "espnowtypes.h"
 #include "espreceiver.h"
@@ -18,17 +18,7 @@ using namespace std;
 //static uint8_t my_mac[6] = {0xF0, 0x79, 0x60, 0x18, 0x34, 0x3C};
 static uint8_t my_mac[6] = {0xDC, 0x4E, 0xF4, 0x0A, 0x3F, 0x9F};
 
-std::vector<std::array<uint8_t, 6>> macs = {{0x8C, 0xCE, 0x4E, 0xE3, 0x6B, 0xED},
-                              {0x24, 0xA1, 0x60, 0x3D, 0x86, 0x4A},
-                              {0x60, 0x01, 0x94, 0x96, 0xC4, 0x4A},
-                              {0x24, 0xA1, 0x60, 0x3D, 0x87, 0x2F},
-                              {0x24, 0xA1, 0x60, 0x3A, 0xCF, 0x56},
-                              {0x24, 0xA1, 0x60, 0x3D, 0x48, 0x56},
-                              {0x24, 0xA1, 0x60, 0x3D, 0x8B, 0x0A},
-                              {0x24, 0xA1, 0x60, 0x3A, 0xA2, 0xDC},
-                              {0x24, 0xA1, 0x60, 0x3A, 0x2B, 0xE9},
-                              {0x8C, 0xCE, 0x4E, 0xE1, 0xDF, 0x2E},
-                              {0x8C, 0xCE, 0x4E, 0xDE, 0xB3, 0xC7}}; //  8C:CE:4E:DE:B3:C7 8C:CE:4E:E1:DF:2E
+
 
 void WifiEventProcessor::callback(uint8_t src_mac[6], uint8_t *data, int len) {
     if(len == 6) {
@@ -86,15 +76,16 @@ void WifiEventProcessor::initHandlers() {
     handler->start();
 }
 
-void WifiEventProcessor::peakEvent(int hue) {
+void WifiEventProcessor::peakEvent(uint8_t hue) {
     PEAK_DATA peak;
     peak.hue = hue;
-    handler->send(reinterpret_cast<uint8_t*>(&peak), sizeof(PEAK_DATA), new uint8_t[6] {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF});
+    handler->send(reinterpret_cast<uint8_t*>(&peak), 1, new uint8_t[6] {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF});
 }
 
 void WifiEventProcessor::sendConfig()
 {
-    for (int i = 0; i < macs.size(); i++) {
+    auto macs = devicereqistry::macs();
+    for (int i = 0; i < devicereqistry::macs().size(); i++) {
         CONFIG_DATA tube_config = masterconfig;
         if (i < tubeOffsets.size()) {
             tube_config.offset = tubeOffsets[i];
@@ -110,6 +101,7 @@ void WifiEventProcessor::sendConfigTo(uint8_t dst_mac[6])
     std::array<uint8_t, 6> mac_array;
     std::copy(dst_mac, dst_mac + 6, mac_array.begin());
     CONFIG_DATA tube_config = masterconfig;
+    auto macs = devicereqistry::macs();
     auto it = std::find(macs.begin(), macs.end(), mac_array);
     if (it != macs.end()) {
         int i = std::distance(macs.begin(), it);
@@ -128,10 +120,16 @@ void WifiEventProcessor::sendSync()
     handler->send(reinterpret_cast<uint8_t*>(&sync), sizeof(SYNC_DATA), new uint8_t[6] {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF});
 }
 
-void WifiEventProcessor::updateFirmware()
+void WifiEventProcessor::sendUpdateMessage()
 {
     UPDATE_DATA update;
     handler->send(reinterpret_cast<uint8_t*>(&update), sizeof(UPDATE_DATA), new uint8_t[6] {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF});
+}
+
+void WifiEventProcessor::sendUpdateMessageTo(const uint8_t dst_mac[6])
+{
+    UPDATE_DATA update;
+    handler->send(reinterpret_cast<uint8_t*>(&update), sizeof(UPDATE_DATA), dst_mac);
 }
 
 void WifiEventProcessor::registerReceiver(WifiTextEventReceiver *receiver) {

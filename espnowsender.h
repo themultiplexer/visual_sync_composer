@@ -36,7 +36,7 @@ class espnowsender {
 		void end();
 		
 		//int send(ESPNOW_packet p);
-        int send(uint8_t *payload, int len, uint8_t dst_mac[6]);
+        int send(uint8_t *payload, int len, const uint8_t dst_mac[6]);
 		int send();
 		
 		void set_channel(uint16_t channel_freq) { mypacket.set_channel(channel_freq); }

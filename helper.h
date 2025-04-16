@@ -4,6 +4,7 @@
 #include <array>
 #include <cstdint>
 #include <deque>
+#include <iomanip>
 #include <sstream>
 
 template <typename T, int MaxLen, typename Container = std::deque<T>>
@@ -40,6 +41,14 @@ std::string arrayToString(const std::array<T, N>& arr) {
     }
     oss << " ]";
     return oss.str();
+}
+
+static std::string arrayToHexString(const std::array<uint8_t, 6>& arr) {
+    std::stringstream ss;
+    for (auto byte : arr) {
+        ss << std::setw(2) << std::setfill('0') << std::hex << (int)byte;
+    }
+    return ss.str();
 }
 
 typedef struct {

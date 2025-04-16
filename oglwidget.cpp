@@ -1,15 +1,11 @@
 #include "oglwidget.h"
 #include "qdebug.h"
 #include <cmath>
-#include <iostream>
-#include <ostream>
-
 
 #define PROGRAM_VERTEX_ATTRIBUTE 0
 
-
 OGLWidget::OGLWidget(int min, int max, int step, QWidget *parent)
-    : QOpenGLWidget(parent), mouseDown(false), step(step), min(min), max(max), start(-0.9 + 2 *((float)min/(float)step)), end(-0.9 + 2 *((float)max/(float)step)), levels(), thresh(0.5), level(0.0), smoothLevel(0.0), gap(0.05)
+    : QOpenGLWidget(parent), mouseDown(false), levels(), level(0.0), smoothLevel(0.0), low(3, 10, NUM_POINTS, "low"), high(50, 100, NUM_POINTS, "high")
 {
     for (int i = 0; i < NUM_POINTS; ++i) {
         frequencies.push_back(0.0);
@@ -25,15 +21,31 @@ OGLWidget::~OGLWidget()
 
 }
 
+int OGLWidget::getMin() {
+    return low.getMin();
+}
+
+int OGLWidget::getMax() {
+    return low.getMax();
+}
+
+float OGLWidget::getThresh() {
+    return low.getThresh();
+}
+
+void OGLWidget::setThresh(float newThresh) {
+    return low.setThresh(newThresh);
+}
+
 void OGLWidget::createVBO() {
     time_t seconds;
     seconds = time (NULL);
 
     std::vector<float> vertices;
     for (int i = 0; i < NUM_POINTS; ++i) {
-        float from = -(1.0 - gap) + ((float)i/NUM_POINTS) * (1.0 - gap) * 2.0;
+        float from = -1.0 + ((float)i/NUM_POINTS) * 2.0;
         vertices.push_back(from);
-        vertices.push_back(smoothFrequencies[i] - (1.0 - gap));
+        vertices.push_back(smoothFrequencies[i] - 1.0);
     }
     vertexBuffer.bind();
     vertexBuffer.allocate(vertices.data(), vertices.size() * sizeof(float));
@@ -72,9 +84,6 @@ void OGLWidget::initializeGL()
     const char *vsrc = R"(
             #version 330 core
             layout (location = 0) in vec2 vertex;
-            uniform int pressed;
-            uniform float start;
-            uniform float end;
             out vec2 pos;
 
             void main() {
@@ -90,31 +99,35 @@ void OGLWidget::initializeGL()
             #version 330 core
             in vec2 pos;
             out vec4 FragColor;
-            uniform int pressed;
-            uniform float start;
-            uniform float level;
-            uniform float thresh;
-            uniform int color;
-            uniform float end;
-            uniform float peak;
+
+            uniform float regions[12];
 
             void main() {
-                float t = -1.0 + 2.0 * thresh;
-                int visible = (int)(pos.x > start && pos.x < end);
-                int threshold = (int)(pos.y < t + 0.01 && pos.y > t - 0.01);
-                int start = (int)(pos.x < start + 0.001 && pos.x > start - 0.001);
-                int end = (int)(pos.x < end + 0.001 && pos.x > end - 0.001);
+                FragColor = vec4(0.0);
+                for (int i = 0; i < 2; i++) {
+                    int ind = i * 6;
+                    float start = regions[ind + 0];
+                    float end = regions[ind + 1];
+                    float level = regions[ind + 2];
+                    float thresh = regions[ind + 3];
+                    float peak = regions[ind + 4];
+                    int color = (int)regions[ind + 5];
 
-                vec4 c = vec4(peak, 1.0, peak, 1.0);
-                if (color == 1) {
-                    c = vec4(1.0, peak, peak, 1.0);
+                    float t = -1.0 + 2.0 * thresh;
+                    int visible = (int)(pos.x > start && pos.x < end);
+                    int threshold = (int)(pos.y < t + 0.01 && pos.y > t - 0.01);
+                    start = (int)(pos.x < start + 0.001 && pos.x > start - 0.001);
+                    end = (int)(pos.x < end + 0.001 && pos.x > end - 0.001);
+
+                    vec4 c = vec4(peak, 1.0, peak, 1.0);
+                    if (color == 1) {
+                        c = vec4(1.0, peak, peak, 1.0);
+                    }
+
+                    int visible2 = (int)(pos.y < (-1.0 + 2.0 * level));
+
+                    FragColor += (c * start + c * end) + threshold * visible * vec4(1.0) + vec4(vec3(1.0), 0.5) * visible2 * visible;
                 }
-
-                vec4 color = c * start + c * end;
-
-                int visible2 = (int)(pos.y < (-1.0 + 2.0 * level));
-
-                FragColor = color + threshold * visible * vec4(1.0) + vec4(vec3(1.0), 0.5) * visible2 * visible;
             }
         )";
     fshader->compileSourceCode(fsrc);
@@ -177,13 +190,18 @@ void OGLWidget::paintGL()
     vao1.release();
 
     program->bind();
-    program->setUniformValue("pressed", mouseDown);
-    program->setUniformValue("peak", peak);
-    program->setUniformValue("level", smoothLevel);
-    program->setUniformValue("thresh", thresh);
-    program->setUniformValue("color", start < end);
-    program->setUniformValue("start", getStart());
-    program->setUniformValue("end", getEnd());
+    std::vector<GLfloat> test;
+
+    for (auto reg : {&low, &high}) {
+        test.push_back(reg->getStart());
+        test.push_back(reg->getEnd());
+        test.push_back(smoothLevel);
+        test.push_back(reg->getThresh());
+        test.push_back(peak);
+        test.push_back(static_cast<GLfloat>(reg->getColor()));
+    }
+
+    program->setUniformValueArray("regions", test.data(), 12, 1);
     vao.bind();
     glDrawArrays(GL_TRIANGLES, 0, 6);
     vao.release();
@@ -192,106 +210,46 @@ void OGLWidget::paintGL()
     peaked = false;
 }
 
-float OGLWidget::getEnd() const
-{
-    return end > start ? end : start;
-
-}
-
-void OGLWidget::setEnd(float newEnd)
-{
-    end = std::fmax(std::fmin(newEnd, (1.0 - gap)), -(1.0 - gap));
-}
-
-float OGLWidget::getStart() const
-{
-    return start < end ? start : end;
-}
-
-void OGLWidget::setStart(float newStart)
-{
-    start = std::fmax(std::fmin(newStart, (1.0 - gap)), -(1.0 - gap));
-}
-
-float OGLWidget::getThresh() const
-{
-    return thresh;
-}
-
-void OGLWidget::setThresh(float newThresh)
-{
-    thresh = newThresh;
-}
-
-int OGLWidget::getMax() const
-{
-    return max > min ? max : min;
-}
-
-int OGLWidget::getMin() const
-{
-    return min < max ? min : max;
-}
 
 bool OGLWidget::eventFilter(QObject *obj, QEvent *event) {
     auto mouseEvent = dynamic_cast<QMouseEvent *>(event);
     if (mouseEvent != nullptr) {
         float x = ((float)mouseEvent->pos().x() / (float)width());
-        float y = 1.0 - ((float)mouseEvent->pos().y() / (float)height());
-        float rx = (x - fmod(x, 1.0/(float)NUM_POINTS));
-        float vx = std::fmax(std::fmin(rx, (1.0 - gap)/2.0), gap/2.0);
-        float px = -1.0 + 2 * vx;
+        float y = ((float)mouseEvent->pos().y() / (float)height());
 
-        bool newInside = (px > getStart() && px < getEnd());
-        bool newOnLine = newInside && (y < thresh + 0.05 && y > thresh - 0.05);
-        if (newInside) {
-            setCursor(Qt::OpenHandCursor);
-            if (newOnLine && !dragging) {
-                setCursor(Qt::SizeVerCursor);
+
+        int i = 0;
+        for (auto& reg : {&low, &high}) {
+            i++;
+
+            reg->mouseEvent(x, y);
+
+            if (reg->newInside) {
+                setCursor(Qt::OpenHandCursor);
+                if (reg->newOnLine && !reg->dragging) {
+                    setCursor(Qt::SizeVerCursor);
+                }
+                break;
+            } else {
+                setCursor(Qt::ArrowCursor);
             }
-        } else {
-            setCursor(Qt::ArrowCursor);
         }
-
-        onLine = newOnLine;
 
         if (mouseEvent->button() == Qt::LeftButton) {
             if (event->type() == QEvent::MouseButtonPress) {
-                mouseDown = true;
-                inside = newInside;
-                dragging = onLine;
-                dx = px;
-                prestart = start;
-                preend = end;
-                if (!dragging && !inside) {
-                    start = px;
-                    min = (vx * (1.0/(1.0 - gap)) - gap/2.0) * NUM_POINTS;
-                }
+                low.mouseClick(x, y);
             } else if (event->type() == QEvent::MouseButtonRelease) {
-                mouseDown = false;
-                if (dragging) {
-                    thresh = y;
-                } else if(!inside) {
-                    end = -1.0 + 2 * vx;
-                    max = (vx * (1.0/(1.0 - gap)) - gap/2.0) * NUM_POINTS;
-                }
-                dragging = false;
-                inside = false;
-                qDebug() << start << " " << end;
+                low.mouseReleased(x, y);
+
             }
         }
-        if (mouseDown) {
-            if (dragging) {
-                thresh = y;
-                emit valueChanged();
-            } else if (inside) {
-                setStart(prestart + (px - dx));
-                setEnd(preend + (px - dx));
-            } else {
-                end = px;
+        if (mouseEvent->button() == Qt::RightButton) {
+            if (event->type() == QEvent::MouseButtonPress) {
+                high.mouseClick(x, y);
+            } else if (event->type() == QEvent::MouseButtonRelease) {
+                high.mouseReleased(x, y);
             }
         }
-        //current = mouseEvent->pos().x();
     }
 }
 

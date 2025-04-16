@@ -13,11 +13,11 @@ void ESPNOW_packet::set_datarate(uint8_t datarate) {
 	this->radiotap.datarate = datarate;
 }
 
-void ESPNOW_packet::set_src_mac(uint8_t my_mac[6]) {
+void ESPNOW_packet::set_src_mac(const uint8_t my_mac[6]) {
 	memcpy(this->wlan.sa, my_mac, sizeof(uint8_t)*6);
 }
 
-void ESPNOW_packet::set_dst_mac(uint8_t dst_mac[6]) {
+void ESPNOW_packet::set_dst_mac(const uint8_t dst_mac[6]) {
 	memcpy(this->wlan.da, dst_mac, sizeof(uint8_t)*6);
 	memcpy(this->wlan.bssid, dst_mac, sizeof(uint8_t)*6);
 }

@@ -58,9 +58,9 @@ class WifiEventProcessor : public EventProcessor
 public:
     WifiEventProcessor();
     void textEvent(std::string data);
-    void peakEvent(int hue);
+    void peakEvent(uint8_t hue);
     void sendConfig();
-    void updateFirmware();
+    void sendUpdateMessage();
 
     CONFIG_DATA masterconfig;
 
@@ -73,6 +73,7 @@ public:
 
     void sendConfigTo(uint8_t dst_mac[]);
     void sendSync();
+    void sendUpdateMessageTo(const uint8_t dst_mac[]);
 private:
     void callback(uint8_t src_mac[6], uint8_t *data, int len);
 

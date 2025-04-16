@@ -1,6 +1,7 @@
 #ifndef OGLWIDGET_H
 #define OGLWIDGET_H
 
+#include "frequencyregion.h"
 #include "helper.h"
 #include <GL/gl.h>
 #include <QWidget>
@@ -26,23 +27,12 @@ public:
 
     void setFrequencies(const std::vector<float> &newFrequencies, bool peak, float level);
 
-    int getMin() const;
-    int getMax() const;
-
+    int getMin();
+    int getMax();
+    float getThresh();
     void setThresh(float newThresh);
-
-    float getThresh() const;
-
-    float getStart() const;
-    void setStart(float newStart);
-
-    float getEnd() const;
-    void setEnd(float newEnd);
-
 signals:
     void valueChanged();
-    void mouseEnterEvent();
-    void mouseLeaveEvent();
 
 protected:
     void initializeGL();
@@ -57,22 +47,15 @@ protected:
     std::vector<float> smoothFrequencies;
     bool peaked;
     bool mouseDown;
-    float start, end, peak, level, smoothLevel, thresh;
+    float peak, level, smoothLevel;
     FixedQueue<float, 1> levels;
-    int min, max, step;
+    FrequencyRegion high, low;
+
     void createVBO();
 private:
     bool eventFilter(QObject *obj, QEvent *event);
     GLuint m_vbo;
     bool dragging;
-
-    bool onLine;
-
-    float dx;
-    float prestart;
-    float preend;
-    bool inside;
-    double gap;
 };
 
 #endif // OGLWIDGET_H

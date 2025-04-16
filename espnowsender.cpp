@@ -70,7 +70,7 @@ void espnowsender::end() {
 	}
 }
 
-int espnowsender::send(uint8_t *payload, int len, uint8_t dst_mac[6]) {
+int espnowsender::send(uint8_t *payload, int len, const uint8_t dst_mac[6]) {
     mypacket.set_dst_mac(dst_mac);
 	uint8_t raw_bytes[LEN_RAWBYTES_MAX];
 

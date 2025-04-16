@@ -1,7 +1,7 @@
 #include "audiowindow.h"
 #include "mdnsflasher.h"
 #include "tubewidget.h"
-
+#include "devicereqistry.h"
 
 AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     : QMainWindow(parent)
@@ -69,15 +69,24 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
 
     QHBoxLayout* tubesLayout = new QHBoxLayout(centralWidget);
 
-    for (std::string effect : {"1","2","3","4","5","6","7","8","9","10"}) {
-        VSCTube *tube = new VSCTube(QString(effect.c_str()), this);
-        connect(tube, &VSCTube::valueChanged, this, [=](){
+    auto macs = devicereqistry::macs();
+    for (auto mac : macs) {
+        VSCTube *tube = new VSCTube(QString(arrayToHexString(mac).c_str()), this);
+        connect(tube, &VSCTube::valueChanged, this, [=, this](){
             std::vector<int> offsets;
             for (auto t : tubes) {
                 offsets.push_back(t->value());
             }
             ep->setTubeOffsets(offsets);
             ep->sendConfig();
+        });
+
+        connect(tube, &VSCTube::flashClicked, this, [=](){
+            auto it = std::find(tubes.begin(), tubes.end(), tube);
+            if (it != tubes.end()) {
+                int index = std::distance(tubes.begin(), it);
+                ep->sendUpdateMessageTo(macs[index].data());
+            }
         });
 
         connect(tube, &VSCTube::buttonPressed, this, [=](bool right){
@@ -236,13 +245,12 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
 
     QPushButton *fwbutton = new QPushButton("Put All in Firmwareupdate Mode");
     connect(fwbutton, &QPushButton::pressed, [=](){
-        ep->updateFirmware();
+        ep->sendUpdateMessage();
     });
 
     QPushButton *flashbutton = new QPushButton("FW Update");
     connect(flashbutton, &QPushButton::pressed, [=](){
-        auto flasher = mdnsflasher();
-        flasher.flash("./asdasd");
+        mdnsflasher::flash("../LEDTube.ino.bin");
     });
 
     fwButtons->addWidget(fwbutton);
@@ -312,11 +320,10 @@ void AudioWindow::checkTime(){
         lastBeat = now;
         colors.push((*hueRandom)(*rng));
 
-        int selectedHue = colors.front();
+        uint64_t selectedHue = colors.front();
         ep->peakEvent(selectedHue);
         std::chrono::time_point<std::chrono::system_clock> now = std::chrono::system_clock::now();
         beats.push(beatMillis);
-
 
         float sum = std::accumulate(beats.begin(), beats.end(), 0.0);
         float mean = sum / beats.size();
