@@ -5,11 +5,12 @@
 #define PROGRAM_VERTEX_ATTRIBUTE 0
 
 OGLWidget::OGLWidget(int min, int max, int step, QWidget *parent)
-    : QOpenGLWidget(parent), mouseDown(false), low(3, 10, NUM_POINTS, "low"), high(50, 100, NUM_POINTS, "high")
+    : QOpenGLWidget(parent), decay(0.05), low(3, 10, NUM_POINTS, "low"), high(50, 100, NUM_POINTS, "high")
 {
     for (int i = 0; i < NUM_POINTS; ++i) {
         frequencies.push_back(0.0);
         smoothFrequencies.push_back(0.0);
+        recentFrequencies.push_back(100);
     }
     setMouseTracking(true);
     installEventFilter(this);
@@ -78,16 +79,6 @@ void OGLWidget::initializeGL()
     glLineWidth(2.0);
     glPointSize(10.0);
 
-    vao1.create();
-    vao1.bind();
-    vertexBuffer.create();
-    vertexBuffer.bind();
-    OGLWidget::createVBO();
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), nullptr);
-    glEnableVertexAttribArray(0);
-    vertexBuffer.release();
-    vao1.release();
-
     // Create and compile the vertex shader using a raw string literal.
     QOpenGLShader *vshader = new QOpenGLShader(QOpenGLShader::Vertex, this);
     const char *vsrc = R"(
@@ -141,10 +132,62 @@ void OGLWidget::initializeGL()
         )";
     fshader->compileSourceCode(fsrc);
 
-    program = new QOpenGLShaderProgram(this);
-    program->addShader(vshader);
-    program->addShader(fshader);
-    program->link();
+    // Create and compile the vertex shader using a raw string literal.
+    QOpenGLShader *lineVShader = new QOpenGLShader(QOpenGLShader::Vertex, this);
+    const char *lineVSrc = R"(
+            #version 330 core
+            layout (location = 0) in vec2 vertex;
+            layout (location = 1) in vec4 color;
+
+            out vec2 pos;
+            out vec4 col;
+
+            void main() {
+                pos = vertex;
+                col = color;
+                gl_Position = vec4(vertex, 0.0, 1.0);
+            }
+        )";
+    lineVShader->compileSourceCode(lineVSrc);
+
+    // Create and compile the fragment shader.
+    QOpenGLShader *lineFShader = new QOpenGLShader(QOpenGLShader::Fragment, this);
+    const char *lineFSrc = R"(
+            #version 330 core
+            in vec2 pos;
+            in vec4 col;
+            out vec4 FragColor;
+
+            void main() {
+                FragColor = col;
+            }
+        )";
+    lineFShader->compileSourceCode(lineFSrc);
+
+    lineShaderProgram = new QOpenGLShaderProgram(this);
+    lineShaderProgram->addShader(lineVShader);
+    lineShaderProgram->addShader(lineFShader);
+    lineShaderProgram->link();
+
+    lineVao.create();
+    lineVao.bind();
+    lineVertexPositionBuffer.create();
+    lineVertexPositionBuffer.setUsagePattern(QOpenGLBuffer::StaticDraw);
+    lineVertexPositionBuffer.bind();
+    lineVertexPositionBuffer.allocate(lineVertices.data(), lineVertices.size() * sizeof(Vertex2D));
+
+    lineShaderProgram->bind();
+    lineShaderProgram->enableAttributeArray(0);
+    lineShaderProgram->setAttributeBuffer(0, GL_FLOAT, offsetof(Vertex2D, position), 2, sizeof(Vertex2D));
+    lineShaderProgram->enableAttributeArray(1);
+    lineShaderProgram->setAttributeBuffer(1, GL_FLOAT, offsetof(Vertex2D, color), 4, sizeof(Vertex2D));
+    lineShaderProgram->release();
+    lineVao.release();
+
+    regionShaderProgram = new QOpenGLShaderProgram(this);
+    regionShaderProgram->addShader(vshader);
+    regionShaderProgram->addShader(fshader);
+    regionShaderProgram->link();
 
     QVector<QVector2D> vertices;
     vertices << QVector2D(-1.f,  1.f)
@@ -159,27 +202,28 @@ void OGLWidget::initializeGL()
     vertexPositionBuffer.create();
     vertexPositionBuffer.setUsagePattern(QOpenGLBuffer::StaticDraw);
     vertexPositionBuffer.bind();
-    vertexPositionBuffer.allocate(vertices.constData(), vertices.size() * sizeof(QVector2D));
-    program->bind();
-    program->enableAttributeArray(0);
-    program->setAttributeBuffer(0, GL_FLOAT, 0, 2, sizeof(QVector2D));
+    vertexPositionBuffer.allocate(vertices.data(), vertices.size() * sizeof(QVector2D));
+
+    regionShaderProgram->bind();
+    regionShaderProgram->enableAttributeArray(0);
+    regionShaderProgram->setAttributeBuffer(0, GL_FLOAT, 0, 2, sizeof(QVector2D));
     vertexPositionBuffer.release();
     vao.release();
-    program->release();
 }
 
 void OGLWidget::paintGL()
 {
     glClearColor(0,0,0,1);
 
-    OGLWidget::createVBO();
-    vao1.bind();
-    glDrawArrays(GL_LINE_STRIP, 0, NUM_POINTS);
-    vao1.release();
+    lineShaderProgram->bind();
+    lineVao.bind();
+    glDrawArrays(GL_TRIANGLES, 0, lineVertices.size());
+    lineVao.release();
+    lineShaderProgram->release();
 
-    program->bind();
+
+    regionShaderProgram->bind();
     std::vector<GLfloat> test;
-
     for (auto reg : {&low, &high}) {
         test.push_back(reg->getStart());
         test.push_back(reg->getEnd());
@@ -188,15 +232,50 @@ void OGLWidget::paintGL()
         test.push_back(reg->getPeak());
         test.push_back(static_cast<GLfloat>(reg->getColor()));
     }
-
-    program->setUniformValueArray("regions", test.data(), 12, 1);
+    regionShaderProgram->setUniformValueArray("regions", test.data(), 12, 1);
     vao.bind();
     glDrawArrays(GL_TRIANGLES, 0, 6);
     vao.release();
-    program->release();
+    regionShaderProgram->release();
 }
 
 
+// Creates quads (2 triangles per segment) along a polyline with width
+std::vector<Vertex2D> OGLWidget::generatePolylineQuads(const std::vector<Vertex2D>& points, float width) {
+    std::vector<Vertex2D> vertices;
+
+    if (points.size() < 2) {
+        std::cerr << "Error: Need at least 2 points to generate a polyline.\n";
+        return vertices;
+    }
+
+    float halfWidth = width / 2.0f;
+
+    for (size_t i = 0; i < points.size() - 1; ++i) {
+        Vertex2D p0 = points[i];
+        Vertex2D p1 = points[i + 1];
+
+        glm::vec2 dir = glm::normalize(p1.position - p0.position);
+        glm::vec2 normal = glm::vec2(-dir.y, dir.x); // Perpendicular to direction
+
+        // Compute the quad corners
+        glm::vec2 v0 = p0.position + normal * halfWidth;
+        glm::vec2 v1 = p0.position - normal * halfWidth;
+        glm::vec2 v2 = p1.position - normal * halfWidth;
+        glm::vec2 v3 = p1.position + normal * halfWidth;
+
+        // Two triangles per quad: v0-v1-v2 and v2-v3-v0
+        vertices.push_back({ v0, p0.color });
+        vertices.push_back({ v1, p0.color });
+        vertices.push_back({ v2, p0.color });
+
+        vertices.push_back({ v2, p1.color });
+        vertices.push_back({ v3, p1.color });
+        vertices.push_back({ v0, p1.color });
+    }
+
+    return vertices;
+}
 
 
 bool OGLWidget::eventFilter(QObject *obj, QEvent *event) {
@@ -243,16 +322,37 @@ bool OGLWidget::eventFilter(QObject *obj, QEvent *event) {
     }
 }
 
+float OGLWidget::getDecay() const
+{
+    return decay;
+}
+
+void OGLWidget::setDecay(float newDecay)
+{
+    decay = newDecay;
+}
+
 void OGLWidget::setFrequencies(const std::vector<float> &newFrequencies)
 {
+    std::vector<Vertex2D> path;
+    float width = 0.005f;
+
     this->frequencies = newFrequencies;
     for (int i = 0; i < newFrequencies.size(); i++) {
         if (newFrequencies[i] > smoothFrequencies[i]) {
             smoothFrequencies[i] = newFrequencies[i];
+            recentFrequencies[i] = 100;
         } else {
-            smoothFrequencies[i] = (smoothFrequencies[i] > 0.05) ? smoothFrequencies[i] - 0.05 : 0.0;
+            smoothFrequencies[i] = (smoothFrequencies[i] > decay) ? smoothFrequencies[i] - decay : 0.0;
+            recentFrequencies[i] -= recentFrequencies[i] > 10 ? 10 : 0;
         }
+
+        rgb c = hsv2rgb({((float)i/(float)NUM_POINTS) * 360, (1.0 - ((float)recentFrequencies[i] / 100.0)), 1.0});
+        path.push_back({glm::vec2(((float)i/(float)NUM_POINTS) * 2.0 - 1.0, smoothFrequencies[i] * 2.0 - (1.0 - width)), glm::vec4(c.r, c.g, c.b, 1.0) });
     }
+    lineVertices = generatePolylineQuads(path, width);
+    lineVertexPositionBuffer.bind();
+    lineVertexPositionBuffer.allocate(lineVertices.data(), lineVertices.size() * sizeof(Vertex2D));
     update();
 }
 

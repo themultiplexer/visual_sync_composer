@@ -14,8 +14,19 @@
 #include <QOpenGLVertexArrayObject>
 #include <QOpenGLBuffer>
 #include <QOpenGLFunctions>
+#include <vector>
+#include <iostream>
+#include <glm/glm.hpp>
+#include <glm/gtx/normalize_dot.hpp>
+#include <glm/gtx/rotate_vector.hpp>
 
 #define NUM_POINTS 640
+
+struct Vertex2D {
+    glm::vec2 position;
+    glm::vec4 color;
+};
+
 
 class OGLWidget : public QOpenGLWidget, protected QOpenGLFunctions
 {
@@ -32,6 +43,9 @@ public:
     float getThresh();
     void setThresh(float newThresh);
     void processData(std::vector<float> &data, const std::function<void (FrequencyRegion &)> &callback);
+    float getDecay() const;
+    void setDecay(float newDecay);
+
 signals:
     void valueChanged();
 
@@ -40,14 +54,13 @@ protected:
     void resizeGL(int w, int h);
     void paintGL();
 
-    QOpenGLShaderProgram *program;
-    QOpenGLVertexArrayObject vao, vao1;
-    QOpenGLBuffer vertexPositionBuffer, vertexBuffer;
+    QOpenGLShaderProgram *regionShaderProgram, *lineShaderProgram;
+    QOpenGLVertexArrayObject vao, vao1, lineVao;
+    QOpenGLBuffer vertexPositionBuffer,lineVertexPositionBuffer, vertexBuffer;
     GLuint shaderProgram;
     std::vector<float> frequencies;
     std::vector<float> smoothFrequencies;
-    bool mouseDown;
-
+    std::vector<int> recentFrequencies;
     FrequencyRegion high, low;
 
     void createVBO();
@@ -55,6 +68,9 @@ private:
     bool eventFilter(QObject *obj, QEvent *event);
     GLuint m_vbo;
     bool dragging;
+    float decay;
+    std::vector<Vertex2D> generatePolylineQuads(const std::vector<Vertex2D> &points, float width);
+    std::vector<Vertex2D> lineVertices;
 };
 
 #endif // OGLWIDGET_H

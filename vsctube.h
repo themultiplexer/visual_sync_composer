@@ -5,6 +5,7 @@
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 #include <QApplication>
+#include "helper.h"
 #include "tubewidget.h"
 
 #ifndef VSCTUBE_H
@@ -24,7 +25,7 @@ public:
     VSCTube(QString name, QWidget *parent);
     int value() const;
     void setValue(int val);
-    void setPeaked(QColor color);
+    void setPeaked(rgb color);
     void updateGL();
 private:
     QLabel *label;

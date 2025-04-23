@@ -86,8 +86,8 @@ VSCTube::VSCTube(QString name, QWidget *parent) : QWidget(parent) {
     connect(textEdit, QOverload<int>::of(&QSpinBox::valueChanged), this, &VSCTube::onValueChanged);
 }
 
-void VSCTube::setPeaked(QColor color) {
-    ftube->setPeaked(color);
+void VSCTube::setPeaked(rgb color) {
+    ftube->setPeaked(QColor(color.r, color.g, color.b));
 }
 
 void VSCTube::updateGL() {

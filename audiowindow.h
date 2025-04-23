@@ -111,5 +111,7 @@ private:
     VSCSlider *effect4Slider;
     TubeWidget *ftube;
     std::vector<VSCTube*> tubes;
+    VSCSlider *timeSlider;
+    VSCSlider *otherSlider;
 };
 #endif // AUDIOWINDOW_H

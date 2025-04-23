@@ -261,10 +261,28 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
         ep->sendSync();
     });
 
+    QHBoxLayout *frequencyLayout = new QHBoxLayout(centralWidget);
+
+    timeSlider = new VSCSlider("Dcy", Qt::Vertical, centralWidget);
+    timeSlider->setMinimum(1);
+    timeSlider->setValue(50);
+    timeSlider->setMaximum(100);
+    connect(timeSlider, &VSCSlider::sliderReleased, this, &AudioWindow::sliderChanged);
+
+    otherSlider = new VSCSlider("Oth", Qt::Vertical, centralWidget);
+    otherSlider->setMinimum(1);
+    otherSlider->setValue(50);
+    otherSlider->setMaximum(100);
+    connect(otherSlider, &VSCSlider::sliderReleased, this, &AudioWindow::sliderChanged);
+
+    frequencyLayout->addWidget(timeSlider);
+    frequencyLayout->addWidget(glv);
+    frequencyLayout->addWidget(otherSlider);
+
     // Add widgets to the layout
     mainLayout->addLayout(tubesLayout);
     mainLayout->addLayout(header);
-    mainLayout->addWidget(glv);
+    mainLayout->addLayout(frequencyLayout);
     mainLayout->addLayout(modesLayout);
     mainLayout->addLayout(modifiersLayout);
     mainLayout->addLayout(bottomLayout);
@@ -299,7 +317,7 @@ void AudioWindow::checkTime(){
 
     for (int i = 0; i < FRAMES/2; i++) {
         f[i] *= log10(((float)i/(FRAMES/2)) * 5 + 1.01);
-        f[i] = log10(f[i]) + 1.0;
+        f[i] = log10(f[i] * 2.0 + 1.01);
     }
 
     glv->processData(f, [this](FrequencyRegion &region){
@@ -310,7 +328,7 @@ void AudioWindow::checkTime(){
             beats.push(region.getBeatMillis());
 
             for (auto t : tubes) {
-                t->setPeaked(QColor::fromHsv(selectedHue, saturationSlider->value() + 50, brightnessSlider->value()).toRgb());
+                t->setPeaked({(float) selectedHue / (float) 255, saturationSlider->pct(), brightnessSlider->pct()});
             }
 
             colors.push((*hueRandom)(*rng));
@@ -355,6 +373,9 @@ void AudioWindow::sliderChanged()
     } else if (sender() == effect4Slider) {
         ep->masterconfig.offset = effect4Slider->value();
         ep->sendConfig();
+    } else if (sender() == timeSlider) {
+        glv->setDecay(timeSlider->pct() * 0.1);
+    } else if (sender() == otherSlider) {
     }
 }
 

@@ -4,7 +4,7 @@
 #include <cmath>
 
 FrequencyRegion::FrequencyRegion(int min, int max, int step, std::string name):
-    step(step), levels(), level(0.0), smoothLevel(0.0), min(min), max(max), start(-1.0 + 2 *((float)min/(float)step)), end(-1.0 + 2 *((float)max/(float)step)), name(name) {
+    step(step), levels(), level(0.0), thresh(0.5), dragging(false), hovering(false), inside(false),  smoothLevel(0.0), min(min), max(max), start(-1.0 + 2 *((float)min/(float)step)), end(-1.0 + 2 *((float)max/(float)step)), name(name) {
 
 }
 

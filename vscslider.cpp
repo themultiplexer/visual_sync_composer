@@ -42,14 +42,11 @@ void VSCSlider::setValue(int val)
 
 VSCSlider::VSCSlider(QString name, Qt::Orientation orientation, QWidget *parent) : QWidget(parent) {
     slider = new QSlider(orientation);
-
-    leftButton = new QPushButton("-");
-
     name.resize(12, ' ');
-
     leftLabel = new QLabel(name);
     //leftLabel->setFont(QFontDatabase::systemFont(QFontDatabase::FixedFont));
     leftLabel->setMinimumWidth(150);
+    leftButton = new QPushButton("-");
     rightLabel = new QLabel("Right");
     rightButton = new QPushButton("+");
 
@@ -57,7 +54,20 @@ VSCSlider::VSCSlider(QString name, Qt::Orientation orientation, QWidget *parent)
     slider->setMaximum(100);
 
     // Create a layout for this widget
-    QHBoxLayout *layout = new QHBoxLayout;
+    QBoxLayout *layout;
+
+    if (orientation == Qt::Vertical) {
+        layout = new QVBoxLayout;
+        layout->setSpacing(0);
+        layout->setDirection(QBoxLayout::BottomToTop);
+        rightButton->setMaximumWidth(25);
+        rightButton->setMaximumHeight(20);
+        leftButton->setMaximumWidth(25);
+        leftButton->setMaximumHeight(20);
+    } else {
+        layout = new QHBoxLayout;
+    }
+
     layout->addWidget(leftLabel);
     layout->addWidget(leftButton);
     layout->addWidget(slider);
@@ -90,7 +100,7 @@ void VSCSlider::onPlusClicked()
 }
 
 float VSCSlider::pct(){
-    return slider->value() / 100.0;
+    return (float)slider->value() / (float)maximum();
 }
 
 void VSCSlider::onSliderReleased()
