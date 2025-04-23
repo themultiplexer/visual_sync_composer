@@ -25,12 +25,13 @@ public:
     OGLWidget(int min, int max, int step, QWidget *parent = 0);
     ~OGLWidget();
 
-    void setFrequencies(const std::vector<float> &newFrequencies, bool peak, float level);
+    void setFrequencies(const std::vector<float> &newFrequencies);
 
     int getMin();
     int getMax();
     float getThresh();
     void setThresh(float newThresh);
+    void processData(std::vector<float> &data, const std::function<void (FrequencyRegion &)> &callback);
 signals:
     void valueChanged();
 
@@ -45,10 +46,8 @@ protected:
     GLuint shaderProgram;
     std::vector<float> frequencies;
     std::vector<float> smoothFrequencies;
-    bool peaked;
     bool mouseDown;
-    float peak, level, smoothLevel;
-    FixedQueue<float, 1> levels;
+
     FrequencyRegion high, low;
 
     void createVBO();

@@ -1,6 +1,7 @@
 #ifndef FREQUENCYREGION_H
 #define FREQUENCYREGION_H
 
+#include "helper.h"
 #include "qobject.h"
 #include "qobjectdefs.h"
 
@@ -31,13 +32,30 @@ FrequencyRegion(int min, int max, int step, std::string name = "unnamed");
     void mouseReleased(float x, float y);
 
 
+    FixedQueue<double, 5> samples;
+    float peak, level, smoothLevel;
+    FixedQueue<float, 1> levels;
 
+    std::chrono::time_point<std::chrono::steady_clock> lastBeat;
     bool hovering, dragging, onLine, inside, newInside, newOnLine;
 
     float dx;
     float prestart, preend, color;
 
     float getColor() const;
+
+    bool processData(std::vector<float> &data);
+    float getLevel() const;
+
+    float getPeak() const;
+
+    std::chrono::time_point<std::chrono::steady_clock> getLastBeat() const;
+
+    int getBeatMillis() const;
+
+    float getSmoothLevel() const;
+
+    bool getDragging() const;
 
 signals:
     void valueChanged();
@@ -47,6 +65,7 @@ private:
     int min, max, step;
     std::string name;
     bool mouseDown;
+    int beatMillis;
 };
 
 #endif // FREQUENCYREGION_H

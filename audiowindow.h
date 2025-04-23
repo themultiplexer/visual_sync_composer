@@ -92,10 +92,10 @@ private:
     std::string values[16] = {"Hue", "Pump","Tube", "Pump Limiter","Duck","FadeToColor","Sparkle","Fire","Bounce", "Colorcycle", "11", "Strobe", "Random Flicker", "Tunnel", "Tunnel2", "Placeholder"};
 
     std::vector<QCheckBox*> ledModifierCheckboxes;
-    std::chrono::time_point<std::chrono::steady_clock> lastBeat;
+
     FixedQueue<uint64_t, 10> beats;
     FixedQueue<uint64_t, 10> colors;
-    FixedQueue<double, 5> samples;
+
 
     std::random_device dev;
     std::mt19937 *rng;
@@ -105,7 +105,7 @@ private:
 
     void closeEvent(QCloseEvent *event);
     void spinboxChanged(int bpm);
-    float lastFreqIntensity;
+
     VSCSlider *saturationSlider;
     VSCSlider *effect3Slider;
     VSCSlider *effect4Slider;

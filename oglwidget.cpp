@@ -5,7 +5,7 @@
 #define PROGRAM_VERTEX_ATTRIBUTE 0
 
 OGLWidget::OGLWidget(int min, int max, int step, QWidget *parent)
-    : QOpenGLWidget(parent), mouseDown(false), levels(), level(0.0), smoothLevel(0.0), low(3, 10, NUM_POINTS, "low"), high(50, 100, NUM_POINTS, "high")
+    : QOpenGLWidget(parent), mouseDown(false), low(3, 10, NUM_POINTS, "low"), high(50, 100, NUM_POINTS, "high")
 {
     for (int i = 0; i < NUM_POINTS; ++i) {
         frequencies.push_back(0.0);
@@ -37,6 +37,15 @@ void OGLWidget::setThresh(float newThresh) {
     return low.setThresh(newThresh);
 }
 
+void OGLWidget::processData(std::vector<float> &data, const std::function <void (FrequencyRegion&)>& callback)
+{
+    for (auto& reg : {&low, &high}) {
+        if (reg->processData(data)) {
+            callback(*reg);
+        }
+    }
+}
+
 void OGLWidget::createVBO() {
     time_t seconds;
     seconds = time (NULL);
@@ -45,7 +54,7 @@ void OGLWidget::createVBO() {
     for (int i = 0; i < NUM_POINTS; ++i) {
         float from = -1.0 + ((float)i/NUM_POINTS) * 2.0;
         vertices.push_back(from);
-        vertices.push_back(smoothFrequencies[i] - 1.0);
+        vertices.push_back(-1.0 + smoothFrequencies[i]);
     }
     vertexBuffer.bind();
     vertexBuffer.allocate(vertices.data(), vertices.size() * sizeof(float));
@@ -163,27 +172,6 @@ void OGLWidget::paintGL()
 {
     glClearColor(0,0,0,1);
 
-    if (peaked) {
-        peak = 1.0;
-    } else {
-        if (peak > 0) {
-            peak -= 0.05;
-        }
-    }
-
-    if (level > smoothLevel) {
-        smoothLevel = level;
-    } else {
-        if (smoothLevel > 0) {
-            smoothLevel -= 0.02;
-        }
-    }
-
-    levels.push(level);
-
-    float sum = std::accumulate(levels.begin(), levels.end(), 0.0);
-    float mean = sum / levels.size();
-
     OGLWidget::createVBO();
     vao1.bind();
     glDrawArrays(GL_LINE_STRIP, 0, NUM_POINTS);
@@ -195,9 +183,9 @@ void OGLWidget::paintGL()
     for (auto reg : {&low, &high}) {
         test.push_back(reg->getStart());
         test.push_back(reg->getEnd());
-        test.push_back(smoothLevel);
+        test.push_back(reg->getSmoothLevel());
         test.push_back(reg->getThresh());
-        test.push_back(peak);
+        test.push_back(reg->getPeak());
         test.push_back(static_cast<GLfloat>(reg->getColor()));
     }
 
@@ -206,9 +194,9 @@ void OGLWidget::paintGL()
     glDrawArrays(GL_TRIANGLES, 0, 6);
     vao.release();
     program->release();
-
-    peaked = false;
 }
+
+
 
 
 bool OGLWidget::eventFilter(QObject *obj, QEvent *event) {
@@ -229,9 +217,19 @@ bool OGLWidget::eventFilter(QObject *obj, QEvent *event) {
                 if (reg->newOnLine && !reg->dragging) {
                     setCursor(Qt::SizeVerCursor);
                 }
-                break;
+                if (event->type() != QEvent::MouseButtonPress && event->type() != QEvent::MouseButtonRelease) {
+                    return true;
+                }
             } else {
                 setCursor(Qt::ArrowCursor);
+            }
+        }
+
+        if (mouseEvent->button() == Qt::RightButton) {
+            if (event->type() == QEvent::MouseButtonPress) {
+                high.mouseClick(x, y);
+            } else if (event->type() == QEvent::MouseButtonRelease) {
+                high.mouseReleased(x, y);
             }
         }
 
@@ -240,20 +238,12 @@ bool OGLWidget::eventFilter(QObject *obj, QEvent *event) {
                 low.mouseClick(x, y);
             } else if (event->type() == QEvent::MouseButtonRelease) {
                 low.mouseReleased(x, y);
-
-            }
-        }
-        if (mouseEvent->button() == Qt::RightButton) {
-            if (event->type() == QEvent::MouseButtonPress) {
-                high.mouseClick(x, y);
-            } else if (event->type() == QEvent::MouseButtonRelease) {
-                high.mouseReleased(x, y);
             }
         }
     }
 }
 
-void OGLWidget::setFrequencies(const std::vector<float> &newFrequencies, bool peak, float level)
+void OGLWidget::setFrequencies(const std::vector<float> &newFrequencies)
 {
     this->frequencies = newFrequencies;
     for (int i = 0; i < newFrequencies.size(); i++) {
@@ -263,9 +253,6 @@ void OGLWidget::setFrequencies(const std::vector<float> &newFrequencies, bool pe
             smoothFrequencies[i] = (smoothFrequencies[i] > 0.05) ? smoothFrequencies[i] - 0.05 : 0.0;
         }
     }
-
-    this->peaked = peak;
-    this->level = std::fmin(level, 1.0);
     update();
 }
 

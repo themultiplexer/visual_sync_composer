@@ -291,53 +291,38 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
 
     QTimer *qtimer = new QTimer(this);
     connect(qtimer, &QTimer::timeout, this, &AudioWindow::checkTime);
-    qtimer->start(5);
+    qtimer->start(1);
 }
 
 void AudioWindow::checkTime(){
     auto f = a->getFullFrequencies();
-    auto now = std::chrono::steady_clock::now();
 
     for (int i = 0; i < FRAMES/2; i++) {
         f[i] *= log10(((float)i/(FRAMES/2)) * 5 + 1.01);
+        f[i] = log10(f[i]) + 1.0;
     }
 
-    double lowFreqIntensity = 0.0;
-    for (int i = glv->getMin(); i < glv->getMax(); ++i) {
-        lowFreqIntensity += f[i];
-    }
-    lowFreqIntensity /= (glv->getMax() - glv->getMin());
+    glv->processData(f, [this](FrequencyRegion &region){
+        if (region.getMax() < 50) {
+            uint64_t selectedHue = colors.front();
+            ep->peakEvent(selectedHue);
+            std::chrono::time_point<std::chrono::system_clock> now = std::chrono::system_clock::now();
+            beats.push(region.getBeatMillis());
 
-    samples.push(lowFreqIntensity);
-    double deriv = 0.0;
-    if (samples.size() == 5) {
-        deriv = ((-samples[4] + 8 * samples[3] - 8 * samples[1] + samples[0]) / 12.0) * 2.0;
-    }
+            for (auto t : tubes) {
+                t->setPeaked(QColor::fromHsv(selectedHue, saturationSlider->value() + 50, brightnessSlider->value()).toRgb());
+            }
 
-    bool lowpeak = (lowFreqIntensity > sensitivitySlider->pct());
-    lastFreqIntensity = lowFreqIntensity;
-    int beatMillis = std::chrono::duration_cast<std::chrono::milliseconds>(now - lastBeat).count();
-    bool debounce = (beatMillis > 100);
-
-    if (lowpeak && debounce) {
-        lastBeat = now;
-        colors.push((*hueRandom)(*rng));
-
-        uint64_t selectedHue = colors.front();
-        ep->peakEvent(selectedHue);
-        std::chrono::time_point<std::chrono::system_clock> now = std::chrono::system_clock::now();
-        beats.push(beatMillis);
+            colors.push((*hueRandom)(*rng));
+        }
 
         float sum = std::accumulate(beats.begin(), beats.end(), 0.0);
         float mean = sum / beats.size();
         bpmLabel->setText(std::to_string((int)std::round(60.0 / (mean / 1000.0))).c_str());
         tmpLabel->setText(std::to_string(mean).c_str());
+    });
 
-        for (auto t : tubes) {
-            t->setPeaked(QColor::fromHsv(selectedHue, saturationSlider->value(), brightnessSlider->value()).toRgb());
-        }
-    }
-    glv->setFrequencies(f, lowpeak, lowFreqIntensity);
+    glv->setFrequencies(f);
     for (auto t : tubes) {
         t->updateGL();
     }
