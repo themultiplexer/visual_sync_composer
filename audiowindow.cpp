@@ -279,8 +279,11 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
         if (setuid(1000) != 0)
             printf("setuid: Unable to drop user privileges: %s\n", strerror(errno));
     }
-
+    setenv("HOME", "/home/josh/", 1);
+    setenv("USER", "josh", 1);
+    setenv("XDG_RUNTIME_DIR", "/run/user/1000", 1);
     printf("%d\n", getuid());
+    printf("%s\n", getenv("USER"));
 
     a = new AudioAnalyzer();
     a->getdevices();
