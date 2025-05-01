@@ -9,10 +9,10 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
 {
     this->ep = ep;
     ui->setupUi(this);
-    NetDevice h = NetDevice("wlxdc4ef40a3f9f");
-    h.setInterface(false);
-    h.enableMonitorMode();
-    h.setInterface(true);
+    //NetDevice h = NetDevice("wlxdc4ef40a3f9f");
+    //h.setInterface(false);
+    //h.enableMonitorMode();
+    //h.setInterface(true);
 
     ep->initHandlers();
 

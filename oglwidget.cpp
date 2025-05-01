@@ -111,20 +111,20 @@ void OGLWidget::initializeGL()
                     float level = regions[ind + 2];
                     float thresh = regions[ind + 3];
                     float peak = regions[ind + 4];
-                    int color = (int)regions[ind + 5];
+                    int color = int(regions[ind + 5]);
 
                     float t = -1.0 + 2.0 * thresh;
-                    int visible = (int)(pos.x > start && pos.x < end);
-                    int threshold = (int)(pos.y < t + 0.01 && pos.y > t - 0.01);
-                    start = (int)(pos.x < start + 0.001 && pos.x > start - 0.001);
-                    end = (int)(pos.x < end + 0.001 && pos.x > end - 0.001);
+                    int visible = int(pos.x > start && pos.x < end);
+                    int threshold = int(pos.y < t + 0.01 && pos.y > t - 0.01);
+                    start = int(pos.x < start + 0.001 && pos.x > start - 0.001);
+                    end = int(pos.x < end + 0.001 && pos.x > end - 0.001);
 
                     vec4 c = vec4(peak, 1.0, peak, 1.0);
                     if (color == 1) {
                         c = vec4(1.0, peak, peak, 1.0);
                     }
 
-                    int visible2 = (int)(pos.y < (-1.0 + 2.0 * level));
+                    int visible2 = int(pos.y < (-1.0 + 2.0 * level));
 
                     FragColor += (c * start + c * end) + threshold * visible * vec4(1.0) + vec4(vec3(1.0), 0.5) * visible2 * visible;
                 }
@@ -220,7 +220,6 @@ void OGLWidget::paintGL()
     glDrawArrays(GL_TRIANGLES, 0, lineVertices.size());
     lineVao.release();
     lineShaderProgram->release();
-
 
     regionShaderProgram->bind();
     std::vector<GLfloat> test;
@@ -320,6 +319,7 @@ bool OGLWidget::eventFilter(QObject *obj, QEvent *event) {
             }
         }
     }
+    return false;
 }
 
 float OGLWidget::getDecay() const
