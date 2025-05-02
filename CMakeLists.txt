@@ -96,6 +96,7 @@ else()
             mdnsflasher.h mdnsflasher.cpp
             devicereqistry.h devicereqistry.cpp
             frequencyregion.h frequencyregion.cpp
+            fullscreenwindow.h fullscreenwindow.cpp
         )
     endif()
 endif()

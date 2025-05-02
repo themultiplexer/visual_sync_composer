@@ -43,18 +43,14 @@ FrequencyRegion(int min, int max, int step, std::string name = "unnamed");
     float prestart, preend, color;
 
     float getColor() const;
-
     bool processData(std::vector<float> &data);
     float getLevel() const;
-
     float getPeak() const;
 
     std::chrono::time_point<std::chrono::steady_clock> getLastBeat() const;
 
     int getBeatMillis() const;
-
     float getSmoothLevel() const;
-
     bool getDragging() const;
 
 signals:

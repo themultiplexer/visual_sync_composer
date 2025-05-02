@@ -36,6 +36,7 @@
 #include <QFileDialog>
 #include <QThread>
 #include <QCheckBox>
+#include "fullscreenwindow.h"
 #include "ui_mainwindow.h"
 #include "vscslider.h"
 #include "thread.h"
@@ -88,7 +89,8 @@ private:
     VSCSlider *sensitivitySlider, *brightnessSlider, *speedSlider, *effect1Slider, *effect2Slider;
     QLabel *bpmLabel, *tmpLabel;
     AudioAnalyzer* a;
-    OGLWidget *glv;
+    QDockWidget *dock;
+    OGLWidget *glv, *popoutGlv;
     std::string values[16] = {"Hue", "Pump","Tube", "Pump Limiter","Duck","FadeToColor","Sparkle","Fire","Bounce", "Colorcycle", "11", "Strobe", "Random Flicker", "Tunnel", "Tunnel2", "Placeholder"};
 
     std::vector<QCheckBox*> ledModifierCheckboxes;
@@ -113,5 +115,7 @@ private:
     std::vector<VSCTube*> tubes;
     VSCSlider *timeSlider;
     VSCSlider *otherSlider;
+
+    FullscreenWindow *fullScreenWindow;
 };
 #endif // AUDIOWINDOW_H

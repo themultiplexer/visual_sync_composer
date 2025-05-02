@@ -1,11 +1,15 @@
 #include "audiowindow.h"
+#include "fullscreenwindow.h"
 #include "mdnsflasher.h"
 #include "tubewidget.h"
 #include "devicereqistry.h"
+#include <QDockWidget>
+
+#define USE_DOCK 0
 
 AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     : QMainWindow(parent)
-    , ui(new Ui::MainWindow)
+    , ui(new Ui::MainWindow), popoutGlv(nullptr), fullScreenWindow(new FullscreenWindow())
 {
     this->ep = ep;
     ui->setupUi(this);
@@ -26,12 +30,59 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     // Create menu bar and actions
     QMenuBar *menuBar = new QMenuBar(this);
     QMenu *fileMenu = menuBar->addMenu("File");
+    QMenu *viewMenu = menuBar->addMenu("View");
 
     QAction *openAction = new QAction("Open", this);
     QObject::connect(openAction, &QAction::triggered, [&]() {
         std::cout << "Open action triggered";
     });
     fileMenu->addAction(openAction);
+
+    QAction *fullscreenAction = new QAction("Fullscreen", this);
+    fullscreenAction->setCheckable(true);
+    QObject::connect(fullscreenAction, &QAction::triggered, [&](bool checked) {
+
+        if(checked) {
+            qDebug() << "Fullscreen";
+
+            if (USE_DOCK) {
+                dock->setFloating(true);
+                QWidget* floatingWindow = dock->window();
+                floatingWindow->raise();            // Brings the window to the front
+                floatingWindow->activateWindow();   // Ensures the window is focused
+
+                QTimer::singleShot(16, dock, [=]() {
+                    dock->update();  // Request an update every 16ms (~60 FPS)
+                });
+            } else {
+                this->hide();
+                popoutGlv = new OGLWidget(640, fullScreenWindow);
+                popoutGlv->setRegions(glv->getRegions());
+                fullScreenWindow->setCentralWidget(popoutGlv);
+                connect(popoutGlv, &OGLWidget::valueChanged, this, &AudioWindow::sliderChanged);
+                fullScreenWindow->showFullScreen();
+
+                QObject::connect(fullScreenWindow, &FullscreenWindow::escapePressed, [&]() {
+                    this->show();
+                    fullScreenWindow->close();
+                    glv->setRegions(popoutGlv->getRegions());
+                });
+            }
+        } else {
+            if (USE_DOCK) {
+                qDebug() << "Exit Fullscreen";
+                dock->window()->showNormal();
+                dock->setFloating(false);
+                addDockWidget(Qt::TopDockWidgetArea, dock);
+            }
+        }
+
+    });
+    viewMenu->addAction(fullscreenAction);
+
+    QSurfaceFormat format;
+    format.setOption(QSurfaceFormat::DebugContext);
+    QSurfaceFormat::setDefaultFormat(format);
 
     QAction *exitAction = new QAction("Exit", this);
     QObject::connect(exitAction, &QAction::triggered, [&]() {
@@ -237,9 +288,17 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     header->addWidget(bpmLabel);
     header->addWidget(tmpLabel);
 
-    glv = new OGLWidget(0, 10, 640, centralWidget);
+    glv = new OGLWidget(640, centralWidget);
     glv->setMinimumHeight(300);
     connect(glv, &OGLWidget::valueChanged, this, &AudioWindow::sliderChanged);
+
+    // Create a dock widget to hold it
+    if (USE_DOCK) {
+        dock = new QDockWidget("OpenGL View", this);
+        dock->setWidget(glv);
+        dock->setAllowedAreas(Qt::TopDockWidgetArea);
+    }
+
 
     QHBoxLayout *fwButtons = new QHBoxLayout(centralWidget);
 
@@ -276,7 +335,11 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     connect(otherSlider, &VSCSlider::sliderReleased, this, &AudioWindow::sliderChanged);
 
     frequencyLayout->addWidget(timeSlider);
-    frequencyLayout->addWidget(glv);
+    if (USE_DOCK) {
+        frequencyLayout->addWidget(dock);
+    } else {
+        frequencyLayout->addWidget(glv);
+    }
     frequencyLayout->addWidget(otherSlider);
 
     // Add widgets to the layout
@@ -320,7 +383,12 @@ void AudioWindow::checkTime(){
         f[i] = log10(f[i] * 2.0 + 1.01);
     }
 
-    glv->processData(f, [this](FrequencyRegion &region){
+    OGLWidget *w = glv;
+    if (fullScreenWindow->isActiveWindow()) {
+        w = popoutGlv;
+    }
+
+    w->processData(f, [this](FrequencyRegion &region){
         if (region.getMax() < 50) {
             uint64_t selectedHue = colors.front();
             ep->peakEvent(selectedHue);
@@ -340,7 +408,8 @@ void AudioWindow::checkTime(){
         tmpLabel->setText(std::to_string(mean).c_str());
     });
 
-    glv->setFrequencies(f);
+    w->setFrequencies(f);
+
     for (auto t : tubes) {
         t->updateGL();
     }

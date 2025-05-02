@@ -60,9 +60,6 @@ WifiEventProcessor::WifiEventProcessor() {
         0,
         0
     };
-
-
-
 }
 
 void WifiEventProcessor::initHandlers() {

@@ -4,7 +4,7 @@
 #include <cmath>
 
 FrequencyRegion::FrequencyRegion(int min, int max, int step, std::string name):
-    step(step), levels(), level(0.0), thresh(0.5), dragging(false), hovering(false), inside(false),  smoothLevel(0.0), min(min), max(max), start(-1.0 + 2 *((float)min/(float)step)), end(-1.0 + 2 *((float)max/(float)step)), name(name) {
+    step(step), levels(), level(0.0), thresh(0.5), peak(0.0), mouseDown(false), dragging(false), hovering(false), inside(false), newInside(false), newOnLine(false),  smoothLevel(0.0), min(min), max(max), start(((float)min/(float)step)), end(((float)max/(float)step)), name(name) {
 
 }
 
@@ -20,12 +20,12 @@ void FrequencyRegion::setEnd(float newEnd)
 
 void FrequencyRegion::setMin(int newMin)
 {
-    min = newMin;
+    min = std::max(std::min(newMin, step), 0);
 }
 
 void FrequencyRegion::setMax(int newMax)
 {
-    max = newMax;
+    max = std::max(std::min(newMax, step), 0);
 }
 
 bool FrequencyRegion::processData(std::vector<float> &data)
@@ -33,9 +33,10 @@ bool FrequencyRegion::processData(std::vector<float> &data)
     auto now = std::chrono::steady_clock::now();
     level = 0.0;
     for (int i = getMin(); i < getMax(); ++i) {
-        level += data[i];
+        //level += data[i];
+        level = data[i] > level ? data[i] : level;
     }
-    level /= (getMax() - getMin());
+    //level /= (getMax() - getMin());
 
     samples.push(level);
     double deriv = 0.0;
@@ -47,8 +48,6 @@ bool FrequencyRegion::processData(std::vector<float> &data)
     beatMillis = std::chrono::duration_cast<std::chrono::milliseconds>(now - lastBeat).count();
     bool debounce = (beatMillis > 100);
     bool peaked = lowpeak && debounce;
-
-    /* Do time calculation stuff */
 
     if (peaked) {
         peak = 1.0;
@@ -82,8 +81,7 @@ void FrequencyRegion::mouseEvent(float x, float y)
 {
     float rx = (x - fmod(x, 1.0/(float)step));
     float vx = std::fmax(std::fmin(rx, 1.0), -1.0);
-    float px = -1.0 + 2 * vx;
-    newInside = (px > getStart() && px < getEnd());
+    newInside = (vx > getStart() && vx < getEnd());
 
     newOnLine = newInside && ((1.0 - y) < getThresh() + 0.05 && (1.0 - y) > getThresh() - 0.05);
     onLine = newOnLine;
@@ -93,30 +91,31 @@ void FrequencyRegion::mouseEvent(float x, float y)
             setThresh(1.0 - y);
             emit valueChanged();
         } else if (hovering) {
-            setStart(prestart + (px - dx));
-            setEnd(preend + (px - dx));
+            float newx = prestart + (rx - dx);
+            float newy = preend + (rx - dx);
+            setStart(newx);
+            setMin(newx * (float)step);
+            setEnd(newy);
+            setMax(newy * (float)step);
         } else {
-            setEnd(px);
+            setEnd(rx);
         }
     }
 }
 
-void FrequencyRegion::mouseClick(float x, float y)
-{
+void FrequencyRegion::mouseClick(float x, float y) {
     mouseDown = true;
     float rx = (x - fmod(x, 1.0/(float)step));
-    float vx = std::fmax(std::fmin(rx, 1.0), -1.0);
-    float px = -1.0 + 2 * vx;
     hovering = newInside;
     dragging = onLine;
-    dx = px;
+    dx = rx;
     prestart = getStart();
     preend = getEnd();
     if (!dragging && !hovering) {
-        setStart(px);
-        setEnd(px);
-        setMin(vx * step);
-        setMax(vx * step);
+        setStart(rx);
+        setEnd(rx);
+        setMin(rx * step);
+        setMax(rx * step);
     }
 }
 
@@ -129,7 +128,7 @@ void FrequencyRegion::mouseReleased(float x, float y)
     if (dragging) {
         setThresh(1.0 - y);
     } else if(!hovering) {
-        setEnd(-1.0 + 2 * vx);
+        setEnd(vx);
         setMax(vx * step);
     }
     dragging = false;

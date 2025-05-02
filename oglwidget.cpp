@@ -1,17 +1,23 @@
 #include "oglwidget.h"
 #include "qdebug.h"
+#include "qtimer.h"
 #include <cmath>
+#include <QOpenGLDebugLogger>
 
 #define PROGRAM_VERTEX_ATTRIBUTE 0
 
-OGLWidget::OGLWidget(int min, int max, int step, QWidget *parent)
-    : QOpenGLWidget(parent), decay(0.05), low(3, 10, NUM_POINTS, "low"), high(50, 100, NUM_POINTS, "high")
+OGLWidget::OGLWidget(int step, QWidget *parent)
+    : QOpenGLWidget(parent), step(step), decay(0.02), regions(), currentRegionIndex(0)
 {
     for (int i = 0; i < NUM_POINTS; ++i) {
         frequencies.push_back(0.0);
         smoothFrequencies.push_back(0.0);
         recentFrequencies.push_back(100);
     }
+
+    regions.push_back(new FrequencyRegion(2, 15, NUM_POINTS, "low"));
+    regions.push_back(new FrequencyRegion(50, 100, NUM_POINTS, "high"));
+
     setMouseTracking(true);
     installEventFilter(this);
     setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Expanding);
@@ -22,49 +28,61 @@ OGLWidget::~OGLWidget()
 
 }
 
+void OGLWidget::cleanupGL() {
+    makeCurrent(); // Ensure the context is current
+    qDebug() << "Cleanup";
+
+    if (lineShaderProgram) {
+        delete lineShaderProgram;
+        lineShaderProgram = nullptr;
+    }
+
+    if (regionShaderProgram) {
+        delete regionShaderProgram;
+        regionShaderProgram = nullptr;
+    }
+
+    doneCurrent(); // Done with the context
+}
+
 int OGLWidget::getMin() {
-    return low.getMin();
+    if (regions.size() == 0) {
+        return 0;
+    }
+    return regions[0]->getMin();
 }
 
 int OGLWidget::getMax() {
-    return low.getMax();
+    if (regions.size() == 0) {
+        return step;
+    }
+    return regions[0]->getMax();
 }
 
 float OGLWidget::getThresh() {
-    return low.getThresh();
+    return regions[0]->getThresh();
 }
 
 void OGLWidget::setThresh(float newThresh) {
-    return low.setThresh(newThresh);
+    return regions[0]->setThresh(newThresh);
 }
 
 void OGLWidget::processData(std::vector<float> &data, const std::function <void (FrequencyRegion&)>& callback)
 {
-    for (auto& reg : {&low, &high}) {
+    for (auto& reg : regions) {
         if (reg->processData(data)) {
             callback(*reg);
         }
     }
 }
 
-void OGLWidget::createVBO() {
-    time_t seconds;
-    seconds = time (NULL);
-
-    std::vector<float> vertices;
-    for (int i = 0; i < NUM_POINTS; ++i) {
-        float from = -1.0 + ((float)i/NUM_POINTS) * 2.0;
-        vertices.push_back(from);
-        vertices.push_back(-1.0 + smoothFrequencies[i]);
-    }
-    vertexBuffer.bind();
-    vertexBuffer.allocate(vertices.data(), vertices.size() * sizeof(float));
-    //vertexBuffer.release();
-}
-
 void OGLWidget::initializeGL()
 {
+    //makeCurrent();
+    qDebug() << "init GL";
     initializeOpenGLFunctions();
+
+    connect(context(), &QOpenGLContext::aboutToBeDestroyed, this, &OGLWidget::cleanupGL);
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -82,86 +100,87 @@ void OGLWidget::initializeGL()
     // Create and compile the vertex shader using a raw string literal.
     QOpenGLShader *vshader = new QOpenGLShader(QOpenGLShader::Vertex, this);
     const char *vsrc = R"(
-            #version 330 core
-            layout (location = 0) in vec2 vertex;
-            out vec2 pos;
+        #version 330 core
+        layout (location = 0) in vec2 vertex;
+        out vec2 pos;
 
-            void main() {
-                pos = vertex;
-                gl_Position = vec4(vertex, 0.0, 1.0);
-            }
-        )";
+        void main() {
+            pos = vertex;
+            gl_Position = vec4(vertex, 0.0, 1.0);
+        }
+    )";
     vshader->compileSourceCode(vsrc);
 
     // Create and compile the fragment shader.
     QOpenGLShader *fshader = new QOpenGLShader(QOpenGLShader::Fragment, this);
     const char *fsrc = R"(
-            #version 330 core
-            in vec2 pos;
-            out vec4 FragColor;
+        #version 330 core
+        in vec2 pos;
+        out vec4 FragColor;
 
-            uniform float regions[12];
+        uniform float regions[12];
 
-            void main() {
-                FragColor = vec4(0.0);
-                for (int i = 0; i < 2; i++) {
-                    int ind = i * 6;
-                    float start = regions[ind + 0];
-                    float end = regions[ind + 1];
-                    float level = regions[ind + 2];
-                    float thresh = regions[ind + 3];
-                    float peak = regions[ind + 4];
-                    int color = int(regions[ind + 5]);
+        void main() {
+            FragColor = vec4(0.0);
+            for (int i = 0; i < 2; i++) {
+                int ind = i * 6;
+                float start = regions[ind + 0];
+                float end = regions[ind + 1];
+                float level = regions[ind + 2];
+                float thresh = regions[ind + 3];
+                float peak = regions[ind + 4];
+                int color = int(regions[ind + 5]);
 
-                    float t = -1.0 + 2.0 * thresh;
-                    int visible = int(pos.x > start && pos.x < end);
-                    int threshold = int(pos.y < t + 0.01 && pos.y > t - 0.01);
-                    start = int(pos.x < start + 0.001 && pos.x > start - 0.001);
-                    end = int(pos.x < end + 0.001 && pos.x > end - 0.001);
+                float t = -1.0 + 2.0 * thresh;
+                int visible = int(pos.x > start && pos.x < end);
+                int threshold = int(pos.y < t + 0.01 && pos.y > t - 0.01);
+                float width = 0.001 + 0.01 * peak;
+                start = int(pos.x < start + width && pos.x > start - width);
+                end = int(pos.x < end + width && pos.x > end - width);
 
-                    vec4 c = vec4(peak, 1.0, peak, 1.0);
-                    if (color == 1) {
-                        c = vec4(1.0, peak, peak, 1.0);
-                    }
-
-                    int visible2 = int(pos.y < (-1.0 + 2.0 * level));
-
-                    FragColor += (c * start + c * end) + threshold * visible * vec4(1.0) + vec4(vec3(1.0), 0.5) * visible2 * visible;
+                vec4 c = vec4(peak, 1.0, peak, 1.0);
+                if (color == 1) {
+                    c = vec4(1.0, peak, peak, 1.0);
                 }
+
+                int visible2 = int(pos.y < (-1.0 + 2.0 * level));
+
+                FragColor += (c * start + c * end) + threshold * visible * vec4(1.0) + vec4(vec3(1.0), 0.5) * visible2 * visible;
             }
-        )";
+        }
+    )";
     fshader->compileSourceCode(fsrc);
 
     // Create and compile the vertex shader using a raw string literal.
     QOpenGLShader *lineVShader = new QOpenGLShader(QOpenGLShader::Vertex, this);
     const char *lineVSrc = R"(
-            #version 330 core
-            layout (location = 0) in vec2 vertex;
-            layout (location = 1) in vec4 color;
+        #version 330 core
+        layout (location = 0) in vec2 vertex;
+        layout (location = 1) in vec4 color;
 
-            out vec2 pos;
-            out vec4 col;
+        out vec2 pos;
+        out vec4 col;
 
-            void main() {
-                pos = vertex;
-                col = color;
-                gl_Position = vec4(vertex, 0.0, 1.0);
-            }
-        )";
+        void main() {
+            pos = vertex;
+            col = color;
+            gl_Position = vec4(vertex, 0.0, 1.0);
+        }
+    )";
     lineVShader->compileSourceCode(lineVSrc);
 
     // Create and compile the fragment shader.
     QOpenGLShader *lineFShader = new QOpenGLShader(QOpenGLShader::Fragment, this);
     const char *lineFSrc = R"(
-            #version 330 core
-            in vec2 pos;
-            in vec4 col;
-            out vec4 FragColor;
+        #version 330 core
+        in vec2 pos;
+        in vec4 col;
+        out vec4 FragColor;
 
-            void main() {
-                FragColor = col;
-            }
-        )";
+        void main() {
+            FragColor = col;
+        }
+    )";
     lineFShader->compileSourceCode(lineFSrc);
 
     lineShaderProgram = new QOpenGLShaderProgram(this);
@@ -171,6 +190,7 @@ void OGLWidget::initializeGL()
 
     lineVao.create();
     lineVao.bind();
+    lineVertexPositionBuffer = QOpenGLBuffer(QOpenGLBuffer::VertexBuffer);
     lineVertexPositionBuffer.create();
     lineVertexPositionBuffer.setUsagePattern(QOpenGLBuffer::StaticDraw);
     lineVertexPositionBuffer.bind();
@@ -199,6 +219,7 @@ void OGLWidget::initializeGL()
 
     vao.create();
     vao.bind();
+    vertexPositionBuffer = QOpenGLBuffer(QOpenGLBuffer::VertexBuffer);
     vertexPositionBuffer.create();
     vertexPositionBuffer.setUsagePattern(QOpenGLBuffer::StaticDraw);
     vertexPositionBuffer.bind();
@@ -209,6 +230,7 @@ void OGLWidget::initializeGL()
     regionShaderProgram->setAttributeBuffer(0, GL_FLOAT, 0, 2, sizeof(QVector2D));
     vertexPositionBuffer.release();
     vao.release();
+    //doneCurrent();
 }
 
 void OGLWidget::paintGL()
@@ -223,9 +245,9 @@ void OGLWidget::paintGL()
 
     regionShaderProgram->bind();
     std::vector<GLfloat> test;
-    for (auto reg : {&low, &high}) {
-        test.push_back(reg->getStart());
-        test.push_back(reg->getEnd());
+    for (auto reg : regions) {
+        test.push_back(-1.0 + 2 * reg->getStart());
+        test.push_back(-1.0 + 2 * reg->getEnd());
         test.push_back(reg->getSmoothLevel());
         test.push_back(reg->getThresh());
         test.push_back(reg->getPeak());
@@ -238,6 +260,15 @@ void OGLWidget::paintGL()
     regionShaderProgram->release();
 }
 
+std::vector<FrequencyRegion*> OGLWidget::getRegions() const
+{
+    return regions;
+}
+
+void OGLWidget::setRegions(std::vector<FrequencyRegion*> newRegions)
+{
+    regions = newRegions;
+}
 
 // Creates quads (2 triangles per segment) along a polyline with width
 std::vector<Vertex2D> OGLWidget::generatePolylineQuads(const std::vector<Vertex2D>& points, float width) {
@@ -283,11 +314,9 @@ bool OGLWidget::eventFilter(QObject *obj, QEvent *event) {
         float x = ((float)mouseEvent->pos().x() / (float)width());
         float y = ((float)mouseEvent->pos().y() / (float)height());
 
+        FrequencyRegion* active = regions[currentRegionIndex];
 
-        int i = 0;
-        for (auto& reg : {&low, &high}) {
-            i++;
-
+        for (auto& reg : regions) {
             reg->mouseEvent(x, y);
 
             if (reg->newInside) {
@@ -295,6 +324,7 @@ bool OGLWidget::eventFilter(QObject *obj, QEvent *event) {
                 if (reg->newOnLine && !reg->dragging) {
                     setCursor(Qt::SizeVerCursor);
                 }
+                active = reg;
                 if (event->type() != QEvent::MouseButtonPress && event->type() != QEvent::MouseButtonRelease) {
                     return true;
                 }
@@ -303,19 +333,16 @@ bool OGLWidget::eventFilter(QObject *obj, QEvent *event) {
             }
         }
 
-        if (mouseEvent->button() == Qt::RightButton) {
-            if (event->type() == QEvent::MouseButtonPress) {
-                high.mouseClick(x, y);
-            } else if (event->type() == QEvent::MouseButtonRelease) {
-                high.mouseReleased(x, y);
-            }
-        }
-
         if (mouseEvent->button() == Qt::LeftButton) {
             if (event->type() == QEvent::MouseButtonPress) {
-                low.mouseClick(x, y);
+                active->mouseClick(x, y);
             } else if (event->type() == QEvent::MouseButtonRelease) {
-                low.mouseReleased(x, y);
+                qDebug() << "Released " << currentRegionIndex << " " << active->hovering;
+                if (!active->hovering) {
+                    currentRegionIndex = (currentRegionIndex + 1) % regions.size();
+                }
+                active->mouseReleased(x, y);
+
             }
         }
     }
@@ -353,6 +380,7 @@ void OGLWidget::setFrequencies(const std::vector<float> &newFrequencies)
     lineVertices = generatePolylineQuads(path, width);
     lineVertexPositionBuffer.bind();
     lineVertexPositionBuffer.allocate(lineVertices.data(), lineVertices.size() * sizeof(Vertex2D));
+    lineVertexPositionBuffer.release();
     update();
 }
 

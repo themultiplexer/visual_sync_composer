@@ -1,10 +1,6 @@
 #include "devicereqistry.h"
 
-
-
-
 devicereqistry::devicereqistry() {}
-
 
 std::vector<std::array<uint8_t, 6>> devicereqistry::macs() {
     return {{0x8C, 0xCE, 0x4E, 0xE3, 0x6B, 0xED},
