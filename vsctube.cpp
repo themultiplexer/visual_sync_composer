@@ -1,4 +1,5 @@
 #include "vsctube.h"
+#include "qtimer.h"
 #include "tubewidget.h"
 #include <QWidget>
 #include <QSlider>
@@ -87,7 +88,9 @@ VSCTube::VSCTube(QString name, QWidget *parent) : QWidget(parent) {
 }
 
 void VSCTube::setPeaked(rgb color) {
-    ftube->setPeaked(QColor(color.r, color.g, color.b));
+    QTimer::singleShot(textEdit->value(), ftube, [=]() {
+        ftube->setPeaked(QColor(color.r, color.g, color.b));  // Request an update every 16ms (~60 FPS)
+    });
 }
 
 void VSCTube::updateGL() {

@@ -8,8 +8,6 @@
 #include <QOpenGLContext>
 #include <QOpenGLExtraFunctions>
 
-#define NUM_POINTS 512
-
 class GLText : public QOpenGLWidget, public WifiTextEventReceiver
 {
 public:

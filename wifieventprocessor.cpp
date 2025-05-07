@@ -30,7 +30,7 @@ void WifiEventProcessor::callback(uint8_t src_mac[6], uint8_t *data, int len) {
             printf("%02hhX:", src_mac[i]);
         }
         std::cout << std::endl;
-        //sendConfigTo(src_mac);
+        sendConfigTo(src_mac);
     } else {
         for (int i = 0; i < len; i++) {
             printf("%02hhX ", data[i]);

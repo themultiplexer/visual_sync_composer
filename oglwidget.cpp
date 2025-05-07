@@ -78,7 +78,6 @@ void OGLWidget::processData(std::vector<float> &data, const std::function <void 
 
 void OGLWidget::initializeGL()
 {
-    //makeCurrent();
     qDebug() << "init GL";
     initializeOpenGLFunctions();
 
@@ -119,6 +118,7 @@ void OGLWidget::initializeGL()
         out vec4 FragColor;
 
         uniform float regions[12];
+        uniform float stepsize;
 
         void main() {
             FragColor = vec4(0.0);
@@ -147,6 +147,8 @@ void OGLWidget::initializeGL()
 
                 FragColor += (c * start + c * end) + threshold * visible * vec4(1.0) + vec4(vec3(1.0), 0.5) * visible2 * visible;
             }
+            float mx = mod(log((2.0 - (pos.x + 1.0)) * 15.0 + 1.0) / 1.75 - 1.0, stepsize);
+            FragColor += int(mx < 0.002) * vec4(vec3(0.2), 1.0);
         }
     )";
     fshader->compileSourceCode(fsrc);
@@ -162,9 +164,11 @@ void OGLWidget::initializeGL()
         out vec4 col;
 
         void main() {
-            pos = vertex;
+            //vec2 p = vec2(log((vertex.x + 1.0) * 15.0 + 1.0) / 1.75 - 1.0, vertex.y);
+            vec2 p = vec2(vertex.x, vertex.y);
+            pos = p;
             col = color;
-            gl_Position = vec4(vertex, 0.0, 1.0);
+            gl_Position = vec4(p, 0.0, 1.0);
         }
     )";
     lineVShader->compileSourceCode(lineVSrc);
@@ -226,11 +230,11 @@ void OGLWidget::initializeGL()
     vertexPositionBuffer.allocate(vertices.data(), vertices.size() * sizeof(QVector2D));
 
     regionShaderProgram->bind();
+    regionShaderProgram->setUniformValue("stepsize", 0.05f);
     regionShaderProgram->enableAttributeArray(0);
     regionShaderProgram->setAttributeBuffer(0, GL_FLOAT, 0, 2, sizeof(QVector2D));
     vertexPositionBuffer.release();
     vao.release();
-    //doneCurrent();
 }
 
 void OGLWidget::paintGL()

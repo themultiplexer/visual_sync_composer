@@ -1,5 +1,6 @@
 #include "audiowindow.h"
 #include "fullscreenwindow.h"
+#include "horizontal_line.h"
 #include "mdnsflasher.h"
 #include "tubewidget.h"
 #include "devicereqistry.h"
@@ -19,6 +20,7 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     //h.setInterface(true);
 
     ep->initHandlers();
+    //showFullScreen();
 
     rng = new std::mt19937(dev());
     hueRandom = new std::uniform_int_distribution<std::mt19937::result_type>(0, 255);
@@ -56,7 +58,7 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
                 });
             } else {
                 this->hide();
-                popoutGlv = new OGLWidget(640, fullScreenWindow);
+                popoutGlv = new OGLWidget(1024, fullScreenWindow);
                 popoutGlv->setRegions(glv->getRegions());
                 fullScreenWindow->setCentralWidget(popoutGlv);
                 connect(popoutGlv, &OGLWidget::valueChanged, this, &AudioWindow::sliderChanged);
@@ -76,7 +78,6 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
                 addDockWidget(Qt::TopDockWidgetArea, dock);
             }
         }
-
     });
     viewMenu->addAction(fullscreenAction);
 
@@ -110,6 +111,7 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     }
 
     QHBoxLayout* modifiersLayout = new QHBoxLayout(centralWidget);
+    modifiersLayout->addWidget(new QLabel("Modifiers:"));
     for (std::string effect : {"Fadeout After Peak","2","3","4","5","6","7","8"}) {
         QCheckBox *check = new QCheckBox();
         check->setText(effect.c_str());
@@ -117,12 +119,14 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
         ledModifierCheckboxes.push_back(check);
         modifiersLayout->addWidget(check);
     }
+    modifiersLayout->addStretch();
 
     QHBoxLayout* tubesLayout = new QHBoxLayout(centralWidget);
 
     auto macs = devicereqistry::macs();
     for (auto mac : macs) {
         VSCTube *tube = new VSCTube(QString(arrayToHexString(mac).c_str()), this);
+        tube->setMaximumWidth(250);
         connect(tube, &VSCTube::valueChanged, this, [=, this](){
             std::vector<int> offsets;
             for (auto t : tubes) {
@@ -230,7 +234,6 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     slidersLayout->addStretch();
     slidersLayout->setSpacing(0);
 
-    // Create a layout
     QHBoxLayout *bottomLayout = new QHBoxLayout;
 
     QGridLayout *gridLayout = new QGridLayout;
@@ -288,8 +291,8 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     header->addWidget(bpmLabel);
     header->addWidget(tmpLabel);
 
-    glv = new OGLWidget(640, centralWidget);
-    glv->setMinimumHeight(300);
+    glv = new OGLWidget(1024, centralWidget);
+    glv->setMinimumHeight(400);
     connect(glv, &OGLWidget::valueChanged, this, &AudioWindow::sliderChanged);
 
     // Create a dock widget to hold it
@@ -298,7 +301,6 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
         dock->setWidget(glv);
         dock->setAllowedAreas(Qt::TopDockWidgetArea);
     }
-
 
     QHBoxLayout *fwButtons = new QHBoxLayout(centralWidget);
 
@@ -344,10 +346,13 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
 
     // Add widgets to the layout
     mainLayout->addLayout(tubesLayout);
+    mainLayout->addWidget(new HorizontalLine());
     mainLayout->addLayout(header);
     mainLayout->addLayout(frequencyLayout);
+    mainLayout->addWidget(new HorizontalLine());
     mainLayout->addLayout(modesLayout);
     mainLayout->addLayout(modifiersLayout);
+    mainLayout->addWidget(new HorizontalLine());
     mainLayout->addLayout(bottomLayout);
     mainLayout->addLayout(fwButtons);
     mainLayout->addWidget(syncbutton);
@@ -389,14 +394,14 @@ void AudioWindow::checkTime(){
     }
 
     w->processData(f, [this](FrequencyRegion &region){
-        if (region.getMax() < 50) {
+        if (region.getMax() < 1000) {
             uint64_t selectedHue = colors.front();
             ep->peakEvent(selectedHue);
             std::chrono::time_point<std::chrono::system_clock> now = std::chrono::system_clock::now();
             beats.push(region.getBeatMillis());
 
             for (auto t : tubes) {
-                t->setPeaked({(float) selectedHue / (float) 255, saturationSlider->pct(), brightnessSlider->pct()});
+                t->setPeaked({(float) selectedHue / (float) 255, saturationSlider->pct(), 1.0});
             }
 
             colors.push((*hueRandom)(*rng));

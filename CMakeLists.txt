@@ -97,6 +97,7 @@ else()
             devicereqistry.h devicereqistry.cpp
             frequencyregion.h frequencyregion.cpp
             fullscreenwindow.h fullscreenwindow.cpp
+            horizontal_line.h horizontal_line.cpp
         )
     endif()
 endif()

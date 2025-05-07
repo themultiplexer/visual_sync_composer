@@ -3,7 +3,7 @@
 #include <rtaudio/RtAudio.h>
 #include <kissfft/kiss_fft.h>
 
-#define FRAMES 1280
+#define FRAMES 2048
 #define FREQUENCIES 64
 
 class AudioAnalyzer

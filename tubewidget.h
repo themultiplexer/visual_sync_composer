@@ -13,7 +13,6 @@
 #include <QOpenGLBuffer>
 #include <QOpenGLFunctions>
 
-#define NUM_POINTS 512
 
 class TubeWidget : public QOpenGLWidget, protected QOpenGLFunctions
 {

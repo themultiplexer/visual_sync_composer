@@ -20,13 +20,12 @@
 #include <glm/gtx/normalize_dot.hpp>
 #include <glm/gtx/rotate_vector.hpp>
 
-#define NUM_POINTS 640
+#define NUM_POINTS 1024
 
 struct Vertex2D {
     glm::vec2 position;
     glm::vec4 color;
 };
-
 
 class OGLWidget : public QOpenGLWidget, protected QOpenGLFunctions
 {
@@ -50,8 +49,6 @@ public:
 
 signals:
     void valueChanged();
-
-
 
 protected:
     void initializeGL();
