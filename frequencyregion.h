@@ -11,9 +11,6 @@ Q_OBJECT
 public:
 FrequencyRegion(int min, int max, int step, std::string name = "unnamed");
 
-    int getMin() const;
-    int getMax() const;
-
     void setThresh(float newThresh);
 
     float getThresh() const;
@@ -24,23 +21,12 @@ FrequencyRegion(int min, int max, int step, std::string name = "unnamed");
     float getEnd() const;
     void setEnd(float newEnd);
 
-    void setMin(int newMin);
-    void setMax(int newMax);
+    int getScaledMin();
+    int getScaledMax();
 
     void mouseEvent(float x, float y);
     void mouseClick(float x, float y);
     void mouseReleased(float x, float y);
-
-
-    FixedQueue<double, 5> samples;
-    float peak, level, smoothLevel;
-    FixedQueue<float, 1> levels;
-
-    std::chrono::time_point<std::chrono::steady_clock> lastBeat;
-    bool hovering, dragging, onLine, inside, newInside, newOnLine;
-
-    float dx;
-    float prestart, preend, color;
 
     float getColor() const;
     bool processData(std::vector<float> &data);
@@ -53,8 +39,14 @@ FrequencyRegion(int min, int max, int step, std::string name = "unnamed");
     float getSmoothLevel() const;
     bool getDragging() const;
 
+    bool getHovering() const;
+    bool getNewInside() const;
+    bool getNewOnLine() const;
+
 signals:
     void valueChanged();
+
+
 
 private:
     float start, end, thresh;
@@ -62,6 +54,11 @@ private:
     std::string name;
     bool mouseDown;
     int beatMillis;
+
+    std::chrono::time_point<std::chrono::steady_clock> lastBeat;
+    bool hovering, dragging, onLine, inside, newInside, newOnLine;
+    float peak, level, smoothLevel;
+    float dx, prestart, preend, color;
 };
 
 #endif // FREQUENCYREGION_H

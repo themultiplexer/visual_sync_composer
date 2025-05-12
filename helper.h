@@ -5,7 +5,18 @@
 #include <cstdint>
 #include <deque>
 #include <iomanip>
+#include <math.h>
 #include <sstream>
+
+static int base = 40;
+
+static float f(float x) {
+    return (pow(base, x) - 1.0) / (base - 1.0);
+}
+
+static float g(float x) {
+    return log(x * (base - 1.0) + 1.0) / log(base);
+}
 
 template <typename T, int MaxLen, typename Container = std::deque<T>>
 class FixedQueue : public Container {

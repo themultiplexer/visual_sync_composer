@@ -37,8 +37,6 @@ public:
 
     void setFrequencies(const std::vector<float> &newFrequencies);
 
-    int getMin();
-    int getMax();
     float getThresh();
     void setThresh(float newThresh);
     void processData(std::vector<float> &data, const std::function<void (FrequencyRegion &)> &callback);

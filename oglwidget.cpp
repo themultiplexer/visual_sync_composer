@@ -45,20 +45,6 @@ void OGLWidget::cleanupGL() {
     doneCurrent(); // Done with the context
 }
 
-int OGLWidget::getMin() {
-    if (regions.size() == 0) {
-        return 0;
-    }
-    return regions[0]->getMin();
-}
-
-int OGLWidget::getMax() {
-    if (regions.size() == 0) {
-        return step;
-    }
-    return regions[0]->getMax();
-}
-
 float OGLWidget::getThresh() {
     return regions[0]->getThresh();
 }
@@ -120,6 +106,12 @@ void OGLWidget::initializeGL()
         uniform float regions[12];
         uniform float stepsize;
 
+        float inverseLogScale(float y, float base) {
+            float absY = (y + 1.0)/2.0;
+            float scaled = (pow(base, absY) - 1.0) / (base - 1.0);
+            return -1.0 + scaled * 2.0;
+        }
+
         void main() {
             FragColor = vec4(0.0);
             for (int i = 0; i < 2; i++) {
@@ -147,7 +139,7 @@ void OGLWidget::initializeGL()
 
                 FragColor += (c * start + c * end) + threshold * visible * vec4(1.0) + vec4(vec3(1.0), 0.5) * visible2 * visible;
             }
-            float mx = mod(log((2.0 - (pos.x + 1.0)) * 15.0 + 1.0) / 1.75 - 1.0, stepsize);
+            float mx = mod(inverseLogScale(pos.x, 40), stepsize);
             FragColor += int(mx < 0.002) * vec4(vec3(0.2), 1.0);
         }
     )";
@@ -163,9 +155,15 @@ void OGLWidget::initializeGL()
         out vec2 pos;
         out vec4 col;
 
+        float signedLogScale(float x, float base) {
+            float absX = (x + 1.0)/2.0;
+            float scaled = log(absX * (base - 1.0) + 1.0) / log(base);
+            return -1.0 + scaled * 2.0;
+        }
+
         void main() {
             //vec2 p = vec2(log((vertex.x + 1.0) * 15.0 + 1.0) / 1.75 - 1.0, vertex.y);
-            vec2 p = vec2(vertex.x, vertex.y);
+            vec2 p = vec2(signedLogScale(vertex.x, 40), vertex.y);
             pos = p;
             col = color;
             gl_Position = vec4(p, 0.0, 1.0);
@@ -323,9 +321,9 @@ bool OGLWidget::eventFilter(QObject *obj, QEvent *event) {
         for (auto& reg : regions) {
             reg->mouseEvent(x, y);
 
-            if (reg->newInside) {
+            if (reg->getNewInside()) {
                 setCursor(Qt::OpenHandCursor);
-                if (reg->newOnLine && !reg->dragging) {
+                if (reg->getNewOnLine() && !reg->getDragging()) {
                     setCursor(Qt::SizeVerCursor);
                 }
                 active = reg;
@@ -341,12 +339,11 @@ bool OGLWidget::eventFilter(QObject *obj, QEvent *event) {
             if (event->type() == QEvent::MouseButtonPress) {
                 active->mouseClick(x, y);
             } else if (event->type() == QEvent::MouseButtonRelease) {
-                qDebug() << "Released " << currentRegionIndex << " " << active->hovering;
-                if (!active->hovering) {
+                qDebug() << "Released " << currentRegionIndex << " " << active->getHovering();
+                if (!active->getHovering()) {
                     currentRegionIndex = (currentRegionIndex + 1) % regions.size();
                 }
                 active->mouseReleased(x, y);
-
             }
         }
     }

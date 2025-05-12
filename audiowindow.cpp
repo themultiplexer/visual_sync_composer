@@ -29,6 +29,9 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
         color = (*hueRandom)(*rng);
     }
 
+    setWindowFlags(Qt::Window | Qt::WindowFullscreenButtonHint);
+    //setWindowState(Qt::WindowMaximized);
+
     // Create menu bar and actions
     QMenuBar *menuBar = new QMenuBar(this);
     QMenu *fileMenu = menuBar->addMenu("File");
@@ -43,7 +46,6 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     QAction *fullscreenAction = new QAction("Fullscreen", this);
     fullscreenAction->setCheckable(true);
     QObject::connect(fullscreenAction, &QAction::triggered, [&](bool checked) {
-
         if(checked) {
             qDebug() << "Fullscreen";
 
@@ -394,7 +396,7 @@ void AudioWindow::checkTime(){
     }
 
     w->processData(f, [this](FrequencyRegion &region){
-        if (region.getMax() < 1000) {
+        if (region.getScaledMax() < 1000) {
             uint64_t selectedHue = colors.front();
             ep->peakEvent(selectedHue);
             std::chrono::time_point<std::chrono::system_clock> now = std::chrono::system_clock::now();
