@@ -383,11 +383,15 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
 }
 
 void AudioWindow::checkTime(){
-    auto f = a->getFullFrequencies();
+    auto fl = a->getLeftFrequencies();
+    auto fr = a->getRightFrequencies();
 
     for (int i = 0; i < FRAMES/2; i++) {
-        f[i] *= log10(((float)i/(FRAMES/2)) * 5 + 1.01);
-        f[i] = log10(f[i] * 2.0 + 1.01);
+        fl[i] *= log10(((float)i/(FRAMES/2)) * 5 + 1.01);
+        fl[i] = log10(fl[i] * 2.0 + 1.01);
+
+        fr[i] *= log10(((float)i/(FRAMES/2)) * 5 + 1.01);
+        fr[i] = log10(fr[i] * 2.0 + 1.01);
     }
 
     OGLWidget *w = glv;
@@ -395,7 +399,7 @@ void AudioWindow::checkTime(){
         w = popoutGlv;
     }
 
-    w->processData(f, [this](FrequencyRegion &region){
+    w->processData(fl, [this](FrequencyRegion &region){
         if (region.getScaledMax() < 1000) {
             uint64_t selectedHue = colors.front();
             ep->peakEvent(selectedHue);
@@ -415,7 +419,7 @@ void AudioWindow::checkTime(){
         tmpLabel->setText(std::to_string(mean).c_str());
     });
 
-    w->setFrequencies(f);
+    w->setFrequencies(fl, fr);
 
     for (auto t : tubes) {
         t->updateGL();

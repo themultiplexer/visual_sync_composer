@@ -35,8 +35,6 @@ public:
     OGLWidget(int step, QWidget *parent = 0);
     ~OGLWidget();
 
-    void setFrequencies(const std::vector<float> &newFrequencies);
-
     float getThresh();
     void setThresh(float newThresh);
     void processData(std::vector<float> &data, const std::function<void (FrequencyRegion &)> &callback);
@@ -44,9 +42,11 @@ public:
     void setDecay(float newDecay);
     std::vector<FrequencyRegion*> getRegions() const;
     void setRegions(std::vector<FrequencyRegion *> newRegions);
+    void setFrequencies(const std::vector<float> &leftFrequencies, const std::vector<float> &rightFrequencies);
 
 signals:
     void valueChanged();
+
 
 protected:
     void initializeGL();
@@ -57,9 +57,8 @@ protected:
     QOpenGLVertexArrayObject vao, lineVao;
     QOpenGLBuffer vertexPositionBuffer, lineVertexPositionBuffer, vertexBuffer;
     GLuint shaderProgram;
-    std::vector<float> frequencies;
-    std::vector<float> smoothFrequencies;
-    std::vector<int> recentFrequencies;
+    std::vector<float> smoothFrequencies, smoothFrequencies2;
+    std::vector<int> recentFrequencies, recentFrequencies2;
     std::vector<FrequencyRegion*> regions;
 
     void createVBO();
@@ -71,7 +70,7 @@ private:
     int currentRegionIndex;
     float decay;
     std::vector<Vertex2D> generatePolylineQuads(const std::vector<Vertex2D> &points, float width);
-    std::vector<Vertex2D> lineVertices;
+    std::vector<Vertex2D> lineVertices, lineVertices2;
     void cleanupGL();
 };
 

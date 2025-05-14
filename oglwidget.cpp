@@ -10,9 +10,10 @@ OGLWidget::OGLWidget(int step, QWidget *parent)
     : QOpenGLWidget(parent), step(step), decay(0.02), regions(), currentRegionIndex(0)
 {
     for (int i = 0; i < NUM_POINTS; ++i) {
-        frequencies.push_back(0.0);
         smoothFrequencies.push_back(0.0);
         recentFrequencies.push_back(100);
+        smoothFrequencies2.push_back(0.0);
+        recentFrequencies2.push_back(100);
     }
 
     regions.push_back(new FrequencyRegion(2, 15, NUM_POINTS, "low"));
@@ -162,8 +163,8 @@ void OGLWidget::initializeGL()
         }
 
         void main() {
-            //vec2 p = vec2(log((vertex.x + 1.0) * 15.0 + 1.0) / 1.75 - 1.0, vertex.y);
             vec2 p = vec2(signedLogScale(vertex.x, 40), vertex.y);
+            //p = vertex;
             pos = p;
             col = color;
             gl_Position = vec4(p, 0.0, 1.0);
@@ -242,6 +243,16 @@ void OGLWidget::paintGL()
     lineShaderProgram->bind();
     lineVao.bind();
     glDrawArrays(GL_TRIANGLES, 0, lineVertices.size());
+    lineVao.release();
+    lineShaderProgram->release();
+
+    lineVertexPositionBuffer.bind();
+    lineVertexPositionBuffer.allocate(lineVertices2.data(), lineVertices2.size() * sizeof(Vertex2D));
+    lineVertexPositionBuffer.release();
+
+    lineShaderProgram->bind();
+    lineVao.bind();
+    glDrawArrays(GL_TRIANGLES, 0, lineVertices2.size());
     lineVao.release();
     lineShaderProgram->release();
 
@@ -360,28 +371,40 @@ void OGLWidget::setDecay(float newDecay)
     decay = newDecay;
 }
 
-void OGLWidget::setFrequencies(const std::vector<float> &newFrequencies)
+void OGLWidget::setFrequencies(const std::vector<float> &leftFrequencies, const std::vector<float> &rightFrequencies)
 {
-    std::vector<Vertex2D> path;
+    std::vector<Vertex2D> path1, path2;
     float width = 0.005f;
 
-    this->frequencies = newFrequencies;
-    for (int i = 0; i < newFrequencies.size(); i++) {
-        if (newFrequencies[i] > smoothFrequencies[i]) {
-            smoothFrequencies[i] = newFrequencies[i];
+    for (int i = 0; i < NUM_POINTS; i++) {
+        if (leftFrequencies[i] > smoothFrequencies[i]) {
+            smoothFrequencies[i] = leftFrequencies[i];
             recentFrequencies[i] = 100;
         } else {
             smoothFrequencies[i] = (smoothFrequencies[i] > decay) ? smoothFrequencies[i] - decay : 0.0;
             recentFrequencies[i] -= recentFrequencies[i] > 10 ? 10 : 0;
         }
 
+        if (rightFrequencies[i] > smoothFrequencies2[i]) {
+            smoothFrequencies2[i] = rightFrequencies[i];
+            recentFrequencies2[i] = 100;
+        } else {
+            smoothFrequencies2[i] = (smoothFrequencies2[i] > decay) ? smoothFrequencies2[i] - decay : 0.0;
+            recentFrequencies2[i] -= recentFrequencies2[i] > 10 ? 10 : 0;
+        }
+
         rgb c = hsv2rgb({((float)i/(float)NUM_POINTS) * 360, (1.0 - ((float)recentFrequencies[i] / 100.0)), 1.0});
-        path.push_back({glm::vec2(((float)i/(float)NUM_POINTS) * 2.0 - 1.0, smoothFrequencies[i] * 2.0 - (1.0 - width)), glm::vec4(c.r, c.g, c.b, 1.0) });
+        path1.push_back({glm::vec2(((float)i/(float)NUM_POINTS) * 2.0 - 1.0, smoothFrequencies[i] * 2.0 - (1.0 - width)), glm::vec4(c.r, c.g, c.b, 1.0) });
+        path2.push_back({glm::vec2(((float)i/(float)NUM_POINTS) * 2.0 - 1.0, smoothFrequencies2[i] * 2.0 - (1.1 - width)), glm::vec4(0.5,0.5,0.5, 1.0) });
     }
-    lineVertices = generatePolylineQuads(path, width);
+    lineVertices = generatePolylineQuads(path1, width);
+    lineVertices2 = generatePolylineQuads(path2, width);
+
     lineVertexPositionBuffer.bind();
     lineVertexPositionBuffer.allocate(lineVertices.data(), lineVertices.size() * sizeof(Vertex2D));
     lineVertexPositionBuffer.release();
+
+
     update();
 }
 
