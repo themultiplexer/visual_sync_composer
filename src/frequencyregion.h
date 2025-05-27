@@ -42,9 +42,14 @@ FrequencyRegion(int min, int max, int step, std::string name = "unnamed");
     bool getHovering() const;
     bool getNewInside() const;
     bool getNewOnLine() const;
+    bool getNewOnStart() const;
 
+    bool getNewOnEnd() const;
 signals:
     void valueChanged();
+
+
+
 
 
 
@@ -56,7 +61,7 @@ private:
     int beatMillis;
 
     std::chrono::time_point<std::chrono::steady_clock> lastBeat;
-    bool hovering, dragging, onLine, inside, newInside, newOnLine;
+    bool hovering, dragging, draggingStart, draggingEnd, onLine, inside, newInside, newOnLine, newOnStart, newOnEnd;
     float peak, level, smoothLevel;
     float dx, prestart, preend, color;
 };
