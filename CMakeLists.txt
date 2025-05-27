@@ -22,12 +22,6 @@ find_package(PkgConfig REQUIRED)
 
 pkg_check_modules(AVAHI REQUIRED avahi-client)
 
-set(PROJECT_SOURCES
-        main.cpp
-        mainwindow.cpp
-        mainwindow.h
-)
-
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(VisualSyncComposer
         MANUAL_FINALIZATION
@@ -46,64 +40,79 @@ else()
 #    set(ANDROID_PACKAGE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/android")
     else()
         add_executable(VisualSyncComposer
-            ${PROJECT_SOURCES}
-            thread.h
-            downloader.h
-            Timeline/GraphicsScene.cpp
-            Timeline/GraphicsScene.h
-            Timeline/GraphicsView.cpp
-            Timeline/GraphicsView.h
-            Timeline/Indicator.cpp
-            Timeline/Indicator.h
-            Timeline/Track.cpp
-            Timeline/Track.h
-            Timeline/Timeline.h
-            Timeline/Timeline.cpp
-            Timeline/ColorLabel.h
-            Timeline/AlignedTextItem.h
-            Timeline/AlignedTextItem.cpp
-            Timeline/TrackGroup.h
-            Timeline/TrackGroup.cpp
-            Timeline/GridGraphicsGroup.h
-            Timeline/EventProcessor.h
-            Timeline/EventModel.h
-            Timeline/EventModel.cpp
-            espnowsender.cpp
-            espnowsender.h
-            espnowtypes.cpp
-            espnowtypes.h
-            ProjectModel.h
-            TODO.md
-            audioanalyzer.h audioanalyzer.cpp
-            oglwidget.h oglwidget.cpp
-            wifieventprocessor.h wifieventprocessor.cpp
-            esphandler.h esphandler.cpp
-            gltext.h
-            gltext.cpp
-            font_rendering.h
-            netdevice.h netdevice.cpp
-            vscslider.h vscslider.cpp
-            helper.h helper.cpp
-            audiowindow.cpp
-            audiowindow.h
-            effectpresetbutton.h effectpresetbutton.cpp
-            effectpresetmodel.h effectpresetmodel.cpp
-            espreceiver.h espreceiver.cpp
-            vsctube.cpp
-            vsctube.h
-            tubewidget.cpp
-            tubewidget.h
-            mdnsflasher.h mdnsflasher.cpp
-            devicereqistry.h devicereqistry.cpp
-            frequencyregion.h frequencyregion.cpp
-            fullscreenwindow.h fullscreenwindow.cpp
-            horizontal_line.h horizontal_line.cpp
+            src/main.cpp
+            src/mainwindow.cpp
+            src/mainwindow.h
+            src/thread.h
+            src/downloader.h
+            src/timeline/GraphicsScene.cpp
+            src/timeline/GraphicsScene.h
+            src/timeline/GraphicsView.cpp
+            src/timeline/GraphicsView.h
+            src/timeline/Indicator.cpp
+            src/timeline/Indicator.h
+            src/timeline/Track.cpp
+            src/timeline/Track.h
+            src/timeline/Timeline.h
+            src/timeline/Timeline.cpp
+            src/timeline/ColorLabel.h
+            src/timeline/AlignedTextItem.h
+            src/timeline/AlignedTextItem.cpp
+            src/timeline/TrackGroup.h
+            src/timeline/TrackGroup.cpp
+            src/timeline/GridGraphicsGroup.h
+            src/timeline/EventProcessor.h
+            src/timeline/EventModel.h
+            src/timeline/EventModel.cpp
+            src/espnowsender.cpp
+            src/espnowsender.h
+            src/espnowtypes.cpp
+            src/espnowtypes.h
+            src/ProjectModel.h
+            src/audioanalyzer.h
+            src/audioanalyzer.cpp
+            src/oglwidget.h
+            src/oglwidget.cpp
+            src/wifieventprocessor.h
+            src/wifieventprocessor.cpp
+            src/esphandler.h
+            src/esphandler.cpp
+            src/gltext.h
+            src/gltext.cpp
+            src/font_rendering.h
+            src/netdevice.h
+            src/netdevice.cpp
+            src/vscslider.h
+            src/vscslider.cpp
+            src/helper.h
+            src/helper.cpp
+            src/audiowindow.cpp
+            src/audiowindow.h
+            src/effectpresetbutton.h
+            src/effectpresetbutton.cpp
+            src/effectpresetmodel.h
+            src/effectpresetmodel.cpp
+            src/espreceiver.h
+            src/espreceiver.cpp
+            src/vsctube.cpp
+            src/vsctube.h
+            src/tubewidget.cpp
+            src/tubewidget.h
+            src/mdnsflasher.h
+            src/mdnsflasher.cpp
+            src/devicereqistry.h
+            src/devicereqistry.cpp
+            src/frequencyregion.h
+            src/frequencyregion.cpp
+            src/fullscreenwindow.h
+            src/fullscreenwindow.cpp
+            src/horizontal_line.h
+            src/horizontal_line.cpp
         )
     endif()
 endif()
 
 include_directories( ${FREETYPE_INCLUDE_DIRS} ${AVAHI_INCLUDE_DIRS} )
-
 target_link_libraries(VisualSyncComposer PRIVATE Qt${QT_VERSION_MAJOR}::Widgets ${OPENGL_LIBRARIES}  Qt${QT_VERSION_MAJOR}::Network ${FREETYPE_LIBRARIES} ${AVAHI_LIBRARIES} SDBusCpp::sdbus-c++ RtAudio::rtaudio ${Boost_LIBRARIES} "/usr/lib/x86_64-linux-gnu/libkissfft-float.so.131.1.0")
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.

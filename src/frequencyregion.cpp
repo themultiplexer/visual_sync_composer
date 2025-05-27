@@ -76,12 +76,21 @@ void FrequencyRegion::mouseEvent(float x, float y)
     newInside = (vx > getStart() && vx < getEnd());
 
     newOnLine = newInside && ((1.0 - y) < getThresh() + 0.05 && (1.0 - y) > getThresh() - 0.05);
+    newOnStart = (x < getStart() + 0.01 && x > getStart() - 0.01);
+    newOnEnd = (x < getEnd() + 0.01 && x > getEnd() - 0.01);
+
     onLine = newOnLine;
 
     if (mouseDown) {
         if (dragging) {
             setThresh(1.0 - y);
             emit valueChanged();
+        } else if (draggingStart) {
+            float newx = prestart + (rx - dx);
+            setStart(newx);
+        } else if (draggingEnd) {
+            float newy = preend + (rx - dx);
+            setEnd(newy);
         } else if (hovering) {
             float newx = prestart + (rx - dx);
             float newy = preend + (rx - dx);
@@ -99,6 +108,8 @@ void FrequencyRegion::mouseClick(float x, float y) {
     float rx = g(f(x) - fmod(f(x), 1.0/(float)step));
 
     hovering = newInside;
+    draggingStart = newOnStart;
+    draggingEnd = newOnEnd;
     dragging = onLine;
     dx = rx;
     prestart = getStart();
@@ -143,6 +154,16 @@ bool FrequencyRegion::getNewInside() const
 bool FrequencyRegion::getNewOnLine() const
 {
     return newOnLine;
+}
+
+bool FrequencyRegion::getNewOnStart() const
+{
+    return newOnStart;
+}
+
+bool FrequencyRegion::getNewOnEnd() const
+{
+    return newOnEnd;
 }
 
 float FrequencyRegion::getSmoothLevel() const

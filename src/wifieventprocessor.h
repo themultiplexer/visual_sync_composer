@@ -2,7 +2,7 @@
 #define WIFIEVENTPROCESSOR_H
 
 #include "espnowsender.h"
-#include "Timeline/EventProcessor.h"
+#include "timeline/EventProcessor.h"
 #include <QDebug>
 #include <QLabel>
 #include <random>

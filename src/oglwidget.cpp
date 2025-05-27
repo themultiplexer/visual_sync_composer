@@ -334,8 +334,14 @@ bool OGLWidget::eventFilter(QObject *obj, QEvent *event) {
 
             if (reg->getNewInside()) {
                 setCursor(Qt::OpenHandCursor);
-                if (reg->getNewOnLine() && !reg->getDragging()) {
-                    setCursor(Qt::SizeVerCursor);
+                if (reg->getNewOnLine()) {
+                    if (!reg->getDragging()) {
+                        setCursor(Qt::SizeVerCursor);
+                    }
+                } else if (reg->getNewOnStart() || reg->getNewOnEnd()) {
+                    setCursor(Qt::SizeHorCursor);
+                } else {
+                    setCursor(Qt::ArrowCursor);
                 }
                 active = reg;
                 if (event->type() != QEvent::MouseButtonPress && event->type() != QEvent::MouseButtonRelease) {

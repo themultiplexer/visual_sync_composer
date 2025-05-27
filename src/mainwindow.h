@@ -9,8 +9,8 @@
 #include <QSlider>
 #include "downloader.h"
 #include "thread.h"
-#include "Timeline/GraphicsView.h"
-#include "Timeline/Timeline.h"
+#include "timeline/GraphicsView.h"
+#include "timeline/Timeline.h"
 #include <QGuiApplication>
 #include <QApplication>
 #include <QtNetwork/QNetworkReply>
