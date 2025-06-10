@@ -1,4 +1,7 @@
 
+#include <array>
+#include <span>
+#include <stdexcept>
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -40,17 +43,23 @@ void espnowsender::start() {
     strncpy((char *)ifr.ifr_name, this->interface, IFNAMSIZ); //interface
 
     ioctl_errno = ioctl(fd, SIOCGIFINDEX, &ifr);
-    assert(ioctl_errno >= 0);	//abort if error
+    if (ioctl_errno >= 0) {
+        throw std::invalid_argument( "received negative value" );
+    }
 
     s_dest_addr.sll_family = PF_PACKET;
     s_dest_addr.sll_protocol = htons(ETH_P_ALL);
     s_dest_addr.sll_ifindex = ifr.ifr_ifindex;
     
     bind_errno = bind(fd, (struct sockaddr *)&s_dest_addr, sizeof(s_dest_addr));
-    assert(bind_errno >= 0);	//abort if error
+    if (bind_errno >= 0) {
+        throw std::invalid_argument( "received bind_errno value" );
+    }
 
 	priority_errno = setsockopt(fd, SOL_SOCKET, SO_PRIORITY, &(this->socket_priority), sizeof(this->socket_priority));
-	assert(priority_errno ==0);
+    if (priority_errno >= 0) {
+        throw std::invalid_argument( "received priority_errno value" );
+    }
 	
 	this->sock_fd = fd;
 }
@@ -70,8 +79,8 @@ void espnowsender::end() {
 	}
 }
 
-int espnowsender::send(uint8_t *payload, int len, const uint8_t dst_mac[6]) {
-    mypacket.set_dst_mac(dst_mac);
+int espnowsender::send(uint8_t *payload, int len, std::array<uint8_t,6> dst_mac) {
+    mypacket.set_dst_mac(dst_mac.data());
 	uint8_t raw_bytes[LEN_RAWBYTES_MAX];
 
 	//Not the most fastest way to do this : 

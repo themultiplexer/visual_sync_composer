@@ -2,7 +2,8 @@
 #include "espnowtypes.h"
 #include <cassert>
 
-void espreceiver::set_recv_callback(std::function<void (uint8_t[6], uint8_t *, int)> recv_callback) {
+
+void espreceiver::set_recv_callback(std::function<void (std::array<uint8_t, 6>, std::span<uint8_t>)> recv_callback) {
     callback = recv_callback;
 }
 
@@ -20,16 +21,16 @@ void espreceiver::unset_filter() {
     this->bpf.len = 0;
 }
 
-void espreceiver::set_filter(uint8_t *dst_mac) {
+void espreceiver::set_filter(std::array<uint8_t, 6> *dst_mac) {
     //sudo tcpdump -i wlp5s0 'type 0 subtype 0xd0 and wlan[24:4]=0x7f18fe34 and wlan[32]=221 and wlan[33:4]&0xffffff = 0x18fe34 and wlan[37]=0x4 and wlan dst 11:22:33:44:55:66' -dd
     //unset_filter();
 
     this->bpf.len = 34;
 
-    uint32_t MSB_dst = MAC_2_MSBytes(dst_mac);
-    uint32_t LSB_dst = MAC_4_LSBytes(dst_mac);
+    uint32_t MSB_dst = MAC_2_MSBytes(dst_mac->data());
+    uint32_t LSB_dst = MAC_4_LSBytes(dst_mac->data());
 
-    uint8_t jeq_dst = dst_mac == NULL ? 0x30 : 0x15; //0x30 jump if >=. 0x15 jump if ==.
+    uint8_t jeq_dst = dst_mac == nullptr ? 0x30 : 0x15; //0x30 jump if >=. 0x15 jump if ==.
 
     struct sock_filter temp_code[34] = {
         { 0x30, 0, 0, 0x00000003 },
@@ -91,7 +92,9 @@ void espreceiver::start() {
     strncpy((char *)ifr.ifr_name, this->interface.c_str(), IFNAMSIZ); //interface
 
     ioctl_errno = ioctl(fd, SIOCGIFINDEX, &ifr);
-    assert(ioctl_errno >= 0);	//abort if error
+    if (ioctl_errno >= 0) {
+        throw std::invalid_argument( "received negative value" );
+    }
 
     s_dest_addr.sll_family = PF_PACKET;
     s_dest_addr.sll_protocol = htons(ETH_P_ALL);
@@ -145,7 +148,9 @@ void espreceiver::start() {
                 res_payload = ESPNOW_packet::get_payload(raw_bytes, raw_bytes_len);
                 res_len = ESPNOW_packet::get_payload_len(raw_bytes, raw_bytes_len);
                 if(res_mac != NULL && res_payload != NULL && res_len > 0) {
-                    callback(res_mac, res_payload, res_len);
+                    std::array<uint8_t, 6> arr;
+                    std::copy(res_mac, res_mac + 6, arr.begin());
+                    callback(arr, std::span<uint8_t>(res_payload, res_len));
                 }
             }
         }

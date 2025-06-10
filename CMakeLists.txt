@@ -21,7 +21,6 @@ find_package(Freetype REQUIRED)
 find_package(PkgConfig REQUIRED)
 
 pkg_check_modules(AVAHI REQUIRED avahi-client)
-
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(VisualSyncComposer
         MANUAL_FINALIZATION

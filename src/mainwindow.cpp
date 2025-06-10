@@ -55,6 +55,7 @@ MainWindow::MainWindow(WifiEventProcessor *ep, QWidget *parent)
     // Create central widget and set up layout
     QWidget* centralWidget = new QWidget(this);
     this->setCentralWidget(centralWidget);
+    centralWidget->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
 
     QVBoxLayout* mainLayout = new QVBoxLayout(centralWidget);
 

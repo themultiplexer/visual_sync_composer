@@ -56,31 +56,29 @@ public:
 class WifiEventProcessor : public EventProcessor
 {
 public:
-    WifiEventProcessor();
+    WifiEventProcessor(std::array<uint8_t, 6> my_mac, std::string dev);
     void textEvent(std::string data);
     void peakEvent(uint8_t hue);
     void sendConfig();
     void sendUpdateMessage();
-
-    CONFIG_DATA masterconfig;
-
     void registerReceiver(WifiTextEventReceiver *receiver);
     void initHandlers();
-
-
-    std::vector<int> getTubeOffsets() const;
     void setTubeOffsets(const std::vector<int> &newTubeOffsets);
-
-    void sendConfigTo(uint8_t dst_mac[]);
+    void sendConfigTo(std::array<uint8_t, 6> dst_mac);
     void sendSync();
-    void sendUpdateMessageTo(const uint8_t dst_mac[]);
+    void sendUpdateMessageTo(std::array<uint8_t, 6> dst_mac);
+    CONFIG_DATA getMasterconfig() const;
+    void setMasterconfig(const CONFIG_DATA &newMasterconfig);
+
 private:
-    void callback(uint8_t src_mac[6], uint8_t *data, int len);
+    void callback(std::array<uint8_t, 6> src_mac, std::span<uint8_t> data);
 
     espnowsender* handler;
     std::vector<WifiTextEventReceiver *> receivers;
-    void static_callback(uint8_t src_mac[], uint8_t *data, int len, void *userData);
-
+    std::vector<int> getTubeOffsets() const;
+    CONFIG_DATA masterconfig;
+    std::array<uint8_t, 6> my_mac;
+    std::string dev;
     std::vector<int> tubeOffsets;
 };
 

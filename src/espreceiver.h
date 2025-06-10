@@ -15,30 +15,24 @@
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <thread>
-
-struct thread_args {
-    int sock_fd;
-    void (*callback)(uint8_t src_mac[6], uint8_t *data, int len);
-};
+#include <span>
 
 class espreceiver
 {
 public:
     espreceiver(std::string interface);
-    void set_recv_callback(std::function<void (uint8_t[6], uint8_t *, int)>);
+    void set_recv_callback(std::function<void (std::array<uint8_t, 6>, std::span<uint8_t>)>);
     void start();
     void unset_filter();
-    void set_filter(uint8_t *dst_mac);
+    void set_filter(std::array<uint8_t, 6> * dst_mac);
 
 private:
-
     struct sock_fprog bpf;
-
 
     std::string interface;
     int sock_fd;
     std::thread thread;
-    std::function<void(uint8_t[6], uint8_t *, int)> callback;
+    std::function<void(std::array<uint8_t, 6>, std::span<uint8_t>)> callback;
 };
 
 #endif // ESPRECEIVER_H

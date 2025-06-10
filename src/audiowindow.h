@@ -2,7 +2,9 @@
 #define AUDIOWINDOW_H
 
 #include <QMainWindow>
+#include <QWidget>
 #include <QCloseEvent>
+#include <QSplitter>
 #include <QOpenGLWidget>
 #include <QMessageBox>
 #include <QLabel>

@@ -29,6 +29,8 @@
 
 using namespace std;
 
+std::array<uint8_t, 6> my_mac = {0xDC, 0x4E, 0xF4, 0x0A, 0x3F, 0x9F};
+
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
@@ -50,7 +52,7 @@ int main(int argc, char *argv[])
     palette.setColor(QPalette::HighlightedText, Qt::black);
     a.setPalette(palette);
 
-    WifiEventProcessor *ep = new WifiEventProcessor();
+    WifiEventProcessor *ep = new WifiEventProcessor(my_mac, "wlxdc4ef40a3f9f");
 
     AudioWindow *audioWindow = new AudioWindow(ep);
     audioWindow->setWindowTitle("Hello World");

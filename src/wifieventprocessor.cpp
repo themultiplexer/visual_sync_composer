@@ -15,24 +15,15 @@
 
 using namespace std;
 
-//static uint8_t my_mac[6] = {0xF0, 0x79, 0x60, 0x18, 0x34, 0x3C};
-static uint8_t my_mac[6] = {0xDC, 0x4E, 0xF4, 0x0A, 0x3F, 0x9F};
-
-
-
-void WifiEventProcessor::callback(uint8_t src_mac[6], uint8_t *data, int len) {
-    if(len == 6) {
-        CONFIG_DATA *d = reinterpret_cast<CONFIG_DATA*>(data);
+void WifiEventProcessor::callback(std::array<uint8_t, 6> src_mac, std::span<uint8_t> data) {
+    if(data.size() == 6) {
+        CONFIG_DATA *d = reinterpret_cast<CONFIG_DATA*>(data.data());
         std::cout << "Got config: " << std::to_string(d->led_mode) << " ";
-    } if(len == 1) {
-        std::cout << "Got hello from tube: ";
-        for (int i = 0; i < 6; i++) {
-            printf("%02hhX:", src_mac[i]);
-        }
-        std::cout << std::endl;
+    } if(data.size() == 1) {
+        std::cout << "Got hello from tube: " << arrayToString(src_mac) << std::endl;
         sendConfigTo(src_mac);
     } else {
-        for (int i = 0; i < len; i++) {
+        for (int i = 0; i < data.size(); i++) {
             printf("%02hhX ", data[i]);
         }
         printf("\n");
@@ -44,13 +35,23 @@ std::vector<int> WifiEventProcessor::getTubeOffsets() const
     return tubeOffsets;
 }
 
+CONFIG_DATA WifiEventProcessor::getMasterconfig() const
+{
+    return masterconfig;
+}
+
+void WifiEventProcessor::setMasterconfig(const CONFIG_DATA &newMasterconfig)
+{
+    masterconfig = newMasterconfig;
+}
+
 void WifiEventProcessor::setTubeOffsets(const std::vector<int> &newTubeOffsets)
 {
     qDebug() << tubeOffsets;
     tubeOffsets = newTubeOffsets;
 }
 
-WifiEventProcessor::WifiEventProcessor() {
+WifiEventProcessor::WifiEventProcessor(std::array<uint8_t, 6> my_mac, std::string dev) {
     masterconfig = CONFIG_DATA {
         0,
         255,
@@ -60,23 +61,33 @@ WifiEventProcessor::WifiEventProcessor() {
         0,
         0
     };
+    this->my_mac = my_mac;
+    this->dev = dev;
 }
 
 void WifiEventProcessor::initHandlers() {
+    try {
+        espreceiver *receiver = new espreceiver(dev);
+        receiver->set_recv_callback(std::bind(&WifiEventProcessor::callback, this, std::placeholders::_1, std::placeholders::_2));
+        receiver->set_filter(&my_mac);
+        receiver->start();
+    } catch (...) {
+        std::cout << "Error while initing receiver" << std::endl;
+    }
 
-    espreceiver *receiver = new espreceiver("wlxdc4ef40a3f9f");
-    receiver->set_recv_callback(std::bind(&WifiEventProcessor::callback, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-    receiver->set_filter(my_mac);
-    receiver->start();
+    try {
+        handler = new espnowsender((char*)dev.c_str(), DATARATE_1Mbps, CHANNEL_freq_1, my_mac);
+        handler->start();
+    } catch (...) {
+        std::cout << "Error while initing sender" << std::endl;
+    }
 
-    handler = new espnowsender((char*)"wlxdc4ef40a3f9f", DATARATE_1Mbps, CHANNEL_freq_1, my_mac);
-    handler->start();
 }
 
 void WifiEventProcessor::peakEvent(uint8_t hue) {
     PEAK_DATA peak;
     peak.hue = hue;
-    handler->send(reinterpret_cast<uint8_t*>(&peak), 1, new uint8_t[6] {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF});
+    handler->send(reinterpret_cast<uint8_t*>(&peak), 1, {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF});
 }
 
 void WifiEventProcessor::sendConfig()
@@ -87,43 +98,41 @@ void WifiEventProcessor::sendConfig()
         if (i < tubeOffsets.size()) {
             tube_config.offset = tubeOffsets[i];
         }
-        handler->send(reinterpret_cast<uint8_t*>(&tube_config), sizeof(tube_config), macs[i].data());
+        handler->send(reinterpret_cast<uint8_t*>(&tube_config), sizeof(tube_config), macs[i]);
         std::cout << "Sending" << tube_config.toString() << " to " << arrayToString(macs[i]) << std::endl;
     }
     sendSync();
 }
 
-void WifiEventProcessor::sendConfigTo(uint8_t dst_mac[6])
+void WifiEventProcessor::sendConfigTo(std::array<uint8_t, 6> dst_mac)
 {
-    std::array<uint8_t, 6> mac_array;
-    std::copy(dst_mac, dst_mac + 6, mac_array.begin());
     CONFIG_DATA tube_config = masterconfig;
     auto macs = devicereqistry::macs();
-    auto it = std::find(macs.begin(), macs.end(), mac_array);
+    auto it = std::find(macs.begin(), macs.end(), dst_mac);
     if (it != macs.end()) {
         int i = std::distance(macs.begin(), it);
         if (i < tubeOffsets.size()) {
             tube_config.offset = tubeOffsets[i];
         }
     }
-    handler->send(reinterpret_cast<uint8_t*>(&tube_config), sizeof(CONFIG_DATA), mac_array.data());
-    std::cout << "Sending" << tube_config.toString() << " to " << arrayToString(mac_array) << std::endl;
+    handler->send(reinterpret_cast<uint8_t*>(&tube_config), sizeof(CONFIG_DATA), dst_mac);
+    std::cout << "Sending" << tube_config.toString() << " to " << arrayToString(dst_mac) << std::endl;
     sendSync();
 }
 
 void WifiEventProcessor::sendSync()
 {
     SYNC_DATA sync;
-    handler->send(reinterpret_cast<uint8_t*>(&sync), sizeof(SYNC_DATA), new uint8_t[6] {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF});
+    handler->send(reinterpret_cast<uint8_t*>(&sync), sizeof(SYNC_DATA), {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF});
 }
 
 void WifiEventProcessor::sendUpdateMessage()
 {
     UPDATE_DATA update;
-    handler->send(reinterpret_cast<uint8_t*>(&update), sizeof(UPDATE_DATA), new uint8_t[6] {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF});
+    handler->send(reinterpret_cast<uint8_t*>(&update), sizeof(UPDATE_DATA), {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF});
 }
 
-void WifiEventProcessor::sendUpdateMessageTo(const uint8_t dst_mac[6])
+void WifiEventProcessor::sendUpdateMessageTo(std::array<uint8_t, 6> dst_mac)
 {
     UPDATE_DATA update;
     handler->send(reinterpret_cast<uint8_t*>(&update), sizeof(UPDATE_DATA), dst_mac);
@@ -143,5 +152,5 @@ void WifiEventProcessor::textEvent(std::string data) {
     TEXT_DATA text;
     strcpy(text.data, data.c_str());
 
-    handler->send(reinterpret_cast<uint8_t*>(&text), sizeof(text), new uint8_t[6] {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF});
+    handler->send(reinterpret_cast<uint8_t*>(&text), sizeof(text), {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF});
 }
