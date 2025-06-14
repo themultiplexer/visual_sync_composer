@@ -81,7 +81,6 @@ void WifiEventProcessor::initHandlers() {
     } catch (...) {
         std::cout << "Error while initing sender" << std::endl;
     }
-
 }
 
 void WifiEventProcessor::peakEvent(uint8_t hue) {
@@ -106,6 +105,8 @@ void WifiEventProcessor::sendConfig()
 
 void WifiEventProcessor::sendConfigTo(std::array<uint8_t, 6> dst_mac)
 {
+    std::array<uint8_t, 6> mac_array;
+    std::copy(dst_mac, dst_mac + 6, mac_array.begin());
     CONFIG_DATA tube_config = masterconfig;
     auto macs = devicereqistry::macs();
     auto it = std::find(macs.begin(), macs.end(), dst_mac);

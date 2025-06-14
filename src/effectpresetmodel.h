@@ -8,18 +8,19 @@
 class EffectPresetModel
 {
 public:
-    EffectPresetModel(QString name);
-    EffectPresetModel(QString name, CONFIG_DATA data);
+    EffectPresetModel(std::string name, int id);
+    EffectPresetModel(std::string name, int id, CONFIG_DATA data);
 
-    QString name;
+    std::string name;
+    int id;
     struct CONFIG_DATA config;
 
-    static void saveToJsonFile(const std::vector<EffectPresetModel*> &presets, const QString &filePath);
+    static void saveToJsonFile(const std::vector<EffectPresetModel*> &presets, const std::string &filePath);
     QJsonObject toJson() const;
     static EffectPresetModel * fromJson(const QJsonObject &obj);
-    static std::vector<EffectPresetModel*> readJson(const QString &filePath);
-    QString getName() const;
-    void setName(const QString newName);
+    static std::vector<EffectPresetModel*> readJson(const std::string &filePath);
+    std::string getName() const;
+    void setName(const std::string newName);
 };
 
 #endif // EFFECTPRESETMODEL_H

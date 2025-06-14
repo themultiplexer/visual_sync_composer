@@ -5,7 +5,7 @@
 #include <QTimer>
 #include <QDebug>
 
-EffectPresetButton::EffectPresetButton(EffectPresetModel *model, QWidget *parent) : QPushButton(parent), title(model->getName()), m_timer(new QTimer(this)), model(model)
+EffectPresetButton::EffectPresetButton(EffectPresetModel *model, QWidget *parent) : QPushButton(parent), title(model->getName().c_str()), m_timer(new QTimer(this)), model(model)
 {
     setText(title);
     m_timer->setSingleShot(true);
@@ -46,6 +46,6 @@ EffectPresetModel *EffectPresetButton::getModel() const
 void EffectPresetButton::setModel(EffectPresetModel *newModel)
 {
     model = newModel;
-    setText(model->getName());
+    setText(model->getName().c_str());
 }
 

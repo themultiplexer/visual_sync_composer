@@ -6,19 +6,20 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets Network REQUIRED)
 find_package(sdbus-c++ REQUIRED)
-find_package(Boost 1.55 COMPONENTS serialization system)
+find_package(Boost 1.74 COMPONENTS serialization system)
 find_package(kissfft REQUIRED)
 find_package(RtAudio REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(Freetype REQUIRED)
-
 find_package(PkgConfig REQUIRED)
+find_package(OpenSSL REQUIRED)
+find_package(cpprestsdk REQUIRED)
 
 pkg_check_modules(AVAHI REQUIRED avahi-client)
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
@@ -112,7 +113,7 @@ else()
 endif()
 
 include_directories( ${FREETYPE_INCLUDE_DIRS} ${AVAHI_INCLUDE_DIRS} )
-target_link_libraries(VisualSyncComposer PRIVATE Qt${QT_VERSION_MAJOR}::Widgets ${OPENGL_LIBRARIES}  Qt${QT_VERSION_MAJOR}::Network ${FREETYPE_LIBRARIES} ${AVAHI_LIBRARIES} SDBusCpp::sdbus-c++ RtAudio::rtaudio ${Boost_LIBRARIES} "/usr/lib/x86_64-linux-gnu/libkissfft-float.so.131.1.0")
+target_link_libraries(VisualSyncComposer PRIVATE Qt${QT_VERSION_MAJOR}::Widgets ${OPENGL_LIBRARIES}  Qt${QT_VERSION_MAJOR}::Network ${FREETYPE_LIBRARIES} ${AVAHI_LIBRARIES} SDBusCpp::sdbus-c++ RtAudio::rtaudio cpprestsdk::cpprest Boost::system Boost::serialization OpenSSL::SSL OpenSSL::Crypto "/usr/lib/x86_64-linux-gnu/libkissfft-float.so.131.1.0")
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
 # If you are developing for iOS or macOS you should consider setting an

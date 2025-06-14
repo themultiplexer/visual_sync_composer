@@ -14,10 +14,10 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
 {
     this->ep = ep;
     ui->setupUi(this);
-    //NetDevice h = NetDevice("wlxdc4ef40a3f9f");
-    //h.setInterface(false);
-    //h.enableMonitorMode();
-    //h.setInterface(true);
+    NetDevice h = NetDevice("wlxdc4ef40a3f9f");
+    h.setInterface(false);
+    h.enableMonitorMode();
+    h.setInterface(true);
 
     ep->initHandlers();
     //showFullScreen();
@@ -55,7 +55,7 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
                 floatingWindow->raise();            // Brings the window to the front
                 floatingWindow->activateWindow();   // Ensures the window is focused
 
-                QTimer::singleShot(16, dock, [=]() {
+                QTimer::singleShot(16, dock, [this]() {
                     dock->update();  // Request an update every 16ms (~60 FPS)
                 });
             } else {
@@ -104,6 +104,7 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     modesWidget->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Minimum);
     QHBoxLayout* modesLayout = new QHBoxLayout(modesWidget);
     std::vector<QRadioButton*> ledModeRadioButtons;
+
     for (std::string effect : values) {
         QRadioButton *radio = new QRadioButton();
         radio->setText(effect.c_str());
@@ -253,23 +254,7 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
             gridLayout->addWidget(button, row, col);
             connect(button, &EffectPresetButton::releasedInstantly, [=](){
                 EffectPresetModel *model = button->getModel();
-                this->brightnessSlider->setValue(model->config.brightness);
-                this->speedSlider->setValue(model->config.speed_factor);
-                this->effect1Slider->setValue(model->config.parameter1);
-                this->effect2Slider->setValue(model->config.parameter2);
-                this->effect3Slider->setValue(model->config.parameter3);
-                this->saturationSlider->setValue(model->config.sat);
-                for (int i = 0; i < 8; ++i) {
-                    this->ledModifierCheckboxes[i]->blockSignals(true);
-                    this->ledModifierCheckboxes[i]->setChecked(((model->config.modifiers >> (7 - i)) & 0x01));
-                    this->ledModifierCheckboxes[i]->blockSignals(false);
-                }
-                ledModeRadioButtons[model->config.led_mode]->blockSignals(true);
-                ledModeRadioButtons[model->config.led_mode]->setChecked(true);
-                ledModeRadioButtons[model->config.led_mode]->blockSignals(false);
-
-                ep->setMasterconfig(model->config);
-                ep->sendConfig();
+                setNewEffect(model);
             });
             connect(button, &EffectPresetButton::longPressed, [=](){
                 bool ok;
@@ -382,6 +367,27 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     QTimer *qtimer = new QTimer(this);
     connect(qtimer, &QTimer::timeout, this, &AudioWindow::checkTime);
     qtimer->start(1);
+}
+
+void AudioWindow::setNewEffect(EffectPresetModel *model) {
+    activeEffect = model->id;
+    this->brightnessSlider->setValue(model->config.brightness);
+    this->speedSlider->setValue(model->config.speed_factor);
+    this->effect1Slider->setValue(model->config.parameter1);
+    this->effect2Slider->setValue(model->config.parameter2);
+    this->effect3Slider->setValue(model->config.parameter3);
+    this->saturationSlider->setValue(model->config.sat);
+    for (int i = 0; i < 8; ++i) {
+        this->ledModifierCheckboxes[i]->blockSignals(true);
+        this->ledModifierCheckboxes[i]->setChecked(((model->config.modifiers >> (7 - i)) & 0x01));
+        this->ledModifierCheckboxes[i]->blockSignals(false);
+    }
+    ledModeRadioButtons[model->config.led_mode]->blockSignals(true);
+    ledModeRadioButtons[model->config.led_mode]->setChecked(true);
+    ledModeRadioButtons[model->config.led_mode]->blockSignals(false);
+
+    ep->masterconfig = model->config;
+    ep->sendConfig();
 }
 
 void AudioWindow::checkTime(){
