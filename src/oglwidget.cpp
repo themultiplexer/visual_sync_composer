@@ -141,7 +141,7 @@ void OGLWidget::initializeGL()
                 FragColor += (c * start + c * end) + threshold * visible * vec4(1.0) + vec4(vec3(1.0), 0.5) * visible2 * visible;
             }
             float mx = mod(inverseLogScale(pos.x, 40), stepsize);
-            FragColor += int(mx < 0.002) * vec4(vec3(0.2), 1.0);
+            FragColor += int(mx > 0.002 && mx < 0.004) * vec4(vec3(0.2), 1.0);
         }
     )";
     fshader->compileSourceCode(fsrc);
