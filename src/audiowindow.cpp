@@ -14,10 +14,10 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
 {
     this->ep = ep;
     ui->setupUi(this);
-    //NetDevice h = NetDevice("wlxdc4ef40a3f9f");
-    //h.setInterface(false);
-    //h.enableMonitorMode();
-    //h.setInterface(true);
+    NetDevice h = NetDevice("wlxdc4ef40a3f9f");
+    h.setInterface(false);
+    h.enableMonitorMode();
+    h.setInterface(true);
 
     ep->initHandlers();
     //showFullScreen();
@@ -55,7 +55,7 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
                 floatingWindow->raise();            // Brings the window to the front
                 floatingWindow->activateWindow();   // Ensures the window is focused
 
-                QTimer::singleShot(16, dock, [=]() {
+                QTimer::singleShot(16, dock, [this]() {
                     dock->update();  // Request an update every 16ms (~60 FPS)
                 });
             } else {
@@ -103,7 +103,7 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     QWidget *modesWidget = new QWidget;
     modesWidget->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Minimum);
     QHBoxLayout* modesLayout = new QHBoxLayout(modesWidget);
-    std::vector<QRadioButton*> ledModeRadioButtons;
+
     for (std::string effect : values) {
         QRadioButton *radio = new QRadioButton();
         radio->setText(effect.c_str());
@@ -141,7 +141,7 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
             ep->sendConfig();
         });
 
-        connect(tube, &VSCTube::flashClicked, this, [=](){
+        connect(tube, &VSCTube::flashClicked, this, [tube, this, ep, macs](){
             auto it = std::find(tubes.begin(), tubes.end(), tube);
             if (it != tubes.end()) {
                 int index = std::distance(tubes.begin(), it);
@@ -240,9 +240,8 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     slidersLayout->addStretch();
     slidersLayout->setSpacing(0);
 
-    QWidget *bottomWidget = new QWidget;
-    bottomWidget->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::MinimumExpanding);
-    QHBoxLayout *bottomLayout = new QHBoxLayout(bottomWidget);
+    QHBoxLayout *bottomLayout = new QHBoxLayout;
+
     QGridLayout *gridLayout = new QGridLayout;
     std::vector<EffectPresetModel *> presets = EffectPresetModel::readJson("effects.json");
     std::vector<EffectPresetButton*> buttons{};
@@ -268,7 +267,7 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
                 ledModeRadioButtons[model->config.led_mode]->setChecked(true);
                 ledModeRadioButtons[model->config.led_mode]->blockSignals(false);
 
-                ep->setMasterconfig(model->config);
+                ep->masterconfig = model->config;
                 ep->sendConfig();
             });
             connect(button, &EffectPresetButton::longPressed, [=](){
@@ -278,7 +277,7 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
                                                      "", &ok);
                 if (ok && !text.isEmpty()) {
                     EffectPresetModel *model = button->getModel();
-                    model->config = ep->getMasterconfig();
+                    model->config = ep->masterconfig;
                     model->setName(text);
                     button->setModel(model);
                     EffectPresetModel::saveToJsonFile(presets, "effects.json");
@@ -290,16 +289,16 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     bottomLayout->addLayout(slidersLayout);
     bottomLayout->addLayout(gridLayout);
 
+    QHBoxLayout *header = new QHBoxLayout(centralWidget);
 
-    QHBoxLayout *header = new QHBoxLayout();
     bpmLabel = new QLabel("bpm");
     tmpLabel = new QLabel("name");
+
     header->addWidget(bpmLabel);
     header->addWidget(tmpLabel);
 
-
-    glv = new OGLWidget(1024);
-    glv->setMinimumHeight(100);
+    glv = new OGLWidget(1024, centralWidget);
+    glv->setMinimumHeight(400);
     connect(glv, &OGLWidget::valueChanged, this, &AudioWindow::sliderChanged);
 
     // Create a dock widget to hold it
@@ -309,8 +308,7 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
         dock->setAllowedAreas(Qt::TopDockWidgetArea);
     }
 
-    QWidget *firmwareWidget = new QWidget;
-    QHBoxLayout *fwButtons = new QHBoxLayout(firmwareWidget);
+    QHBoxLayout *fwButtons = new QHBoxLayout(centralWidget);
 
     QPushButton *fwbutton = new QPushButton("Put All in Firmwareupdate Mode");
     connect(fwbutton, &QPushButton::pressed, [=](){
@@ -330,15 +328,15 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
         ep->sendSync();
     });
 
-    QWidget *glvWidget = new QWidget;
-    QHBoxLayout *frequencyLayout = new QHBoxLayout(glvWidget);
-    timeSlider = new VSCSlider("Dcy", Qt::Vertical, glvWidget);
+    QHBoxLayout *frequencyLayout = new QHBoxLayout(centralWidget);
+
+    timeSlider = new VSCSlider("Dcy", Qt::Vertical, centralWidget);
     timeSlider->setMinimum(1);
     timeSlider->setValue(50);
     timeSlider->setMaximum(100);
     connect(timeSlider, &VSCSlider::sliderReleased, this, &AudioWindow::sliderChanged);
 
-    otherSlider = new VSCSlider("Oth", Qt::Vertical, glvWidget);
+    otherSlider = new VSCSlider("Oth", Qt::Vertical, centralWidget);
     otherSlider->setMinimum(1);
     otherSlider->setValue(50);
     otherSlider->setMaximum(100);
@@ -353,12 +351,16 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     frequencyLayout->addWidget(otherSlider);
 
     // Add widgets to the layout
-    mainLayout->addWidget(tubesWidget);
-    mainLayout->addWidget(glvWidget);
-    mainLayout->addWidget(modesWidget);
-    mainLayout->addWidget(modifiersWidget);
-    mainLayout->addWidget(bottomWidget);
-    mainLayout->addWidget(firmwareWidget);
+    mainLayout->addLayout(tubesLayout);
+    mainLayout->addWidget(new HorizontalLine());
+    mainLayout->addLayout(header);
+    mainLayout->addLayout(frequencyLayout);
+    mainLayout->addWidget(new HorizontalLine());
+    mainLayout->addLayout(modesLayout);
+    mainLayout->addLayout(modifiersLayout);
+    mainLayout->addWidget(new HorizontalLine());
+    mainLayout->addLayout(bottomLayout);
+    mainLayout->addLayout(fwButtons);
     mainLayout->addWidget(syncbutton);
 
     if (getuid() == 0) {
@@ -432,33 +434,33 @@ void AudioWindow::sliderChanged()
 {
     if (sender() == glv) {
         sensitivitySlider->setValue(glv->getThresh() * 100);
-    }
-    if (sender() == timeSlider) {
-        glv->setDecay(timeSlider->pct() * 0.1);
-    }
-    if (sender() == sensitivitySlider) {
+    } else if (sender() == sensitivitySlider) {
         glv->setThresh(sensitivitySlider->pct());
-    }
-
-    CONFIG_DATA d = ep->getMasterconfig();
-    if (sender() == brightnessSlider) {
-        d.brightness = brightnessSlider->value();
+    } else if (sender() == brightnessSlider) {
+        ep->masterconfig.brightness = brightnessSlider->value();
+        ep->sendConfig();
     } else if (sender() == saturationSlider) {
-        d.sat = saturationSlider->value();
+        ep->masterconfig.sat = saturationSlider->value();
+        ep->sendConfig();
     } else if (sender() == speedSlider) {
-        d.speed_factor = speedSlider->value();
+        ep->masterconfig.speed_factor = speedSlider->value();
+        ep->sendConfig();
     } else if (sender() == effect1Slider) {
-        d.parameter1 = effect1Slider->value();
+        ep->masterconfig.parameter1 = effect1Slider->value();
+        ep->sendConfig();
     } else if (sender() == effect2Slider) {
-        d.parameter2 = effect2Slider->value();
+        ep->masterconfig.parameter2 = effect2Slider->value();
+        ep->sendConfig();
     } else if (sender() == effect3Slider) {
-        d.parameter3 = effect3Slider->value();
+        ep->masterconfig.parameter3 = effect3Slider->value();
+        ep->sendConfig();
     } else if (sender() == effect4Slider) {
-        d.offset = effect4Slider->value();
+        ep->masterconfig.offset = effect4Slider->value();
+        ep->sendConfig();
+    } else if (sender() == timeSlider) {
+        glv->setDecay(timeSlider->pct() * 0.1);
     } else if (sender() == otherSlider) {
     }
-    ep->setMasterconfig(d);
-    ep->sendConfig();
 }
 
 void AudioWindow::effectChanged(bool state)
@@ -467,9 +469,7 @@ void AudioWindow::effectChanged(bool state)
         QRadioButton* button = qobject_cast<QRadioButton*>(sender());
         auto it = std::find(std::begin(values), std::end(values), button->text().toStdString());
         int index = it - std::begin(values);
-        CONFIG_DATA d = ep->getMasterconfig();
-        d.led_mode = index;
-        ep->setMasterconfig(d);
+        ep->masterconfig.led_mode = index;
         ep->sendConfig();
     }
 }
@@ -481,9 +481,7 @@ void AudioWindow::modifierChanged(bool state)
         bits.push_back(ch->isChecked() ? 1 : 0);
     }
     qDebug() << bits << " " << bitsToBytes(bits.data());
-    CONFIG_DATA d = ep->getMasterconfig();
-    d.modifiers = bitsToBytes(bits.data());
-    ep->setMasterconfig(d);
+    ep->masterconfig.modifiers = bitsToBytes(bits.data());
     ep->sendConfig();
 }
 

@@ -1,8 +1,9 @@
 #include "effectpresetmodel.h"
 #include "qjsonobject.h"
 
-EffectPresetModel::EffectPresetModel(QString name) {
+EffectPresetModel::EffectPresetModel(std::string name, int id) {
     this->name = name;
+    this->id = id;
     config.led_mode = 1;
     config.brightness = 10;
     config.hue = 9;
@@ -14,24 +15,26 @@ EffectPresetModel::EffectPresetModel(QString name) {
     config.offset = 0;
 }
 
-EffectPresetModel::EffectPresetModel(QString name, CONFIG_DATA data) {
+EffectPresetModel::EffectPresetModel(std::string name, int id, CONFIG_DATA data) {
     this->name = name;
+    this->id = id;
     config = data;
 }
 
-QString EffectPresetModel::getName() const
+std::string EffectPresetModel::getName() const
 {
     return this->name;
 }
 
-void EffectPresetModel::setName(const QString newName)
+void EffectPresetModel::setName(const std::string newName)
 {
     this->name = newName;
 }
 
 QJsonObject EffectPresetModel::toJson() const {
     QJsonObject obj;
-    obj["name"] = name;
+    obj["name"] = name.c_str();
+    obj["id"] = id;
     obj["led_mode"] = config.led_mode;
     obj["speed_factor"] = config.speed_factor;
     obj["brightness"] = config.brightness;
@@ -46,7 +49,7 @@ QJsonObject EffectPresetModel::toJson() const {
 
 EffectPresetModel* EffectPresetModel::fromJson(const QJsonObject &obj) {
     CONFIG_DATA preset;
-    QString name = obj["name"].toString();
+    std::string name = obj["name"].toString().toStdString();
     preset.led_mode = obj["led_mode"].toInt();
     preset.speed_factor = obj["speed_factor"].toInt();
     preset.brightness = obj["brightness"].toInt();
@@ -64,13 +67,13 @@ EffectPresetModel* EffectPresetModel::fromJson(const QJsonObject &obj) {
             preset.pattern[i] = 0x00;
         }
     }
-    auto f = new EffectPresetModel(name, preset);
+    auto f = new EffectPresetModel(name, obj["id"].toInt(), preset);
     return f;
 }
 
-std::vector<EffectPresetModel*> EffectPresetModel::readJson(const QString &filePath) {
+std::vector<EffectPresetModel*> EffectPresetModel::readJson(const std::string &filePath) {
     std::vector<EffectPresetModel*> presets;
-    QFile file(filePath);
+    QFile file(filePath.c_str());
     if (file.open(QIODevice::ReadOnly)) {
         QByteArray jsonData = file.readAll();
         file.close();
@@ -87,25 +90,25 @@ std::vector<EffectPresetModel*> EffectPresetModel::readJson(const QString &fileP
     } else {
         qDebug() << "Failed to open file for reading";
         for (int i = 0; i < 100; ++i) {
-            presets.push_back(new EffectPresetModel("<empty>"));
+            presets.push_back(new EffectPresetModel("empty"));
         }
     }
     return presets;
 }
 
 // Function to save an array of structs to a JSON file
-void EffectPresetModel::saveToJsonFile(const std::vector<EffectPresetModel*> &presets, const QString &filePath) {
+void EffectPresetModel::saveToJsonFile(const std::vector<EffectPresetModel*> &presets, const std::string &filePath) {
     QJsonArray jsonArray;
     for (const auto &preset : presets) {
         jsonArray.append(preset->toJson());
     }
 
     QJsonDocument jsonDoc(jsonArray);
-    QFile file(filePath);
+    QFile file(filePath.c_str());
     if (file.open(QIODevice::WriteOnly)) {
         file.write(jsonDoc.toJson());
         file.close();
-        qDebug() << "JSON saved to" << filePath;
+        qDebug() << "JSON saved to" << filePath.c_str();
     } else {
         qDebug() << "Failed to open file for writing";
     }

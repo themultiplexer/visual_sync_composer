@@ -51,7 +51,7 @@ void WifiEventProcessor::setTubeOffsets(const std::vector<int> &newTubeOffsets)
     tubeOffsets = newTubeOffsets;
 }
 
-WifiEventProcessor::WifiEventProcessor(std::array<uint8_t, 6> my_mac, std::string dev) {
+WifiEventProcessor::WifiEventProcessor() {
     masterconfig = CONFIG_DATA {
         0,
         255,
@@ -82,6 +82,8 @@ void WifiEventProcessor::initHandlers() {
         std::cout << "Error while initing sender" << std::endl;
     }
 
+    handler = new espnowsender((char*)"wlxdc4ef40a3f9f", DATARATE_1Mbps, CHANNEL_freq_1, my_mac);
+    handler->start();
 }
 
 void WifiEventProcessor::peakEvent(uint8_t hue) {
@@ -106,6 +108,8 @@ void WifiEventProcessor::sendConfig()
 
 void WifiEventProcessor::sendConfigTo(std::array<uint8_t, 6> dst_mac)
 {
+    std::array<uint8_t, 6> mac_array;
+    std::copy(dst_mac, dst_mac + 6, mac_array.begin());
     CONFIG_DATA tube_config = masterconfig;
     auto macs = devicereqistry::macs();
     auto it = std::find(macs.begin(), macs.end(), dst_mac);
@@ -123,16 +127,16 @@ void WifiEventProcessor::sendConfigTo(std::array<uint8_t, 6> dst_mac)
 void WifiEventProcessor::sendSync()
 {
     SYNC_DATA sync;
-    handler->send(reinterpret_cast<uint8_t*>(&sync), sizeof(SYNC_DATA), {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF});
+    handler->send(reinterpret_cast<uint8_t*>(&sync), sizeof(SYNC_DATA), new uint8_t[6] {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF});
 }
 
 void WifiEventProcessor::sendUpdateMessage()
 {
     UPDATE_DATA update;
-    handler->send(reinterpret_cast<uint8_t*>(&update), sizeof(UPDATE_DATA), {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF});
+    handler->send(reinterpret_cast<uint8_t*>(&update), sizeof(UPDATE_DATA), new uint8_t[6] {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF});
 }
 
-void WifiEventProcessor::sendUpdateMessageTo(std::array<uint8_t, 6> dst_mac)
+void WifiEventProcessor::sendUpdateMessageTo(const uint8_t dst_mac[6])
 {
     UPDATE_DATA update;
     handler->send(reinterpret_cast<uint8_t*>(&update), sizeof(UPDATE_DATA), dst_mac);
@@ -152,5 +156,5 @@ void WifiEventProcessor::textEvent(std::string data) {
     TEXT_DATA text;
     strcpy(text.data, data.c_str());
 
-    handler->send(reinterpret_cast<uint8_t*>(&text), sizeof(text), {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF});
+    handler->send(reinterpret_cast<uint8_t*>(&text), sizeof(text), new uint8_t[6] {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF});
 }
