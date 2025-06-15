@@ -14,10 +14,10 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
 {
     this->ep = ep;
     ui->setupUi(this);
-    NetDevice h = NetDevice("wlxdc4ef40a3f9f");
-    h.setInterface(false);
-    h.enableMonitorMode();
-    h.setInterface(true);
+    //NetDevice h = NetDevice("wlxdc4ef40a3f9f");
+    //h.setInterface(false);
+    //h.enableMonitorMode();
+    //h.setInterface(true);
 
     ep->initHandlers();
     //showFullScreen();
@@ -103,7 +103,6 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     QWidget *modesWidget = new QWidget;
     modesWidget->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Minimum);
     QHBoxLayout* modesLayout = new QHBoxLayout(modesWidget);
-    std::vector<QRadioButton*> ledModeRadioButtons;
 
     for (std::string effect : values) {
         QRadioButton *radio = new QRadioButton();
@@ -227,8 +226,7 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     effect4Slider->setMaximum(255);
     connect(effect4Slider, &VSCSlider::sliderReleased, this, &AudioWindow::sliderChanged);
 
-    QWidget *slidersWidget = new QWidget;
-    QVBoxLayout* slidersLayout = new QVBoxLayout(slidersWidget);
+    QVBoxLayout* slidersLayout = new QVBoxLayout();
     slidersLayout->addStretch();
     slidersLayout->addWidget(sensitivitySlider);
     slidersLayout->addWidget(brightnessSlider);
@@ -264,7 +262,7 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
                 if (ok && !text.isEmpty()) {
                     EffectPresetModel *model = button->getModel();
                     model->config = ep->getMasterconfig();
-                    model->setName(text);
+                    model->setName(text.toStdString());
                     button->setModel(model);
                     EffectPresetModel::saveToJsonFile(presets, "effects.json");
                 }
@@ -386,7 +384,7 @@ void AudioWindow::setNewEffect(EffectPresetModel *model) {
     ledModeRadioButtons[model->config.led_mode]->setChecked(true);
     ledModeRadioButtons[model->config.led_mode]->blockSignals(false);
 
-    ep->masterconfig = model->config;
+    ep->setMasterconfig(model->config);
     ep->sendConfig();
 }
 

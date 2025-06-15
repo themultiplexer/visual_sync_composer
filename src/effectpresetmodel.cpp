@@ -90,7 +90,7 @@ std::vector<EffectPresetModel*> EffectPresetModel::readJson(const std::string &f
     } else {
         qDebug() << "Failed to open file for reading";
         for (int i = 0; i < 100; ++i) {
-            presets.push_back(new EffectPresetModel("empty"));
+            presets.push_back(new EffectPresetModel("empty", i));
         }
     }
     return presets;

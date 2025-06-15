@@ -1,7 +1,7 @@
 #include "espreceiver.h"
 #include "espnowtypes.h"
 #include <cassert>
-
+#include <iostream>
 
 void espreceiver::set_recv_callback(std::function<void (std::array<uint8_t, 6>, std::span<uint8_t>)> recv_callback) {
     callback = recv_callback;
@@ -89,10 +89,11 @@ void espreceiver::start() {
     fd = socket(PF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
     assert(fd != -1);
 
+    std::cout << this->interface.c_str() << std::endl;
     strncpy((char *)ifr.ifr_name, this->interface.c_str(), IFNAMSIZ); //interface
 
     ioctl_errno = ioctl(fd, SIOCGIFINDEX, &ifr);
-    if (ioctl_errno >= 0) {
+    if (ioctl_errno < 0) {
         throw std::invalid_argument( "received negative value" );
     }
 

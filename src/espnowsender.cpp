@@ -15,6 +15,7 @@
 #include <linux/if_arp.h>
 #include <arpa/inet.h>
 #include <assert.h>
+#include <iostream>
 
 #include "espnowsender.h"
 #include "espnowtypes.h"
@@ -40,10 +41,11 @@ void espnowsender::start() {
     fd = socket(PF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
     assert(fd != -1);
 
+    std::cout << this->interface << std::endl;
     strncpy((char *)ifr.ifr_name, this->interface, IFNAMSIZ); //interface
 
     ioctl_errno = ioctl(fd, SIOCGIFINDEX, &ifr);
-    if (ioctl_errno >= 0) {
+    if (ioctl_errno < 0) {
         throw std::invalid_argument( "received negative value" );
     }
 
@@ -52,12 +54,12 @@ void espnowsender::start() {
     s_dest_addr.sll_ifindex = ifr.ifr_ifindex;
     
     bind_errno = bind(fd, (struct sockaddr *)&s_dest_addr, sizeof(s_dest_addr));
-    if (bind_errno >= 0) {
+    if (bind_errno < 0) {
         throw std::invalid_argument( "received bind_errno value" );
     }
 
 	priority_errno = setsockopt(fd, SOL_SOCKET, SO_PRIORITY, &(this->socket_priority), sizeof(this->socket_priority));
-    if (priority_errno >= 0) {
+    if (priority_errno < 0) {
         throw std::invalid_argument( "received priority_errno value" );
     }
 	
