@@ -75,6 +75,7 @@ public:
     AudioWindow(WifiEventProcessor *ep, QWidget *parent = nullptr);
     ~AudioWindow();
 
+
     void sliderChanged();
     void effectChanged(bool state);
     void setAlbumArtwork(QPixmap *);
@@ -82,6 +83,8 @@ public:
     void loadLyrics();
     void setNewEffect(EffectPresetModel *model);
     int activeEffect;
+
+    EffectPresetModel *getCurrentEffect() const;
 
 protected:
     void checkTime();
@@ -95,10 +98,14 @@ private:
     AudioAnalyzer* a;
     QDockWidget *dock;
     OGLWidget *glv, *popoutGlv;
+    EffectPresetModel *currentEffect;
+
     std::string values[16] = {"Hue", "Pump","Tube", "Pump Limiter","Duck","FadeToColor","Sparkle","Fire","Bounce", "Colorcycle", "11", "Strobe", "Random Flicker", "Tunnel", "Tunnel2", "Placeholder"};
 
     std::vector<QCheckBox*> ledModifierCheckboxes;
     std::vector<QRadioButton*> ledModeRadioButtons;
+    std::vector<EffectPresetModel *> presets;
+    std::map<EffectPresetModel *, EffectPresetButton *> buttons{};
 
     FixedQueue<uint64_t, 10> beats;
     FixedQueue<uint64_t, 10> colors;

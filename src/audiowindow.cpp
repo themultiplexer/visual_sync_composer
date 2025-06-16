@@ -10,7 +10,7 @@
 
 AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     : QMainWindow(parent)
-    , ui(new Ui::MainWindow), popoutGlv(nullptr), fullScreenWindow(new FullscreenWindow())
+    , ui(new Ui::MainWindow), popoutGlv(nullptr), fullScreenWindow(new FullscreenWindow()), currentEffect(nullptr)
 {
     this->ep = ep;
     ui->setupUi(this);
@@ -18,6 +18,8 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     //h.setInterface(false);
     //h.enableMonitorMode();
     //h.setInterface(true);
+
+    presets = EffectPresetModel::readJson("effects.json");
 
     ep->initHandlers();
     //showFullScreen();
@@ -243,22 +245,25 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     bottomWidget->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::MinimumExpanding);
     QHBoxLayout *bottomLayout = new QHBoxLayout(bottomWidget);
     QGridLayout *gridLayout = new QGridLayout;
-    std::vector<EffectPresetModel *> presets = EffectPresetModel::readJson("effects.json");
-    std::vector<EffectPresetButton*> buttons{};
+
     // Loop to create buttons and add them to the layout
     for (int row = 0; row < 10; ++row) {
         for (int col = 0; col < 10; ++col) {
-            EffectPresetButton *button = new EffectPresetButton(presets[row * 10 + col], this);
+            EffectPresetModel *model = presets[row * 10 + col];
+            EffectPresetButton *button = new EffectPresetButton(model, this);
             gridLayout->addWidget(button, row, col);
             connect(button, &EffectPresetButton::releasedInstantly, [=](){
                 EffectPresetModel *model = button->getModel();
+                if (currentEffect) {
+                    buttons.at(currentEffect)->setStyleSheet("");
+                }
+                button->setStyleSheet("background-color: red");
+                currentEffect = model;
                 setNewEffect(model);
             });
             connect(button, &EffectPresetButton::longPressed, [=](){
                 bool ok;
-                QString text = QInputDialog::getText(this, tr("QInputDialog::getText()"),
-                                                     tr("User name:"), QLineEdit::Normal,
-                                                     "", &ok);
+                QString text = QInputDialog::getText(this, tr("QInputDialog::getText()"), tr("User name:"), QLineEdit::Normal, "", &ok);
                 if (ok && !text.isEmpty()) {
                     EffectPresetModel *model = button->getModel();
                     model->config = ep->getMasterconfig();
@@ -267,7 +272,7 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
                     EffectPresetModel::saveToJsonFile(presets, "effects.json");
                 }
             });
-            buttons.push_back(button);
+            buttons[model] = button;
         }
     }
     bottomLayout->addLayout(slidersLayout);
@@ -489,6 +494,11 @@ void AudioWindow::modifierChanged(bool state)
     d.modifiers = bitsToBytes(bits.data());
     ep->setMasterconfig(d);
     ep->sendConfig();
+}
+
+EffectPresetModel *AudioWindow::getCurrentEffect() const
+{
+    return currentEffect;
 }
 
 void AudioWindow::closeEvent(QCloseEvent *event)
