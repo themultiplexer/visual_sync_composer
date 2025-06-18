@@ -327,7 +327,7 @@ bool OGLWidget::eventFilter(QObject *obj, QEvent *event) {
         float x = ((float)mouseEvent->pos().x() / (float)width());
         float y = ((float)mouseEvent->pos().y() / (float)height());
 
-        FrequencyRegion* active = regions[currentRegionIndex];
+        FrequencyRegion* active = regions[mouseEvent->modifiers() == Qt::ControlModifier];
 
         for (auto& reg : regions) {
             reg->mouseEvent(x, y);
@@ -344,6 +344,7 @@ bool OGLWidget::eventFilter(QObject *obj, QEvent *event) {
                     setCursor(Qt::ArrowCursor);
                 }
                 active = reg;
+                emit rangeChanged();
                 if (event->type() != QEvent::MouseButtonPress && event->type() != QEvent::MouseButtonRelease) {
                     return true;
                 }
@@ -356,10 +357,6 @@ bool OGLWidget::eventFilter(QObject *obj, QEvent *event) {
             if (event->type() == QEvent::MouseButtonPress) {
                 active->mouseClick(x, y);
             } else if (event->type() == QEvent::MouseButtonRelease) {
-                qDebug() << "Released " << currentRegionIndex << " " << active->getHovering();
-                if (!active->getHovering()) {
-                    currentRegionIndex = (currentRegionIndex + 1) % regions.size();
-                }
                 active->mouseReleased(x, y);
             }
         }

@@ -109,6 +109,9 @@ else()
             src/fullscreenwindow.cpp
             src/horizontal_line.h
             src/horizontal_line.cpp
+            src/audiofilter.h
+            src/audiofilter.cpp
+            src/biquadbandpass.h src/biquadbandpass.cpp
         )
     endif()
 endif()

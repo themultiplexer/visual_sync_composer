@@ -1,6 +1,6 @@
 #include "audioanalyzer.h"
 
-AudioAnalyzer::AudioAnalyzer(): stereo(true) {
+AudioAnalyzer::AudioAnalyzer(): stereo(false), useFilterOutput(false), filter(new audiofilter()) {
     cfg = kiss_fft_alloc(FRAMES, 0, NULL, NULL);
     adc = new RtAudio(RtAudio::Api::LINUX_PULSE);
 }
@@ -14,23 +14,27 @@ void AudioAnalyzer::applyHannWindow(float* data, int channel) {
 }
 
 void AudioAnalyzer::startRecording() {
-    RtAudio::StreamParameters parameters;
-    parameters.deviceId = adc->getDefaultInputDevice();
-    parameters.nChannels = stereo ? 2 : 1;
-    parameters.firstChannel = 0;
+    RtAudio::StreamParameters iParams, oParams;
+    iParams.deviceId = adc->getDefaultInputDevice();
+    iParams.nChannels = stereo ? 2 : 1;
+    //iParams.firstChannel = 0;
+
+    oParams.deviceId = adc->getDefaultOutputDevice();
+    oParams.nChannels = stereo ? 2 : 1;
+    //oParams.firstChannel = 0;
 
     RtAudio::StreamOptions streamOptions;
-    streamOptions.numberOfBuffers = 4;
+    //streamOptions.numberOfBuffers = 4;
     //streamOptions.flags = RTAUDIO_NONINTERLEAVED;
 
-    unsigned int sampleRate = 44100;
+    unsigned int sampleRate = 48000;
     unsigned int bufferFrames = FRAMES;
 
 #ifdef _WIN32
     bool failure = false;
     try
     {
-        adc->openStream(NULL, &parameters, RTAUDIO_FLOAT32, sampleRate, &bufferFrames, &AudioAnalyzer::record);
+        adc->openStream(&oParams, &iParams, RTAUDIO_FLOAT32, sampleRate, &bufferFrames, &AudioAnalyzer::record);
         adc->startStream();
     }
     catch (const RtAudioError e)
@@ -38,7 +42,7 @@ void AudioAnalyzer::startRecording() {
         std::cout << '\n' << e.getMessage() << '\n' << std::endl;
     }
 #else
-    if (adc->openStream(NULL, &parameters, RTAUDIO_FLOAT32, sampleRate, &bufferFrames, &AudioAnalyzer::static_record, this,  &streamOptions)) {
+    if (adc->openStream(&oParams, &iParams, RTAUDIO_FLOAT32, sampleRate, &bufferFrames, &AudioAnalyzer::static_record, this,  &streamOptions)) {
         std::cout << '\n' << adc->getErrorText() << '\n' << std::endl;
         exit(0); // problem with device settings
     }
@@ -68,22 +72,56 @@ void AudioAnalyzer::do_kissfft(void* inputBuffer, float* outputBuffer, int chann
 }
 
 int AudioAnalyzer::record(void* outputBuffer, void* inputBuffer, unsigned int nBufferFrames, double streamTime, unsigned int status) {
+    float* in = static_cast<float*>(inputBuffer);
+    float* out = static_cast<float*>(outputBuffer);
+
     if (status) {
         std::cout << "Stream overflow detected!" << std::endl;
         return 0;
     }
 
     if (stereo) {
+        if (filter && useFilterOutput) {
+            filter->sample(inputBuffer, outputBuffer, nBufferFrames);
+        } else {
+            memset(out, 0, nBufferFrames * sizeof(float));
+        }
+
         applyHannWindow(((float *)inputBuffer), 0);
         do_kissfft(inputBuffer, freqs, 0);
         applyHannWindow(((float *)inputBuffer), 1);
         do_kissfft(inputBuffer, freqs2, 1);
+
     } else {
+        if (filter && useFilterOutput) {
+            filter->sample(inputBuffer, outputBuffer, nBufferFrames);
+        } else {
+            memset(out, 0, nBufferFrames * sizeof(float));
+        }
         applyHannWindow(((float *)inputBuffer), 0);
         do_kissfft(inputBuffer, freqs, 0);
     }
-
     return 0;
+}
+
+bool AudioAnalyzer::getUseFilterOutput() const
+{
+    return useFilterOutput;
+}
+
+void AudioAnalyzer::setUseFilterOutput(bool newUseFilterOutput)
+{
+    useFilterOutput = newUseFilterOutput;
+}
+
+void AudioAnalyzer::setFilter(audiofilter *newFilter)
+{
+    filter = newFilter;
+}
+
+audiofilter *AudioAnalyzer::getFilter() const
+{
+    return filter;
 }
 
 std::vector<float> AudioAnalyzer::getLeftFrequencies() {

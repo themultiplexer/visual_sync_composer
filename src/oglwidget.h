@@ -45,7 +45,8 @@ public:
     void setFrequencies(const std::vector<float> &leftFrequencies, const std::vector<float> &rightFrequencies);
 
 signals:
-    void valueChanged();
+    void threshChanged();
+    void rangeChanged();
 
 
 protected:

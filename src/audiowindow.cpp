@@ -1,4 +1,5 @@
 #include "audiowindow.h"
+#include "audiofilter.h"
 #include "fullscreenwindow.h"
 #include "horizontal_line.h"
 #include "mdnsflasher.h"
@@ -65,7 +66,7 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
                 popoutGlv = new OGLWidget(1024, fullScreenWindow);
                 popoutGlv->setRegions(glv->getRegions());
                 fullScreenWindow->setCentralWidget(popoutGlv);
-                connect(popoutGlv, &OGLWidget::valueChanged, this, &AudioWindow::sliderChanged);
+                connect(popoutGlv, &OGLWidget::threshChanged, this, &AudioWindow::sliderChanged);
                 fullScreenWindow->showFullScreen();
 
                 QObject::connect(fullScreenWindow, &FullscreenWindow::escapePressed, [&]() {
@@ -278,17 +279,28 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     bottomLayout->addLayout(slidersLayout);
     bottomLayout->addLayout(gridLayout);
 
-
-    QHBoxLayout *header = new QHBoxLayout();
+    QWidget *headerWidget = new QWidget;
+    QHBoxLayout *header = new QHBoxLayout(headerWidget);
     bpmLabel = new QLabel("bpm");
     tmpLabel = new QLabel("name");
+    audioCheckBox = new QCheckBox("Audio Filter");
+    connect(audioCheckBox, &QCheckBox::toggled, this, [=](bool checked){
+        std::cout << checked << std::endl;
+        a->setUseFilterOutput(checked);
+    });
     header->addWidget(bpmLabel);
     header->addWidget(tmpLabel);
+    header->addWidget(audioCheckBox);
 
 
     glv = new OGLWidget(1024);
     glv->setMinimumHeight(100);
-    connect(glv, &OGLWidget::valueChanged, this, &AudioWindow::sliderChanged);
+    connect(glv, &OGLWidget::threshChanged, this, &AudioWindow::sliderChanged);
+    connect(glv, &OGLWidget::rangeChanged, this, [=](){
+        a->setFilter(new audiofilter());
+        a->getFilter()->setLower(glv->getRegions()[0]->getScaledMin() * (1.0/1024.0) * 24000);
+        a->getFilter()->setUpper(glv->getRegions()[0]->getScaledMax() * (1.0/1024.0) * 24000);
+    });
 
     // Create a dock widget to hold it
     if (USE_DOCK) {
@@ -342,6 +354,7 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
 
     // Add widgets to the layout
     mainLayout->addWidget(tubesWidget);
+    mainLayout->addWidget(headerWidget);
     mainLayout->addWidget(glvWidget);
     mainLayout->addWidget(modesWidget);
     mainLayout->addWidget(modifiersWidget);
@@ -404,6 +417,8 @@ void AudioWindow::checkTime(){
         fr[i] *= log10(((float)i/(FRAMES/2)) * 5 + 1.01);
         fr[i] = log10(fr[i] * 2.0 + 1.01);
     }
+
+    std::vector<float> out(fl.size());
 
     OGLWidget *w = glv;
     if (fullScreenWindow->isActiveWindow()) {

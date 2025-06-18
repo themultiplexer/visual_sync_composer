@@ -11,6 +11,7 @@
 #include <QSlider>
 #include <QInputDialog>
 #include <QLineEdit>
+#include "audiofilter.h"
 #include "effectpresetbutton.h"
 #include "thread.h"
 #include <QGuiApplication>
@@ -95,6 +96,7 @@ private:
     WifiEventProcessor *ep;
     VSCSlider *sensitivitySlider, *brightnessSlider, *speedSlider, *effect1Slider, *effect2Slider;
     QLabel *bpmLabel, *tmpLabel;
+    QCheckBox *audioCheckBox;
     AudioAnalyzer* a;
     QDockWidget *dock;
     OGLWidget *glv, *popoutGlv;
@@ -126,6 +128,8 @@ private:
     std::vector<VSCTube*> tubes;
     VSCSlider *timeSlider;
     VSCSlider *otherSlider;
+
+
 
     FullscreenWindow *fullScreenWindow;
 };
