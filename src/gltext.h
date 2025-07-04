@@ -18,9 +18,9 @@ public:
     void textEvent(const char *text) override;
 
 protected:
-    void initializeGL();
-    void resizeGL(int w, int h);
-    void paintGL();
+    void initializeGL() override;
+    void resizeGL(int w, int h) override;
+    void paintGL() override;
 
 
     std::string text;

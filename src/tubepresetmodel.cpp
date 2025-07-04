@@ -1,7 +1,7 @@
-#include "effectpresetmodel.h"
+#include "tubepresetmodel.h"
 #include "qjsonobject.h"
 
-EffectPresetModel::EffectPresetModel(std::string name, int id) {
+TubePresetModel::TubePresetModel(std::string name, int id) {
     this->name = name;
     this->id = id;
     config.led_mode = 1;
@@ -15,13 +15,13 @@ EffectPresetModel::EffectPresetModel(std::string name, int id) {
     config.offset = 0;
 }
 
-EffectPresetModel::EffectPresetModel(std::string name, int id, CONFIG_DATA data) {
+TubePresetModel::TubePresetModel(std::string name, int id, CONFIG_DATA data) {
     this->name = name;
     this->id = id;
     config = data;
 }
 
-QJsonObject EffectPresetModel::toJson() const {
+QJsonObject TubePresetModel::toJson() const {
     QJsonObject obj;
     obj["name"] = name.c_str();
     obj["id"] = id;
@@ -37,7 +37,7 @@ QJsonObject EffectPresetModel::toJson() const {
     return obj;
 }
 
-EffectPresetModel* EffectPresetModel::fromJson(const QJsonObject &obj) {
+TubePresetModel* TubePresetModel::fromJson(const QJsonObject &obj) {
     CONFIG_DATA preset;
     std::string name = obj["name"].toString().toStdString();
     preset.led_mode = obj["led_mode"].toInt();
@@ -57,6 +57,7 @@ EffectPresetModel* EffectPresetModel::fromJson(const QJsonObject &obj) {
             preset.pattern[i] = 0x00;
         }
     }
-    auto f = new EffectPresetModel(name, obj["id"].toInt(), preset);
+    auto f = new TubePresetModel(name, obj["id"].toInt(), preset);
     return f;
 }
+

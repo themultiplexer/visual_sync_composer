@@ -1,9 +1,7 @@
 #include "audiowindow.h"
 #include "audiofilter.h"
 #include "fullscreenwindow.h"
-#include "horizontal_line.h"
 #include "mdnsflasher.h"
-#include "tubewidget.h"
 #include "devicereqistry.h"
 #include <QDockWidget>
 
@@ -11,7 +9,7 @@
 
 AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     : QMainWindow(parent)
-    , ui(new Ui::MainWindow), popoutGlv(nullptr), fullScreenWindow(new FullscreenWindow()), currentEffect(nullptr)
+    , ui(new Ui::MainWindow), popoutGlv(nullptr), fullScreenWindow(new FullscreenWindow()), currentEffect(nullptr), currentPreset(nullptr)
 {
     this->ep = ep;
     ui->setupUi(this);
@@ -20,7 +18,8 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     //h.enableMonitorMode();
     //h.setInterface(true);
 
-    presets = EffectPresetModel::readJson("effects.json");
+    effectPresets = PresetModel::readJson<EffectPresetModel>("effects.json");
+    tubePresets = PresetModel::readJson<TubePresetModel>("tubes.json");
 
     ep->initHandlers();
     //showFullScreen();
@@ -129,7 +128,7 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     modifiersLayout->addStretch();
 
     QWidget *tubesWidget = new QWidget;
-    tubesWidget->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Minimum);
+    //tubesWidget->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Minimum);
     QHBoxLayout* tubesLayout = new QHBoxLayout(tubesWidget);
     auto macs = devicereqistry::macs();
     for (auto mac : macs) {
@@ -180,6 +179,43 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
         tubes.push_back(tube);
         tubesLayout->addWidget(tube, 1);
     }
+
+    QWidget *presetsWidget = new QWidget;
+    //tubesWidget->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Minimum);
+    QGridLayout* presetsLayout = new QGridLayout(presetsWidget);
+    for (int row = 0; row < 5; ++row) {
+        for (int col = 0; col < 5; ++col) {
+            TubePresetModel *model = tubePresets[row * 10 + col];
+            PresetButton *button = new PresetButton(model, this);
+            presetsLayout->addWidget(button, row, col);
+            connect(button, &PresetButton::releasedInstantly, [=](){
+                TubePresetModel *model = static_cast<TubePresetModel *>(button->getModel());
+                if (currentPreset) {
+                    tubeButtons.at(currentPreset)->setStyleSheet("");
+                }
+                button->setStyleSheet("background-color: red");
+                currentPreset = model;
+
+            });
+            connect(button, &PresetButton::longPressed, [=](){
+                bool ok;
+                QString text = QInputDialog::getText(this, tr("Tube Config"), tr("Enter preset name:"), QLineEdit::Normal, "", &ok);
+                if (ok && !text.isEmpty()) {
+                    TubePresetModel *model = static_cast<TubePresetModel *>(button->getModel());
+                    model->config = ep->getMasterconfig();
+                    model->setName(text.toStdString());
+                    button->setModel(model);
+                    PresetModel::saveToJsonFile(tubePresets, "tubes.json");
+                }
+            });
+            tubeButtons[model] = button;
+        }
+    }
+
+    QWidget *presetControlsWidget = new QWidget;
+    QHBoxLayout *presetControlsLayout = new QHBoxLayout(presetControlsWidget);
+    presetControlsLayout->addWidget(tubesWidget);
+    presetControlsLayout->addWidget(presetsWidget);
 
     sensitivitySlider = new VSCSlider("Sensitivity", Qt::Horizontal, tubesWidget);
     sensitivitySlider->setMinimum(0);
@@ -250,30 +286,30 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     // Loop to create buttons and add them to the layout
     for (int row = 0; row < 10; ++row) {
         for (int col = 0; col < 10; ++col) {
-            EffectPresetModel *model = presets[row * 10 + col];
-            EffectPresetButton *button = new EffectPresetButton(model, this);
+            EffectPresetModel *model = effectPresets[row * 10 + col];
+            PresetButton *button = new PresetButton(model, this);
             gridLayout->addWidget(button, row, col);
-            connect(button, &EffectPresetButton::releasedInstantly, [=](){
-                EffectPresetModel *model = button->getModel();
+            connect(button, &PresetButton::releasedInstantly, [=](){
+                EffectPresetModel *model = static_cast<EffectPresetModel *>(button->getModel());
                 if (currentEffect) {
-                    buttons.at(currentEffect)->setStyleSheet("");
+                    effectButtons.at(currentEffect)->setStyleSheet("");
                 }
                 button->setStyleSheet("background-color: red");
                 currentEffect = model;
                 setNewEffect(model);
             });
-            connect(button, &EffectPresetButton::longPressed, [=](){
+            connect(button, &PresetButton::longPressed, [=](){
                 bool ok;
-                QString text = QInputDialog::getText(this, tr("QInputDialog::getText()"), tr("User name:"), QLineEdit::Normal, "", &ok);
+                QString text = QInputDialog::getText(this, tr("Effect config"), tr("Enter effect name:"), QLineEdit::Normal, "", &ok);
                 if (ok && !text.isEmpty()) {
-                    EffectPresetModel *model = button->getModel();
+                    EffectPresetModel *model = static_cast<EffectPresetModel *>(button->getModel());
                     model->config = ep->getMasterconfig();
                     model->setName(text.toStdString());
                     button->setModel(model);
-                    EffectPresetModel::saveToJsonFile(presets, "effects.json");
+                    EffectPresetModel::saveToJsonFile(effectPresets, "effects.json");
                 }
             });
-            buttons[model] = button;
+            effectButtons[model] = button;
         }
     }
     bottomLayout->addLayout(slidersLayout);
@@ -353,7 +389,7 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     frequencyLayout->addWidget(otherSlider);
 
     // Add widgets to the layout
-    mainLayout->addWidget(tubesWidget);
+    mainLayout->addWidget(presetControlsWidget);
     mainLayout->addWidget(headerWidget);
     mainLayout->addWidget(glvWidget);
     mainLayout->addWidget(modesWidget);

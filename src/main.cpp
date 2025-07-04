@@ -150,7 +150,7 @@ private:
                         nlohmann::json action = nlohmann::json::parse(body);
                         std::wcout << L"Received JSON: " << action.dump().c_str() << std::endl;
                         std::cout << action["value"] << std::endl;
-                        std::vector<EffectPresetModel *> presets = EffectPresetModel::readJson("effects.json");
+                        std::vector<EffectPresetModel *> presets = PresetModel::readJson<EffectPresetModel>("effects.json");
                         audioWindow->setNewEffect(presets[action["value"]]);
                     } catch (...) {
                         std::cerr << "Failed to parse JSON." << std::endl;
@@ -172,7 +172,7 @@ private:
                 response_.set(http::field::server, "Beast");
                 response_.set(http::field::content_type, "text/html");
 
-                std::vector<EffectPresetModel *> presets = EffectPresetModel::readJson("effects.json");
+                std::vector<EffectPresetModel *> presets = EffectPresetModel::readJson<EffectPresetModel>("effects.json");
                 beast::ostream(response_.body())<< string_vector_to_json_string(presets);
                 response_.set("Access-Control-Allow-Origin", "*");
             } else {

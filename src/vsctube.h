@@ -32,7 +32,7 @@ private:
     QLabel *rightLabel;
     QPushButton *leftButton;
     QPushButton *rightButton;
-    QSpinBox *textEdit;
+    QSpinBox *delaySpinBox, *groupSpinBox;
     void onMinusClicked();
     void onPlusClicked();
     void onValueChanged(int);

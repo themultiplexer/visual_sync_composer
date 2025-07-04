@@ -2,20 +2,22 @@
 #define EFFECTPRESETBUTTON_H
 
 #include "effectpresetmodel.h"
+#include "presetmodel.h"
 #include <QPushButton>
 #include <QTimer>
 
-class EffectPresetButton : public QPushButton
+class PresetButton : public QPushButton
 {
     Q_OBJECT
 
 public:
-    explicit EffectPresetButton(EffectPresetModel *model, QWidget *parent = nullptr);
-    ~EffectPresetButton();
+    explicit PresetButton(PresetModel *model, QWidget *parent = nullptr);
+    ~PresetButton();
 
 
-    EffectPresetModel *getModel() const;
-    void setModel(EffectPresetModel *newModel);
+    PresetModel *getModel() const;
+    void setModel(PresetModel *newModel);
+
 
 signals:
     void releasedInstantly();
@@ -29,7 +31,7 @@ private slots:
 
 private:
     QString title;
-    EffectPresetModel *model;
+    PresetModel *model;
     QTimer *m_timer;
 };
 

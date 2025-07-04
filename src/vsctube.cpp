@@ -11,12 +11,12 @@
 
 int VSCTube::value() const
 {
-    return textEdit->value();
+    return delaySpinBox->value();
 }
 
 void VSCTube::setValue(int val)
 {
-    textEdit->setValue(val);
+    delaySpinBox->setValue(val);
 }
 
 void VSCTube::onMinusClicked()
@@ -42,10 +42,16 @@ void VSCTube::onValueChanged(int s)
 
 
 VSCTube::VSCTube(QString name, QWidget *parent) : QWidget(parent) {
-    textEdit = new QSpinBox();
-    textEdit->setValue(0);
-    textEdit->setMaximumHeight(50);
-    textEdit->setMaximum(1000);
+    delaySpinBox = new QSpinBox();
+    delaySpinBox->setValue(0);
+    delaySpinBox->setMaximumHeight(50);
+    delaySpinBox->setMaximum(1000);
+
+    groupSpinBox = new QSpinBox();
+    groupSpinBox->setValue(0);
+    groupSpinBox->setMaximumHeight(50);
+    groupSpinBox->setMaximum(1000);
+
 
     leftButton = new QPushButton("<");
     leftButton->setMinimumWidth(20);
@@ -67,28 +73,34 @@ VSCTube::VSCTube(QString name, QWidget *parent) : QWidget(parent) {
     buttonLayout->setAlignment(Qt::AlignHCenter);
 
     flashButton = new QPushButton("Flash");
-    flashButton->setMinimumWidth(20);
-    flashButton->setMaximumWidth(50);
+    flashButton->setMinimumWidth(100);
+    flashButton->setMaximumWidth(100);
 
     // Create a layout for this widget
-    QVBoxLayout *layout = new QVBoxLayout;
+    QVBoxLayout *outerLayout = new QVBoxLayout;
+    outerLayout->addWidget(label);
+
+    QHBoxLayout *layout = new QHBoxLayout;
     layout->addWidget(ftube);
-    layout->addWidget(label);
-    layout->addLayout(buttonLayout);
-    layout->addWidget(textEdit);
-    layout->addWidget(leftButton);
-    layout->addWidget(rightButton);
-    layout->addWidget(flashButton);
-    setLayout(layout);
+    QVBoxLayout *controlsLayout = new QVBoxLayout;
+
+    controlsLayout->addLayout(buttonLayout);
+    controlsLayout->addWidget(delaySpinBox);
+    controlsLayout->addWidget(groupSpinBox);
+    controlsLayout->addWidget(flashButton);
+    layout->addLayout(controlsLayout);
+    outerLayout->addLayout(layout);
+    setLayout(outerLayout);
 
     connect(leftButton, &QPushButton::released, this, &VSCTube::onMinusClicked);
     connect(rightButton, &QPushButton::released, this, &VSCTube::onPlusClicked);
     connect(flashButton, &QPushButton::released, this, &VSCTube::onFlashClicked);
-    connect(textEdit, QOverload<int>::of(&QSpinBox::valueChanged), this, &VSCTube::onValueChanged);
+    connect(delaySpinBox, QOverload<int>::of(&QSpinBox::valueChanged), this, &VSCTube::onValueChanged);
+    //connect(delaySpinBox, QOverload<int>::of(&QSpinBox::valueChanged), this, &VSCTube::onValueChanged);
 }
 
 void VSCTube::setPeaked(rgb color) {
-    QTimer::singleShot(textEdit->value(), ftube, [=]() {
+    QTimer::singleShot(delaySpinBox->value(), ftube, [=]() {
         ftube->setPeaked(QColor(color.r, color.g, color.b));  // Request an update every 16ms (~60 FPS)
     });
 }

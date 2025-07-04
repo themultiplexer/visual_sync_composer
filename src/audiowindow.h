@@ -12,7 +12,7 @@
 #include <QInputDialog>
 #include <QLineEdit>
 #include "audiofilter.h"
-#include "effectpresetbutton.h"
+#include "presetbutton.h"
 #include "thread.h"
 #include <QGuiApplication>
 #include <QApplication>
@@ -61,6 +61,7 @@
 #include "netdevice.h"
 #include "helper.h"
 #include "vsctube.h"
+#include "tubepresetmodel.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -100,14 +101,17 @@ private:
     AudioAnalyzer* a;
     QDockWidget *dock;
     OGLWidget *glv, *popoutGlv;
-    EffectPresetModel *currentEffect;
+    EffectPresetModel* currentEffect;
+    TubePresetModel* currentPreset;
 
     std::string values[16] = {"Hue", "Pump","Tube", "Pump Limiter","Duck","FadeToColor","Sparkle","Fire","Bounce", "Colorcycle", "11", "Strobe", "Random Flicker", "Tunnel", "Tunnel2", "Placeholder"};
 
     std::vector<QCheckBox*> ledModifierCheckboxes;
     std::vector<QRadioButton*> ledModeRadioButtons;
-    std::vector<EffectPresetModel *> presets;
-    std::map<EffectPresetModel *, EffectPresetButton *> buttons{};
+    std::vector<EffectPresetModel *> effectPresets;
+    std::vector<TubePresetModel *> tubePresets;
+    std::map<EffectPresetModel *, PresetButton *> effectButtons{};
+    std::map<TubePresetModel *, PresetButton *> tubeButtons{};
 
     FixedQueue<uint64_t, 10> beats;
     FixedQueue<uint64_t, 10> colors;

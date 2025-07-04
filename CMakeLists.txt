@@ -89,8 +89,8 @@ else()
             src/helper.cpp
             src/audiowindow.cpp
             src/audiowindow.h
-            src/effectpresetbutton.h
-            src/effectpresetbutton.cpp
+            src/presetbutton.h
+            src/presetbutton.cpp
             src/effectpresetmodel.h
             src/effectpresetmodel.cpp
             src/espreceiver.h
@@ -112,9 +112,14 @@ else()
             src/audiofilter.h
             src/audiofilter.cpp
             src/biquadbandpass.h src/biquadbandpass.cpp
+            src/tubepresetmodel.h
+            src/tubepresetmodel.cpp
+            src/presetmodel.h
+            src/presetmodel.cpp
         )
     endif()
 endif()
+
 
 include_directories( ${FREETYPE_INCLUDE_DIRS} ${AVAHI_INCLUDE_DIRS} )
 target_link_libraries(VisualSyncComposer PRIVATE Qt${QT_VERSION_MAJOR}::Widgets ${OPENGL_LIBRARIES}  Qt${QT_VERSION_MAJOR}::Network ${FREETYPE_LIBRARIES} ${AVAHI_LIBRARIES} SDBusCpp::sdbus-c++ RtAudio::rtaudio nlohmann_json::nlohmann_json Boost::system Boost::serialization OpenSSL::SSL OpenSSL::Crypto "/usr/lib/x86_64-linux-gnu/libkissfft-float.so.131.1.0")
@@ -132,6 +137,7 @@ set_target_properties(VisualSyncComposer PROPERTIES
     MACOSX_BUNDLE TRUE
     WIN32_EXECUTABLE TRUE
 )
+
 
 include(GNUInstallDirs)
 install(TARGETS VisualSyncComposer
