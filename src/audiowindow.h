@@ -69,6 +69,19 @@ class MainWindow;
 }
 QT_END_NAMESPACE
 
+
+enum ColorControl {
+    RandomHue,
+    RandomColor,
+    Palette
+};
+
+enum GroupSelection {
+    CountUp,
+    Bounce,
+    Random
+};
+
 class AudioWindow : public QMainWindow
 {
     Q_OBJECT
@@ -103,6 +116,8 @@ private:
     OGLWidget *glv, *popoutGlv;
     EffectPresetModel* currentEffect;
     TubePresetModel* currentPreset;
+    ColorControl colorMode;
+    bool lastColorRed;
 
     std::string values[16] = {"Hue", "Pump","Tube", "Pump Limiter","Duck","FadeToColor","Sparkle","Fire","Bounce", "Colorcycle", "11", "Strobe", "Random Flicker", "Tunnel", "Tunnel2", "Placeholder"};
 
@@ -114,7 +129,7 @@ private:
     std::map<TubePresetModel *, PresetButton *> tubeButtons{};
 
     FixedQueue<uint64_t, 10> beats;
-    FixedQueue<uint64_t, 10> colors;
+    FixedQueue<hsv, 4> colors;
 
     std::random_device dev;
     std::mt19937 *rng;

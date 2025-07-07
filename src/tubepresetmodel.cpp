@@ -4,60 +4,49 @@
 TubePresetModel::TubePresetModel(std::string name, int id) {
     this->name = name;
     this->id = id;
-    config.led_mode = 1;
-    config.brightness = 10;
-    config.hue = 9;
-    config.parameter1 = 7;
-    config.parameter2 = 6;
-    config.parameter3 = 6;
-    config.sat = 5;
-    config.speed_factor = 4;
-    config.offset = 0;
+    tubePresets = std::map<std::string, TubePreset>();
 }
 
-TubePresetModel::TubePresetModel(std::string name, int id, CONFIG_DATA data) {
+TubePresetModel::TubePresetModel(std::string name, int id, std::map<std::string, TubePreset> presets) {
     this->name = name;
     this->id = id;
-    config = data;
+    tubePresets = presets;
+}
+
+std::map<std::string, TubePreset> TubePresetModel::getTubePresets() const
+{
+    return tubePresets;
+}
+
+void TubePresetModel::setTubePresets(const std::map<std::string, TubePreset> &newTubePresets)
+{
+    tubePresets = newTubePresets;
 }
 
 QJsonObject TubePresetModel::toJson() const {
-    QJsonObject obj;
-    obj["name"] = name.c_str();
-    obj["id"] = id;
-    obj["led_mode"] = config.led_mode;
-    obj["speed_factor"] = config.speed_factor;
-    obj["brightness"] = config.brightness;
-    obj["parameter1"] = config.parameter1;
-    obj["parameter2"] = config.parameter2;
-    obj["hue"] = config.hue;
-    obj["parameter3"] = config.parameter3;
-    obj["modifiers"] = config.modifiers;
-    obj["sat"] = config.sat;
-    return obj;
+    QJsonObject preset;
+    preset["name"] = QString::fromStdString(name);
+    preset["id"] = id;
+    QJsonObject array;
+    for (auto const& [id, preset] : tubePresets) {
+        QJsonObject obj;
+        obj["delay"] = preset.delay;
+        array[id.c_str()] = obj;
+    }
+    preset["tubes"] = array;
+    return preset;
 }
 
 TubePresetModel* TubePresetModel::fromJson(const QJsonObject &obj) {
-    CONFIG_DATA preset;
-    std::string name = obj["name"].toString().toStdString();
-    preset.led_mode = obj["led_mode"].toInt();
-    preset.speed_factor = obj["speed_factor"].toInt();
-    preset.brightness = obj["brightness"].toInt();
-    preset.parameter1 = obj["parameter1"].toInt();
-    preset.parameter2 = obj["parameter2"].toInt();
-    preset.hue = obj["hue"].toInt();
-    preset.parameter3 = obj["parameter3"].toInt();
-    preset.modifiers = obj["modifiers"].toInt();
-    preset.sat = obj["sat"].toInt();
-    preset.offset = 0;
-    for (int i = 0; i < 32; i++){
-        if (i % 2 == 0) {
-            preset.pattern[i] = 0xFF;
-        } else {
-            preset.pattern[i] = 0x00;
-        }
+    std::map<std::string, TubePreset> presets = std::map<std::string, TubePreset>();
+    QJsonObject tubes = obj["tubes"].toObject();
+    foreach(const QString& key, tubes.keys()) {
+        QJsonValue value = tubes.value(key);
+        TubePreset p = TubePreset();
+        p.delay = value["delay"].toInt();
+        presets[key.toStdString()] = p;
     }
-    auto f = new TubePresetModel(name, obj["id"].toInt(), preset);
+    auto f = new TubePresetModel(obj["name"].toString().toStdString(), obj["id"].toInt(), presets);
     return f;
 }
 

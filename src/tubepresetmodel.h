@@ -4,21 +4,29 @@
 #include <QFile>
 #include <QJsonDocument>
 #include <QJsonArray>
+#include <map>
 #include "presetmodel.h"
+
+class TubePreset {
+public:
+    int delay;
+};
 
 class TubePresetModel : public PresetModel
 {
 public:
     TubePresetModel(std::string name, int id);
-    TubePresetModel(std::string name, int id, CONFIG_DATA data);
+    TubePresetModel(std::string name, int id, std::map<std::string, TubePreset> presets);
 
 
     int id;
-    struct CONFIG_DATA config;
+    std::map<std::string, TubePreset> tubePresets;
 
     QJsonObject toJson() const;
     static TubePresetModel * fromJson(const QJsonObject &obj);
 
+    std::map<std::string, TubePreset> getTubePresets() const;
+    void setTubePresets(const std::map<std::string, TubePreset> &newTubePresets);
 };
 
 #endif // TUBEPRESETMODEL_H

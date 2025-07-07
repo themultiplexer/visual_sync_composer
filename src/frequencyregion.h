@@ -9,10 +9,9 @@ class FrequencyRegion : public QObject {
 Q_OBJECT
 
 public:
-FrequencyRegion(int min, int max, int step, std::string name = "unnamed");
+    FrequencyRegion(int min, int max, int step, std::string name = "unnamed");
 
     void setThresh(float newThresh);
-
     float getThresh() const;
 
     float getStart() const;
@@ -47,10 +46,6 @@ FrequencyRegion(int min, int max, int step, std::string name = "unnamed");
     bool getNewOnEnd() const;
 signals:
     void valueChanged();
-
-
-
-
 
 
 private:

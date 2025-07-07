@@ -83,10 +83,12 @@ void WifiEventProcessor::initHandlers() {
     }
 }
 
-void WifiEventProcessor::peakEvent(uint8_t hue) {
+void WifiEventProcessor::peakEvent(uint8_t hue, uint8_t sat) {
     PEAK_DATA peak;
     peak.hue = hue;
-    handler->send(reinterpret_cast<uint8_t*>(&peak), 1, {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF});
+    peak.sat = sat;
+    peak.group = 0;
+    handler->send(reinterpret_cast<uint8_t*>(&peak), sizeof(PEAK_DATA), {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF});
 }
 
 void WifiEventProcessor::sendConfig()
@@ -97,7 +99,7 @@ void WifiEventProcessor::sendConfig()
         if (i < tubeOffsets.size()) {
             tube_config.offset = tubeOffsets[i];
         }
-        handler->send(reinterpret_cast<uint8_t*>(&tube_config), sizeof(tube_config), macs[i]);
+        handler->send(reinterpret_cast<uint8_t*>(&tube_config), sizeof(CONFIG_DATA), macs[i]);
         std::cout << "Sending" << tube_config.toString() << " to " << arrayToString(macs[i]) << std::endl;
     }
     sendSync();

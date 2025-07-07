@@ -6,11 +6,9 @@ EffectPresetModel::EffectPresetModel(std::string name, int id) {
     this->id = id;
     config.led_mode = 1;
     config.brightness = 10;
-    config.hue = 9;
     config.parameter1 = 7;
     config.parameter2 = 6;
     config.parameter3 = 6;
-    config.sat = 5;
     config.speed_factor = 4;
     config.offset = 0;
 }
@@ -30,10 +28,8 @@ QJsonObject EffectPresetModel::toJson() const {
     obj["brightness"] = config.brightness;
     obj["parameter1"] = config.parameter1;
     obj["parameter2"] = config.parameter2;
-    obj["hue"] = config.hue;
     obj["parameter3"] = config.parameter3;
     obj["modifiers"] = config.modifiers;
-    obj["sat"] = config.sat;
     return obj;
 }
 
@@ -45,10 +41,8 @@ EffectPresetModel* EffectPresetModel::fromJson(const QJsonObject &obj) {
     preset.brightness = obj["brightness"].toInt();
     preset.parameter1 = obj["parameter1"].toInt();
     preset.parameter2 = obj["parameter2"].toInt();
-    preset.hue = obj["hue"].toInt();
     preset.parameter3 = obj["parameter3"].toInt();
     preset.modifiers = obj["modifiers"].toInt();
-    preset.sat = obj["sat"].toInt();
     preset.offset = 0;
     for (int i = 0; i < 32; i++){
         if (i % 2 == 0) {

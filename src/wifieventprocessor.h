@@ -9,17 +9,17 @@
 
 struct PEAK_DATA {
     uint8_t hue;
-};
-
-struct UPDATE_DATA {
-    uint8_t a;
-    uint8_t b;
+    uint8_t sat;
+    uint8_t group;
 };
 
 struct SYNC_DATA {
     uint8_t a;
     uint8_t b;
-    uint8_t c;
+};
+
+struct UPDATE_DATA {
+    __uint32_t a;
 };
 
 struct CONFIG_DATA {
@@ -29,10 +29,9 @@ struct CONFIG_DATA {
     uint8_t parameter1;
     uint8_t parameter2;
     uint8_t parameter3;
-    uint8_t hue;
-    uint8_t sat;
     uint8_t modifiers;
     uint8_t offset;
+    uint8_t group;
     uint8_t pattern[32];
 
     std::string toString()
@@ -58,7 +57,7 @@ class WifiEventProcessor : public EventProcessor
 public:
     WifiEventProcessor(std::array<uint8_t, 6> my_mac, std::string dev);
     void textEvent(std::string data);
-    void peakEvent(uint8_t hue);
+    void peakEvent(uint8_t hue, uint8_t sat);
     void sendConfig();
     void sendUpdateMessage();
     void registerReceiver(WifiTextEventReceiver *receiver);

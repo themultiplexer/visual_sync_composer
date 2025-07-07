@@ -22,12 +22,15 @@ signals:
     void flashClicked();
 
 public:
-    VSCTube(QString name, QWidget *parent);
+    VSCTube(std::string mac, QWidget *parent);
     int value() const;
     void setValue(int val);
     void setPeaked(rgb color);
     void updateGL();
+    std::string getMac() const;
+
 private:
+    std::string mac;
     QLabel *label;
     QLabel *rightLabel;
     QPushButton *leftButton;

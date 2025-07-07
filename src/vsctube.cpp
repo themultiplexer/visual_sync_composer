@@ -41,7 +41,8 @@ void VSCTube::onValueChanged(int s)
 }
 
 
-VSCTube::VSCTube(QString name, QWidget *parent) : QWidget(parent) {
+VSCTube::VSCTube(std::string mac, QWidget *parent) : QWidget(parent) {
+    this->mac = mac;
     delaySpinBox = new QSpinBox();
     delaySpinBox->setValue(0);
     delaySpinBox->setMaximumHeight(50);
@@ -52,7 +53,6 @@ VSCTube::VSCTube(QString name, QWidget *parent) : QWidget(parent) {
     groupSpinBox->setMaximumHeight(50);
     groupSpinBox->setMaximum(1000);
 
-
     leftButton = new QPushButton("<");
     leftButton->setMinimumWidth(20);
     leftButton->setMaximumWidth(50);
@@ -62,10 +62,9 @@ VSCTube::VSCTube(QString name, QWidget *parent) : QWidget(parent) {
 
     ftube = new TubeWidget(this);
     ftube->setMinimumHeight(150);
-    ftube->setMaximumHeight(150);
-    ftube->setMinimumWidth(100);
-    ftube->setMaximumWidth(100);
-    label = new QLabel(name);
+    ftube->setMinimumWidth(25);
+    ftube->setMaximumWidth(75);
+    label = new QLabel(QString::fromStdString(mac));
 
     QHBoxLayout *buttonLayout = new QHBoxLayout;
     buttonLayout->addWidget(leftButton);
@@ -78,17 +77,29 @@ VSCTube::VSCTube(QString name, QWidget *parent) : QWidget(parent) {
 
     // Create a layout for this widget
     QVBoxLayout *outerLayout = new QVBoxLayout;
-    outerLayout->addWidget(label);
 
     QHBoxLayout *layout = new QHBoxLayout;
-    layout->addWidget(ftube);
-    QVBoxLayout *controlsLayout = new QVBoxLayout;
+
+    QWidget *controlsWidget = new QWidget;
+    QVBoxLayout *controlsLayout = new QVBoxLayout(controlsWidget);
+
+    QHBoxLayout *groupLayout = new QHBoxLayout;
+    groupLayout->addWidget(groupSpinBox);
+    groupLayout->addWidget(new QLabel("G"));
+
+    QHBoxLayout *delayLayout = new QHBoxLayout;
+    delayLayout->addWidget(delaySpinBox);
+    delayLayout->addWidget(new QLabel("D"));
 
     controlsLayout->addLayout(buttonLayout);
-    controlsLayout->addWidget(delaySpinBox);
-    controlsLayout->addWidget(groupSpinBox);
+    controlsLayout->addLayout(delayLayout);
+    controlsLayout->addLayout(groupLayout);
     controlsLayout->addWidget(flashButton);
-    layout->addLayout(controlsLayout);
+
+    layout->addWidget(ftube);
+    layout->addWidget(controlsWidget);
+
+    outerLayout->addWidget(label);
     outerLayout->addLayout(layout);
     setLayout(outerLayout);
 
@@ -101,10 +112,15 @@ VSCTube::VSCTube(QString name, QWidget *parent) : QWidget(parent) {
 
 void VSCTube::setPeaked(rgb color) {
     QTimer::singleShot(delaySpinBox->value(), ftube, [=]() {
-        ftube->setPeaked(QColor(color.r, color.g, color.b));  // Request an update every 16ms (~60 FPS)
+        ftube->setPeaked(QColor(color.r * 255, color.g * 255, color.b * 255));  // Request an update every 16ms (~60 FPS)
     });
 }
 
 void VSCTube::updateGL() {
     ftube->update();
+}
+
+std::string VSCTube::getMac() const
+{
+    return mac;
 }

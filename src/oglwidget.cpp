@@ -16,8 +16,8 @@ OGLWidget::OGLWidget(int step, QWidget *parent)
         recentFrequencies2.push_back(100);
     }
 
-    regions.push_back(new FrequencyRegion(2, 15, NUM_POINTS, "low"));
-    regions.push_back(new FrequencyRegion(50, 100, NUM_POINTS, "high"));
+    regions.push_back(new FrequencyRegion(1, 5, NUM_POINTS, "low"));
+    regions.push_back(new FrequencyRegion(170, 205, NUM_POINTS, "high"));
 
     setMouseTracking(true);
     installEventFilter(this);
