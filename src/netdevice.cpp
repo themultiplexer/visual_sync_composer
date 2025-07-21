@@ -1,4 +1,5 @@
 #include "netdevice.h"
+#include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -19,7 +20,7 @@ bool NetDevice::setInterface(bool up) {
     // Open a socket to communicate with the network device
     if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
         perror("Socket creation failed");
-        exit(EXIT_FAILURE);
+        return false;
     }
 
     // Zero out the ifreq struct
@@ -30,7 +31,7 @@ bool NetDevice::setInterface(bool up) {
     if (ioctl(sockfd, SIOCGIFFLAGS, &ifr) == -1) {
         perror("IOCTL failed to get flags");
         close(sockfd);
-        exit(EXIT_FAILURE);
+        return false;
     }
 
 
@@ -44,13 +45,14 @@ bool NetDevice::setInterface(bool up) {
     if (ioctl(sockfd, SIOCSIFFLAGS, &ifr) == -1) {
         perror("IOCTL failed to set flags");
         close(sockfd);
-        exit(EXIT_FAILURE);
+        return false;
     }
 
     printf("Interface %s is now %s.\n", up ? "up" : "down", interface);
 
     // Close the socket
     close(sockfd);
+    return true;
 }
 
 bool NetDevice::enableMonitorMode() {
@@ -80,6 +82,53 @@ bool NetDevice::enableMonitorMode() {
     printf("Monitor mode set on %s\n", interface);
 
     // Close the socket
+    close(sockfd);
+    return true;
+}
+
+bool NetDevice::checkInterface() {
+    int sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+    if (sockfd < 0) {
+        perror("socket");
+        return false;
+    }
+
+    struct ifreq ifr {};
+    strncpy(ifr.ifr_name, interface, IFNAMSIZ);
+
+    // Get interface flags (up/down)
+    if (ioctl(sockfd, SIOCGIFFLAGS, &ifr) == -1) {
+        perror("SIOCGIFFLAGS");
+        close(sockfd);
+        return false;
+    }
+
+    bool is_up = ifr.ifr_flags & IFF_UP;
+    bool is_running = ifr.ifr_flags & IFF_RUNNING;
+    std::cout << interface << " is " << (is_up ? "UP" : "DOWN")
+              << " and " << (is_running ? "RUNNING" : "NOT RUNNING") << "\n";
+
+    // Get wireless mode (managed/monitor/etc.)
+    struct iwreq iwr {};
+    strncpy(iwr.ifr_name, interface, IFNAMSIZ);
+    if (ioctl(sockfd, SIOCGIWMODE, &iwr) == -1) {
+        perror("SIOCGIWMODE (maybe not a wireless interface)");
+    } else {
+        std::cout << "Mode: ";
+        switch (iwr.u.mode) {
+            case IW_MODE_AUTO:    std::cout << "Auto"; break;
+            case IW_MODE_ADHOC:   std::cout << "Ad-Hoc"; break;
+            case IW_MODE_INFRA:   std::cout << "Managed"; break;
+            case IW_MODE_MASTER:  std::cout << "Master"; break;
+            case IW_MODE_REPEAT:  std::cout << "Repeater"; break;
+            case IW_MODE_SECOND:  std::cout << "Secondary"; break;
+            case IW_MODE_MONITOR: std::cout << "Monitor"; break;
+            case IW_MODE_MESH:    std::cout << "Mesh"; break;
+            default:              std::cout << "Unknown"; break;
+        }
+        std::cout << std::endl;
+    }
+
     close(sockfd);
     return true;
 }

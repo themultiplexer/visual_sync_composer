@@ -9,14 +9,24 @@
 #include <QApplication>
 #include <QFontDatabase>
 
-int VSCTube::value() const
+int VSCTube::getDelay() const
 {
     return delaySpinBox->value();
 }
 
-void VSCTube::setValue(int val)
+int VSCTube::getGroup() const
+{
+    return groupSpinBox->value();
+}
+
+void VSCTube::setDelay(int val)
 {
     delaySpinBox->setValue(val);
+}
+
+void VSCTube::setGroup(int val)
+{
+    groupSpinBox->setValue(val);
 }
 
 void VSCTube::onMinusClicked()
@@ -35,9 +45,16 @@ void VSCTube::onFlashClicked()
 }
 
 
-void VSCTube::onValueChanged(int s)
+void VSCTube::onDelayValueChanged(int s)
 {
     emit valueChanged();
+    emit delayChanged();
+}
+
+void VSCTube::onGroupValueChanged(int s)
+{
+    emit valueChanged();
+    emit groupChanged();
 }
 
 
@@ -106,8 +123,8 @@ VSCTube::VSCTube(std::string mac, QWidget *parent) : QWidget(parent) {
     connect(leftButton, &QPushButton::released, this, &VSCTube::onMinusClicked);
     connect(rightButton, &QPushButton::released, this, &VSCTube::onPlusClicked);
     connect(flashButton, &QPushButton::released, this, &VSCTube::onFlashClicked);
-    connect(delaySpinBox, QOverload<int>::of(&QSpinBox::valueChanged), this, &VSCTube::onValueChanged);
-    //connect(delaySpinBox, QOverload<int>::of(&QSpinBox::valueChanged), this, &VSCTube::onValueChanged);
+    connect(delaySpinBox, QOverload<int>::of(&QSpinBox::valueChanged), this, &VSCTube::onDelayValueChanged);
+    connect(groupSpinBox, QOverload<int>::of(&QSpinBox::valueChanged), this, &VSCTube::onGroupValueChanged);
 }
 
 void VSCTube::setPeaked(rgb color) {

@@ -35,6 +35,16 @@ std::vector<int> WifiEventProcessor::getTubeOffsets() const
     return tubeOffsets;
 }
 
+std::vector<int> WifiEventProcessor::getTubeGroups() const
+{
+    return tubeGroups;
+}
+
+void WifiEventProcessor::setTubeGroups(const std::vector<int> &newTubeGroups)
+{
+    tubeGroups = newTubeGroups;
+}
+
 CONFIG_DATA WifiEventProcessor::getMasterconfig() const
 {
     return masterconfig;
@@ -83,11 +93,11 @@ void WifiEventProcessor::initHandlers() {
     }
 }
 
-void WifiEventProcessor::peakEvent(uint8_t hue, uint8_t sat) {
+void WifiEventProcessor::peakEvent(uint8_t hue, uint8_t sat, uint8_t group) {
     PEAK_DATA peak;
     peak.hue = hue;
     peak.sat = sat;
-    peak.group = 0;
+    peak.group = group;
     handler->send(reinterpret_cast<uint8_t*>(&peak), sizeof(PEAK_DATA), {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF});
 }
 
@@ -96,12 +106,25 @@ void WifiEventProcessor::sendConfig()
     auto macs = devicereqistry::macs();
     for (int i = 0; i < devicereqistry::macs().size(); i++) {
         CONFIG_DATA tube_config = masterconfig;
-        if (i < tubeOffsets.size()) {
-            tube_config.offset = tubeOffsets[i];
-        }
+        tube_config.tube_id = i;
         handler->send(reinterpret_cast<uint8_t*>(&tube_config), sizeof(CONFIG_DATA), macs[i]);
         std::cout << "Sending" << tube_config.toString() << " to " << arrayToString(macs[i]) << std::endl;
+        //std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
+    sendSync();
+}
+
+void WifiEventProcessor::sendSyncConfig()
+{
+    auto macs = devicereqistry::macs();
+    SYNC_DATA sync_config = {{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}};
+    for (int i = 0; i < tubeOffsets.size(); i++) {
+        sync_config.offset[i] = tubeOffsets[i];
+    }
+    for (int i = 0; i < tubeGroups.size(); i++) {
+        sync_config.group[i] = tubeGroups[i];
+    }
+    handler->send(reinterpret_cast<uint8_t*>(&sync_config), sizeof(SYNC_DATA), {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF});
     sendSync();
 }
 
@@ -123,20 +146,20 @@ void WifiEventProcessor::sendConfigTo(std::array<uint8_t, 6> dst_mac)
 
 void WifiEventProcessor::sendSync()
 {
-    SYNC_DATA sync;
-    handler->send(reinterpret_cast<uint8_t*>(&sync), sizeof(SYNC_DATA), {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF});
+    SYNC_REQUEST sync;
+    handler->send(reinterpret_cast<uint8_t*>(&sync), sizeof(SYNC_REQUEST), {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF});
 }
 
 void WifiEventProcessor::sendUpdateMessage()
 {
-    UPDATE_DATA update;
-    handler->send(reinterpret_cast<uint8_t*>(&update), sizeof(UPDATE_DATA), {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF});
+    UPDATE_REQUEST update;
+    handler->send(reinterpret_cast<uint8_t*>(&update), sizeof(UPDATE_REQUEST), {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF});
 }
 
 void WifiEventProcessor::sendUpdateMessageTo(std::array<uint8_t, 6> dst_mac)
 {
-    UPDATE_DATA update;
-    handler->send(reinterpret_cast<uint8_t*>(&update), sizeof(UPDATE_DATA), dst_mac);
+    UPDATE_REQUEST update;
+    handler->send(reinterpret_cast<uint8_t*>(&update), sizeof(UPDATE_REQUEST), dst_mac);
 }
 
 void WifiEventProcessor::registerReceiver(WifiTextEventReceiver *receiver) {

@@ -13,10 +13,11 @@ EffectPresetModel::EffectPresetModel(std::string name, int id) {
     config.offset = 0;
 }
 
-EffectPresetModel::EffectPresetModel(std::string name, int id, CONFIG_DATA data) {
+EffectPresetModel::EffectPresetModel(std::string name, int id, CONFIG_DATA config, PATTERN_DATA pattern) {
     this->name = name;
     this->id = id;
-    config = data;
+    this->config = config;
+    this->pattern = pattern;
 }
 
 QJsonObject EffectPresetModel::toJson() const {
@@ -34,23 +35,25 @@ QJsonObject EffectPresetModel::toJson() const {
 }
 
 EffectPresetModel* EffectPresetModel::fromJson(const QJsonObject &obj) {
-    CONFIG_DATA preset;
+    CONFIG_DATA config;
     std::string name = obj["name"].toString().toStdString();
-    preset.led_mode = obj["led_mode"].toInt();
-    preset.speed_factor = obj["speed_factor"].toInt();
-    preset.brightness = obj["brightness"].toInt();
-    preset.parameter1 = obj["parameter1"].toInt();
-    preset.parameter2 = obj["parameter2"].toInt();
-    preset.parameter3 = obj["parameter3"].toInt();
-    preset.modifiers = obj["modifiers"].toInt();
-    preset.offset = 0;
+    config.led_mode = obj["led_mode"].toInt();
+    config.speed_factor = obj["speed_factor"].toInt();
+    config.brightness = obj["brightness"].toInt();
+    config.parameter1 = obj["parameter1"].toInt();
+    config.parameter2 = obj["parameter2"].toInt();
+    config.parameter3 = obj["parameter3"].toInt();
+    config.modifiers = obj["modifiers"].toInt();
+    config.offset = 0;
+
+    PATTERN_DATA pattern;
     for (int i = 0; i < 32; i++){
         if (i % 2 == 0) {
-            preset.pattern[i] = 0xFF;
+            pattern.pattern[i] = 0xFF;
         } else {
-            preset.pattern[i] = 0x00;
+            pattern.pattern[i] = 0x00;
         }
     }
-    auto f = new EffectPresetModel(name, obj["id"].toInt(), preset);
+    auto f = new EffectPresetModel(name, obj["id"].toInt(), config, pattern);
     return f;
 }

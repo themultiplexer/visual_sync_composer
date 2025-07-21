@@ -17,18 +17,22 @@ class VSCTube : public QWidget
 
 public:
 signals:
+    void delayChanged();
+    void groupChanged();
     void valueChanged();
     void buttonPressed(bool right);
     void flashClicked();
 
 public:
     VSCTube(std::string mac, QWidget *parent);
-    int value() const;
-    void setValue(int val);
     void setPeaked(rgb color);
     void updateGL();
     std::string getMac() const;
 
+    int getDelay() const;
+    int getGroup() const;
+    void setDelay(int val);
+    void setGroup(int val);
 private:
     std::string mac;
     QLabel *label;
@@ -38,10 +42,11 @@ private:
     QSpinBox *delaySpinBox, *groupSpinBox;
     void onMinusClicked();
     void onPlusClicked();
-    void onValueChanged(int);
     TubeWidget *ftube;
     QPushButton *flashButton;
     void onFlashClicked();
+    void onDelayValueChanged(int s);
+    void onGroupValueChanged(int s);
 };
 
 #endif // VSCTUBE_H

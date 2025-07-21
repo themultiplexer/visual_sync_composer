@@ -117,7 +117,9 @@ private:
     EffectPresetModel* currentEffect;
     TubePresetModel* currentPreset;
     ColorControl colorMode;
+    QLabel *numBeatLabel, *wifiLabel;
     bool lastColorRed;
+    int numBeats, numGroups;
 
     std::string values[16] = {"Hue", "Pump","Tube", "Pump Limiter","Duck","FadeToColor","Sparkle","Fire","Bounce", "Colorcycle", "11", "Strobe", "Random Flicker", "Tunnel", "Tunnel2", "Placeholder"};
 
@@ -151,5 +153,7 @@ private:
 
 
     FullscreenWindow *fullScreenWindow;
+    void checkStatus();
+    void sendTubeSyncData();
 };
 #endif // AUDIOWINDOW_H

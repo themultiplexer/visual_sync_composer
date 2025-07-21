@@ -31,6 +31,7 @@ QJsonObject TubePresetModel::toJson() const {
     for (auto const& [id, preset] : tubePresets) {
         QJsonObject obj;
         obj["delay"] = preset.delay;
+        obj["group"] = preset.group;
         array[id.c_str()] = obj;
     }
     preset["tubes"] = array;
@@ -44,6 +45,7 @@ TubePresetModel* TubePresetModel::fromJson(const QJsonObject &obj) {
         QJsonValue value = tubes.value(key);
         TubePreset p = TubePreset();
         p.delay = value["delay"].toInt();
+        p.group = value["group"].toInt();
         presets[key.toStdString()] = p;
     }
     auto f = new TubePresetModel(obj["name"].toString().toStdString(), obj["id"].toInt(), presets);

@@ -10,6 +10,7 @@
 class TubePreset {
 public:
     int delay;
+    int group;
 };
 
 class TubePresetModel : public PresetModel

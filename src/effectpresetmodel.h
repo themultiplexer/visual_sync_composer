@@ -10,10 +10,11 @@ class EffectPresetModel : public PresetModel
 {
 public:
     EffectPresetModel(std::string name, int id);
-    EffectPresetModel(std::string name, int id, CONFIG_DATA data);
+    EffectPresetModel(std::string name, int id, CONFIG_DATA data, PATTERN_DATA pattern);
 
     int id;
     struct CONFIG_DATA config;
+    struct PATTERN_DATA pattern;
 
     QJsonObject toJson() const;
     static EffectPresetModel * fromJson(const QJsonObject &obj);

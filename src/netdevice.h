@@ -9,7 +9,7 @@ public:
 public:
     bool enableMonitorMode();
     bool setInterface(bool up);
-
+    bool checkInterface();
 private:
     const char *interface;
 };

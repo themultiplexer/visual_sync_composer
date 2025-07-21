@@ -11,12 +11,15 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow), popoutGlv(nullptr), fullScreenWindow(new FullscreenWindow()), currentEffect(nullptr), currentPreset(nullptr)
 {
+    numBeats = 0;
+    numGroups = 1;
+
     this->ep = ep;
     ui->setupUi(this);
-    //NetDevice h = NetDevice("wlxdc4ef40a3f9f");
-    //h.setInterface(false);
-    //h.enableMonitorMode();
-    //h.setInterface(true);
+    NetDevice h = NetDevice("wlxdc4ef40a3f9f");
+    h.setInterface(false);
+    h.enableMonitorMode();
+    h.setInterface(true);
     lastColorRed = false;
 
     effectPresets = PresetModel::readJson<EffectPresetModel>("effects.json");
@@ -104,10 +107,16 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     mainLayout->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::MinimumExpanding);
     //splitter->setStretchFactor(0, 0);
 
+    QWidget *statusWidget = new QWidget;
+    statusWidget->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Minimum);
+    QHBoxLayout* statusLayout = new QHBoxLayout(statusWidget);
+    statusLayout->addWidget(new QLabel("Status:"));
+    wifiLabel = new QLabel("Offline");
+    statusLayout->addWidget(wifiLabel);
+
     QWidget *modesWidget = new QWidget;
     modesWidget->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Minimum);
     QHBoxLayout* modesLayout = new QHBoxLayout(modesWidget);
-
     for (std::string effect : values) {
         QRadioButton *radio = new QRadioButton();
         radio->setText(effect.c_str());
@@ -120,7 +129,7 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     modifiersWidget->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Minimum);
     QHBoxLayout* modifiersLayout = new QHBoxLayout(modifiersWidget);
     modifiersLayout->addWidget(new QLabel("Modifiers:"));
-    for (std::string effect : {"Fadeout After Peak","2","3","4","5","6","7","8"}) {
+    for (std::string effect : {"Fadeout After Peak","No Color Delay","Reversed","4","5","6","7","8"}) {
         QCheckBox *check = new QCheckBox();
         check->setText(effect.c_str());
         connect(check, &QCheckBox::toggled, this, &AudioWindow::modifierChanged);
@@ -137,12 +146,7 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
         VSCTube *tube = new VSCTube(arrayToHexString(mac), this);
         tube->setMaximumWidth(250);
         connect(tube, &VSCTube::valueChanged, this, [=, this](){
-            std::vector<int> offsets;
-            for (auto t : tubes) {
-                offsets.push_back(t->value());
-            }
-            ep->setTubeOffsets(offsets);
-            ep->sendConfig();
+            sendTubeSyncData();
         });
 
         connect(tube, &VSCTube::flashClicked, this, [=](){
@@ -195,19 +199,22 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
                 if (currentPreset) {
                     tubeButtons.at(currentPreset)->setStyleSheet("");
                 }
-                button->setStyleSheet("background-color: red");
+                button->setStyleSheet("background-color: green");
                 std::cout << "WTF" << std::endl;
                 for (auto const &[mac, preset] : model->getTubePresets()) {
                     std::cout << mac << " " << preset.delay << std::endl;
                     for (auto t : tubes) {
                         if (t->getMac() == mac) {
-                            t->setValue(preset.delay);
+                            t->blockSignals(true);
+                            t->setDelay(preset.delay);
+                            t->setGroup(preset.group);
+                            t->blockSignals(false);
                             continue;
                         }
                     }
                 }
                 currentPreset = model;
-
+                sendTubeSyncData();
             });
             connect(button, &PresetButton::longPressed, [=](){
                 bool ok;
@@ -217,7 +224,8 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
                     std::map<std::string, TubePreset> preset;
                     for (auto t : tubes) {
                         TubePreset p = TubePreset();
-                        p.delay = t->value();
+                        p.delay = t->getDelay();
+                        p.group = t->getGroup();
                         preset[t->getMac()] = p;
                     }
 
@@ -233,6 +241,8 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     }
 
     QWidget *presetControlsWidget = new QWidget;
+    presetControlsWidget->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Minimum);
+    presetControlsWidget->setMaximumHeight(400);
     QHBoxLayout *presetControlsLayout = new QHBoxLayout(presetControlsWidget);
     presetControlsLayout->addWidget(tubesWidget);
     presetControlsLayout->addWidget(presetsWidget);
@@ -299,8 +309,9 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     slidersLayout->setSpacing(0);
 
     QWidget *bottomWidget = new QWidget;
-    bottomWidget->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::MinimumExpanding);
+    bottomWidget->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Minimum);
     QHBoxLayout *bottomLayout = new QHBoxLayout(bottomWidget);
+    bottomWidget->setMaximumHeight(550);
     QGridLayout *gridLayout = new QGridLayout;
 
     // Loop to create buttons and add them to the layout
@@ -338,6 +349,8 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     QWidget *groupSelectorWidget = new QWidget;
     QHBoxLayout *groupSelectorLayout = new QHBoxLayout(groupSelectorWidget);
     groupSelectorLayout->addWidget(new QLabel("Group Selection:"));
+    numBeatLabel = new QLabel("0");
+    groupSelectorLayout->addWidget(numBeatLabel);
     for (std::string effect : {"Count Up", "Region", "Random"}) {
         QRadioButton *radio = new QRadioButton();
         radio->setText(effect.c_str());
@@ -349,23 +362,35 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
 
     QWidget *colorPaletteWidget = new QWidget;
     QHBoxLayout *colorPaletteLayout = new QHBoxLayout(colorPaletteWidget);
+
+    colorPaletteLayout->addWidget(new QLabel("Color:"));
+    for (std::string effect : {"Random", "Red/White", "Custom"}) {
+        QRadioButton *radio = new QRadioButton();
+        radio->setText(effect.c_str());
+
+        connect(radio, &QRadioButton::toggled, this, [=](){
+            if (radio->text() == "Random") {
+                qDebug() << "Random";
+                colorMode = RandomHue;
+            } else {
+                colorMode = Palette;
+            }
+        });
+        colorPaletteLayout->addWidget(radio);
+    }
+    /*
     QPushButton *allButton = new QPushButton("Random", colorPaletteWidget);
     QPushButton *testButton = new QPushButton("Red/White", colorPaletteWidget);
 
     for (auto button : {allButton, testButton}) {
         QObject::connect(button, &QPushButton::released, [=](){
-            if (button == testButton) {
-                qDebug() << "Pressed";
-                colorMode = Palette;
-            } else {
-                colorMode = RandomHue;
-            }
+
         });
     }
     colorPaletteLayout->addWidget(new QLabel("Color:"));
     colorPaletteLayout->addWidget(allButton);
     colorPaletteLayout->addWidget(testButton);
-
+    */
     QWidget *headerWidget = new QWidget;
     QHBoxLayout *header = new QHBoxLayout(headerWidget);
     bpmLabel = new QLabel("bpm");
@@ -409,13 +434,14 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
         mdnsflasher::flash("../LEDTube.ino.bin");
     });
 
-    fwButtons->addWidget(fwbutton);
-    fwButtons->addWidget(flashbutton);
-
     QPushButton *syncbutton = new QPushButton("Sync");
     connect(syncbutton, &QPushButton::pressed, [=](){
         ep->sendSync();
     });
+
+    fwButtons->addWidget(fwbutton);
+    fwButtons->addWidget(flashbutton);
+    fwButtons->addWidget(syncbutton);
 
     QWidget *glvWidget = new QWidget;
     QHBoxLayout *frequencyLayout = new QHBoxLayout(glvWidget);
@@ -440,6 +466,7 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     frequencyLayout->addWidget(otherSlider);
 
     // Add widgets to the layout
+    mainLayout->addWidget(statusWidget);
     mainLayout->addWidget(presetControlsWidget);
     mainLayout->addWidget(colorPaletteWidget);
     mainLayout->addWidget(groupSelectorWidget);
@@ -449,7 +476,6 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     mainLayout->addWidget(modifiersWidget);
     mainLayout->addWidget(bottomWidget);
     mainLayout->addWidget(firmwareWidget);
-    mainLayout->addWidget(syncbutton);
 
     if (getuid() == 0) {
         printf("Dropping privs\n");
@@ -469,9 +495,39 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     a->getdevices();
     a->startRecording();
 
+    QTimer *mainTimer = new QTimer(this);
+    connect(mainTimer, &QTimer::timeout, this, &AudioWindow::checkTime);
+    mainTimer->start(1);
+
     QTimer *qtimer = new QTimer(this);
-    connect(qtimer, &QTimer::timeout, this, &AudioWindow::checkTime);
-    qtimer->start(1);
+    connect(qtimer, &QTimer::timeout, this, &AudioWindow::checkStatus);
+    qtimer->start(500);
+}
+
+
+void AudioWindow::checkStatus() {
+    NetDevice h = NetDevice("wlxdc4ef40a3f9f");
+    if (h.checkInterface()) {
+        wifiLabel->setText("Online");
+    } else {
+        wifiLabel->setText("Offline");
+    }
+}
+
+void AudioWindow::sendTubeSyncData() {
+    int max = 1;
+    std::vector<int> offsets;
+    std::vector<int> groups;
+    for (auto t : tubes) {
+        offsets.push_back(t->getDelay());
+        groups.push_back(t->getGroup());
+        max = t->getGroup() > max ? t->getGroup() : max;
+    }
+    qDebug() << max;
+    numGroups = max;
+    ep->setTubeGroups(groups);
+    ep->setTubeOffsets(offsets);
+    ep->sendSyncConfig();
 }
 
 void AudioWindow::setNewEffect(EffectPresetModel *model) {
@@ -514,31 +570,45 @@ void AudioWindow::checkTime(){
     }
 
     w->processData(fl, [this](FrequencyRegion &region){
-        if (region.getScaledMax() < 1000) {
-            hsv selectedColor = colors.front();
-            ep->peakEvent((int)(selectedColor.h * 255.0), (int)(selectedColor.s * 255.0));
-            std::chrono::time_point<std::chrono::system_clock> now = std::chrono::system_clock::now();
-            beats.push(region.getBeatMillis());
+        int tubeGroupValue = 0;
+        if (numGroups > 1) {
+            tubeGroupValue = (numBeats  % numGroups) + 1;
+        }
 
-            for (auto t : tubes) {
-                t->setPeaked(hsv2rgb(selectedColor));
-            }
+        numBeats++;
+        numBeatLabel->setText(QString::number(tubeGroupValue));
+        hsv selectedColor = colors.front();
+        ep->peakEvent((int)(selectedColor.h * 255.0), (int)(selectedColor.s * 255.0), tubeGroupValue);
+        std::chrono::time_point<std::chrono::system_clock> now = std::chrono::system_clock::now();
+        beats.push(region.getBeatMillis());
 
-            if (colorMode == RandomHue) {
-                hsv col = {static_cast<double>((float)(*hueRandom)(*rng) / (float) 360), saturationSlider->pct(), 0.0};
-                colors.push(col);
-            } else if (colorMode == RandomHue) {
-                hsv col = {static_cast<double>((float)(*hueRandom)(*rng) / (float) 360), saturationSlider->pct(), 0.0};
-                colors.push(col);
-            } else if (colorMode == Palette) {
+        for (auto t : tubes) {
+            t->setPeaked(hsv2rgb(selectedColor));
+        }
+
+        if (colorMode == RandomHue) {
+            hsv col = {static_cast<double>((float)(*hueRandom)(*rng) / (float) 360), saturationSlider->pct(), 0.0};
+            colors.push(col);
+        } else if (colorMode == RandomHue) {
+            hsv col = {static_cast<double>((float)(*hueRandom)(*rng) / (float) 360), saturationSlider->pct(), 0.0};
+            colors.push(col);
+        } else if (colorMode == Palette) {
+            if (numGroups > 1) {
+                if (lastColorRed) {
+                    colors.push({0.0, 1.0, 0.0});
+                    colors.push({0.0, 1.0, 0.0});
+                } else {
+                    colors.push({0.0, 0.0, 0.0});
+                    colors.push({0.0, 0.0, 0.0});
+                }
+            } else {
                 if (lastColorRed) {
                     colors.push({0.0, 1.0, 0.0});
                 } else {
                     colors.push({0.0, 0.0, 0.0});
                 }
-                lastColorRed = !lastColorRed;
             }
-
+            lastColorRed = !lastColorRed;
         }
 
         float sum = std::accumulate(beats.begin(), beats.end(), 0.0);

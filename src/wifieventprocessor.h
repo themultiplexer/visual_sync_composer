@@ -13,16 +13,17 @@ struct PEAK_DATA {
     uint8_t group;
 };
 
-struct SYNC_DATA {
+struct SYNC_REQUEST {
     uint8_t a;
     uint8_t b;
 };
 
-struct UPDATE_DATA {
-    __uint32_t a;
+struct UPDATE_REQUEST {
+    uint32_t a;
 };
 
 struct CONFIG_DATA {
+    uint8_t tube_id;
     uint8_t led_mode;
     uint8_t speed_factor;
     uint8_t brightness;
@@ -32,11 +33,24 @@ struct CONFIG_DATA {
     uint8_t modifiers;
     uint8_t offset;
     uint8_t group;
+
+    std::string toString()
+    {
+        return "[tube_id = " + std::to_string(tube_id) + "led_mode = " + std::to_string(led_mode) + ", offset = " + std::to_string(offset) + "]";
+    }
+};
+
+struct SYNC_DATA {
+    uint8_t group[32];
+    uint8_t offset[32];
+};
+
+struct PATTERN_DATA {
     uint8_t pattern[32];
 
     std::string toString()
     {
-        return "[led_mode = " + std::to_string(led_mode) + ", offset = " + std::to_string(offset) + "]";
+        return "[led_mode = " + std::to_string(pattern[0]) + "]";
     }
 };
 
@@ -57,7 +71,7 @@ class WifiEventProcessor : public EventProcessor
 public:
     WifiEventProcessor(std::array<uint8_t, 6> my_mac, std::string dev);
     void textEvent(std::string data);
-    void peakEvent(uint8_t hue, uint8_t sat);
+    void peakEvent(uint8_t hue, uint8_t sat, uint8_t group);
     void sendConfig();
     void sendUpdateMessage();
     void registerReceiver(WifiTextEventReceiver *receiver);
@@ -69,6 +83,10 @@ public:
     CONFIG_DATA getMasterconfig() const;
     void setMasterconfig(const CONFIG_DATA &newMasterconfig);
 
+    std::vector<int> getTubeGroups() const;
+    void setTubeGroups(const std::vector<int> &newTubeGroups);
+
+    void sendSyncConfig();
 private:
     void callback(std::array<uint8_t, 6> src_mac, std::span<uint8_t> data);
 
@@ -79,6 +97,7 @@ private:
     std::array<uint8_t, 6> my_mac;
     std::string dev;
     std::vector<int> tubeOffsets;
+    std::vector<int> tubeGroups;
 };
 
 #endif // WIFIEVENTPROCESSOR_H
