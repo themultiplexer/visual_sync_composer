@@ -105,8 +105,7 @@ bool NetDevice::checkInterface() {
 
     bool is_up = ifr.ifr_flags & IFF_UP;
     bool is_running = ifr.ifr_flags & IFF_RUNNING;
-    std::cout << interface << " is " << (is_up ? "UP" : "DOWN")
-              << " and " << (is_running ? "RUNNING" : "NOT RUNNING") << "\n";
+    // std::cout << interface << " is " << (is_up ? "UP" : "DOWN") << " and " << (is_running ? "RUNNING" : "NOT RUNNING") << "\n";
 
     // Get wireless mode (managed/monitor/etc.)
     struct iwreq iwr {};
@@ -114,6 +113,7 @@ bool NetDevice::checkInterface() {
     if (ioctl(sockfd, SIOCGIWMODE, &iwr) == -1) {
         perror("SIOCGIWMODE (maybe not a wireless interface)");
     } else {
+        /*
         std::cout << "Mode: ";
         switch (iwr.u.mode) {
             case IW_MODE_AUTO:    std::cout << "Auto"; break;
@@ -127,6 +127,7 @@ bool NetDevice::checkInterface() {
             default:              std::cout << "Unknown"; break;
         }
         std::cout << std::endl;
+        */
     }
 
     close(sockfd);

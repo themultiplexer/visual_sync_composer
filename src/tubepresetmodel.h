@@ -16,7 +16,7 @@ public:
 class TubePresetModel : public PresetModel
 {
 public:
-    TubePresetModel(std::string name, int id);
+    TubePresetModel(std::string name, int id = 0);
     TubePresetModel(std::string name, int id, std::map<std::string, TubePreset> presets);
 
 

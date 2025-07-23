@@ -98,12 +98,12 @@ public:
     void loadLyrics();
     void setNewEffect(EffectPresetModel *model);
     int activeEffect;
-
-    EffectPresetModel *getCurrentEffect() const;
+    const EffectPresetModel *getCurrentEffect() const;
 
 protected:
     void checkTime();
     void modifierChanged(bool state);
+
 private:
     Ui::MainWindow *ui;
     WorkerThread *workerThread;
@@ -114,8 +114,8 @@ private:
     AudioAnalyzer* a;
     QDockWidget *dock;
     OGLWidget *glv, *popoutGlv;
-    EffectPresetModel* currentEffect;
-    TubePresetModel* currentPreset;
+    const EffectPresetModel* currentEffect;
+    const TubePresetModel* currentPreset;
     ColorControl colorMode;
     QLabel *numBeatLabel, *wifiLabel;
     bool lastColorRed;
@@ -127,8 +127,8 @@ private:
     std::vector<QRadioButton*> ledModeRadioButtons;
     std::vector<EffectPresetModel *> effectPresets;
     std::vector<TubePresetModel *> tubePresets;
-    std::map<EffectPresetModel *, PresetButton *> effectButtons{};
-    std::map<TubePresetModel *, PresetButton *> tubeButtons{};
+    std::map<const EffectPresetModel *, PresetButton *> effectButtons{};
+    std::map<const TubePresetModel *, PresetButton *> tubeButtons{};
 
     FixedQueue<uint64_t, 10> beats;
     FixedQueue<hsv, 4> colors;
@@ -136,6 +136,9 @@ private:
     std::random_device dev;
     std::mt19937 *rng;
     std::uniform_int_distribution<std::mt19937::result_type> *hueRandom;
+
+
+    std::uniform_int_distribution<std::mt19937::result_type> *effectRandom;
 
     CONFIG_DATA currentEffectConfig;
 
@@ -150,10 +153,9 @@ private:
     VSCSlider *timeSlider;
     VSCSlider *otherSlider;
 
-
-
     FullscreenWindow *fullScreenWindow;
     void checkStatus();
     void sendTubeSyncData();
+    void applyTubePreset(const TubePresetModel *model);
 };
 #endif // AUDIOWINDOW_H

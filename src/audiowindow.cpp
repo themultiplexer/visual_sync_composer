@@ -30,6 +30,7 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
 
     rng = new std::mt19937(dev());
     hueRandom = new std::uniform_int_distribution<std::mt19937::result_type>(0, 360);
+    effectRandom = new std::uniform_int_distribution<std::mt19937::result_type>(0, 100);
 
     for (auto color : colors) {
         hsv col = {0.0, 1.0, 0.0};
@@ -201,18 +202,7 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
                 }
                 button->setStyleSheet("background-color: green");
                 std::cout << "WTF" << std::endl;
-                for (auto const &[mac, preset] : model->getTubePresets()) {
-                    std::cout << mac << " " << preset.delay << std::endl;
-                    for (auto t : tubes) {
-                        if (t->getMac() == mac) {
-                            t->blockSignals(true);
-                            t->setDelay(preset.delay);
-                            t->setGroup(preset.group);
-                            t->blockSignals(false);
-                            continue;
-                        }
-                    }
-                }
+                applyTubePreset(model);
                 currentPreset = model;
                 sendTubeSyncData();
             });
@@ -328,16 +318,30 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
                 button->setStyleSheet("background-color: red");
                 currentEffect = model;
                 setNewEffect(model);
+
+                applyTubePreset(model->getPresets());
+                sendTubeSyncData();
+
+                for (auto const& [id, preset] : model->getPresets()->getTubePresets()) {
+                    std::cout << id << " " << preset.delay << std::endl;
+                }
             });
             connect(button, &PresetButton::longPressed, [=](){
                 bool ok;
                 QString text = QInputDialog::getText(this, tr("Effect config"), tr("Enter effect name:"), QLineEdit::Normal, "", &ok);
                 if (ok && !text.isEmpty()) {
                     EffectPresetModel *model = static_cast<EffectPresetModel *>(button->getModel());
-                    model->config = ep->getMasterconfig();
+                    model->setConfig(ep->getMasterconfig());
+                    if (currentPreset) {
+                        model->setPresets(*currentPreset);
+                    }
                     model->setName(text.toStdString());
                     button->setModel(model);
                     EffectPresetModel::saveToJsonFile(effectPresets, "effects.json");
+
+                    for (auto const& [id, preset] : model->getPresets()->getTubePresets()) {
+                        std::cout << id << " " << preset.delay << std::endl;
+                    }
                 }
             });
             effectButtons[model] = button;
@@ -431,7 +435,12 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
 
     QPushButton *flashbutton = new QPushButton("FW Update");
     connect(flashbutton, &QPushButton::pressed, [=](){
-        mdnsflasher::flash("../LEDTube.ino.bin");
+        QString filename = QFileDialog::getOpenFileName(this, tr("Open Tube Firmware File"), "./", tr("BIN Files (*.bin)"), nullptr, QFileDialog::DontUseNativeDialog);
+        if (!filename.isNull()) {
+            std::cout << "FLASHING" << std::endl;
+
+            mdnsflasher::flash(filename.toStdString());
+        }
     });
 
     QPushButton *syncbutton = new QPushButton("Sync");
@@ -488,6 +497,10 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     setenv("HOME", "/home/josh/", 1);
     setenv("USER", "josh", 1);
     setenv("XDG_RUNTIME_DIR", "/run/user/1000", 1);
+    setenv("XDG_DATA_HOME", "/home/josh/.local/share", 1);
+    setenv("XDG_CONFIG_HOME", "/home/josh/.config", 1);
+    setenv("XDG_CACHE_HOME", "/home/josh/.cache", 1);
+
     printf("%d\n", getuid());
     printf("%s\n", getenv("USER"));
 
@@ -504,6 +517,21 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     qtimer->start(500);
 }
 
+void AudioWindow::applyTubePreset(const TubePresetModel *model) {
+    std::cout << " applyTubePreset " << std::endl;
+    for (auto const &[mac, preset] : model->getTubePresets()) {
+        std::cout << mac << " " << preset.delay << std::endl;
+        for (auto t : tubes) {
+            if (t->getMac() == mac) {
+                t->blockSignals(true);
+                t->setDelay(preset.delay);
+                t->setGroup(preset.group);
+                t->blockSignals(false);
+                continue;
+            }
+        }
+    }
+}
 
 void AudioWindow::checkStatus() {
     NetDevice h = NetDevice("wlxdc4ef40a3f9f");
@@ -548,7 +576,13 @@ void AudioWindow::setNewEffect(EffectPresetModel *model) {
 
     ep->setMasterconfig(model->config);
     ep->sendConfig();
+
+    currentPreset = model->getPresets();
+    applyTubePreset(currentPreset);
+    sendTubeSyncData();
 }
+
+
 
 void AudioWindow::checkTime(){
     auto fl = a->getLeftFrequencies();
@@ -573,6 +607,10 @@ void AudioWindow::checkTime(){
         int tubeGroupValue = 0;
         if (numGroups > 1) {
             tubeGroupValue = (numBeats  % numGroups) + 1;
+        }
+
+        if (numBeats % 16 == 0) {
+            setNewEffect(effectPresets[(*effectRandom)(*rng)]);
         }
 
         numBeats++;
@@ -681,7 +719,7 @@ void AudioWindow::modifierChanged(bool state)
     ep->sendConfig();
 }
 
-EffectPresetModel *AudioWindow::getCurrentEffect() const
+const EffectPresetModel *AudioWindow::getCurrentEffect() const
 {
     return currentEffect;
 }
