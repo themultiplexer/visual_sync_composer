@@ -131,7 +131,7 @@ private:
     std::map<const TubePresetModel *, PresetButton *> tubeButtons{};
 
     FixedQueue<uint64_t, 10> beats;
-    FixedQueue<hsv, 4> colors;
+    FixedQueue<std::array<float, 2>, 4> colors;
 
     std::random_device dev;
     std::mt19937 *rng;

@@ -68,7 +68,7 @@ void TubeWidget::initializeGL()
             uniform vec3 color;
 
             void main() {
-                float y = smoothstep(-0.75, -0.2, pos.x) - smoothstep(0.2, 0.75, pos.x);
+                float y = smoothstep(-0.99, -0.2, pos.x) - smoothstep(0.2, 0.99, pos.x);
                 vec3 c = color * y;
                 FragColor = vec4(c * float(pos.y < (-1.0 + 2 * peak)), 1.0);
             }

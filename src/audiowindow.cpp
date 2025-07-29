@@ -34,7 +34,7 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
 
     for (auto color : colors) {
         hsv col = {0.0, 1.0, 0.0};
-        colors.push(col);
+        colors.push({0.0, 1.0});
     }
 
     setWindowFlags(Qt::Window | Qt::WindowFullscreenButtonHint);
@@ -615,35 +615,33 @@ void AudioWindow::checkTime(){
 
         numBeats++;
         numBeatLabel->setText(QString::number(tubeGroupValue));
-        hsv selectedColor = colors.front();
-        ep->peakEvent((int)(selectedColor.h * 255.0), (int)(selectedColor.s * 255.0), tubeGroupValue);
+        std::array<float,2> selectedColor = colors.front();
+        ep->peakEvent((int)(selectedColor[0] * 255.0), (int)(selectedColor[1] * 255.0), tubeGroupValue);
         std::chrono::time_point<std::chrono::system_clock> now = std::chrono::system_clock::now();
         beats.push(region.getBeatMillis());
 
         for (auto t : tubes) {
-            t->setPeaked(hsv2rgb(selectedColor));
+            t->setPeaked(hsv2rgb({selectedColor[0] * 360, selectedColor[1], 1.0}));
         }
 
         if (colorMode == RandomHue) {
-            hsv col = {static_cast<double>((float)(*hueRandom)(*rng) / (float) 360), saturationSlider->pct(), 0.0};
-            colors.push(col);
-        } else if (colorMode == RandomHue) {
-            hsv col = {static_cast<double>((float)(*hueRandom)(*rng) / (float) 360), saturationSlider->pct(), 0.0};
-            colors.push(col);
+            colors.push({(float)(*hueRandom)(*rng) / (float) 360, saturationSlider->pct()});
+        } else if (colorMode == RandomColor) {
+            colors.push({(float)(*hueRandom)(*rng) / (float) 360, saturationSlider->pct()});
         } else if (colorMode == Palette) {
             if (numGroups > 1) {
                 if (lastColorRed) {
-                    colors.push({0.0, 1.0, 0.0});
-                    colors.push({0.0, 1.0, 0.0});
+                    colors.push({0.0, 1.0});
+                    colors.push({0.0, 1.0});
                 } else {
-                    colors.push({0.0, 0.0, 0.0});
-                    colors.push({0.0, 0.0, 0.0});
+                    colors.push({0.0, 0.0});
+                    colors.push({0.0, 0.0});
                 }
             } else {
                 if (lastColorRed) {
-                    colors.push({0.0, 1.0, 0.0});
+                    colors.push({0.0, 1.0});
                 } else {
-                    colors.push({0.0, 0.0, 0.0});
+                    colors.push({0.0, 0.0});
                 }
             }
             lastColorRed = !lastColorRed;

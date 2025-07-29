@@ -1,0 +1,1130 @@
+[
+    {
+        "id": 0,
+        "name": "Short Delays",
+        "tubes": {
+            "24a1603a2be9": {
+                "delay": 40,
+                "group": 0
+            },
+            "24a1603aa2dc": {
+                "delay": 120,
+                "group": 0
+            },
+            "24a1603acf56": {
+                "delay": 40,
+                "group": 0
+            },
+            "24a1603d4856": {
+                "delay": 80,
+                "group": 0
+            },
+            "24a1603d864a": {
+                "delay": 0,
+                "group": 0
+            },
+            "24a1603d872f": {
+                "delay": 0,
+                "group": 0
+            },
+            "24a1603d8b0a": {
+                "delay": 120,
+                "group": 0
+            },
+            "60019496c44a": {
+                "delay": 0,
+                "group": 0
+            },
+            "8cce4edeb3c7": {
+                "delay": 80,
+                "group": 0
+            },
+            "8cce4ee1df2e": {
+                "delay": 0,
+                "group": 0
+            },
+            "8cce4ee36bed": {
+                "delay": 0,
+                "group": 0
+            }
+        }
+    },
+    {
+        "id": 0,
+        "name": "Accelerate",
+        "tubes": {
+            "24a1603a2be9": {
+                "delay": 50,
+                "group": 0
+            },
+            "24a1603aa2dc": {
+                "delay": 255,
+                "group": 0
+            },
+            "24a1603acf56": {
+                "delay": 50,
+                "group": 0
+            },
+            "24a1603d4856": {
+                "delay": 100,
+                "group": 0
+            },
+            "24a1603d864a": {
+                "delay": 0,
+                "group": 0
+            },
+            "24a1603d872f": {
+                "delay": 0,
+                "group": 0
+            },
+            "24a1603d8b0a": {
+                "delay": 255,
+                "group": 0
+            },
+            "60019496c44a": {
+                "delay": 0,
+                "group": 0
+            },
+            "8cce4edeb3c7": {
+                "delay": 100,
+                "group": 0
+            },
+            "8cce4ee1df2e": {
+                "delay": 0,
+                "group": 0
+            },
+            "8cce4ee36bed": {
+                "delay": 0,
+                "group": 0
+            }
+        }
+    },
+    {
+        "id": 0,
+        "name": "Front Back",
+        "tubes": {
+            "24a1603a2be9": {
+                "delay": 0,
+                "group": 1
+            },
+            "24a1603aa2dc": {
+                "delay": 0,
+                "group": 2
+            },
+            "24a1603acf56": {
+                "delay": 0,
+                "group": 1
+            },
+            "24a1603d4856": {
+                "delay": 0,
+                "group": 2
+            },
+            "24a1603d864a": {
+                "delay": 0,
+                "group": 0
+            },
+            "24a1603d872f": {
+                "delay": 0,
+                "group": 1
+            },
+            "24a1603d8b0a": {
+                "delay": 0,
+                "group": 2
+            },
+            "60019496c44a": {
+                "delay": 0,
+                "group": 0
+            },
+            "8cce4edeb3c7": {
+                "delay": 0,
+                "group": 2
+            },
+            "8cce4ee1df2e": {
+                "delay": 0,
+                "group": 1
+            },
+            "8cce4ee36bed": {
+                "delay": 0,
+                "group": 0
+            }
+        }
+    },
+    {
+        "id": 0,
+        "name": "Test",
+        "tubes": {
+        }
+    },
+    {
+        "id": 0,
+        "name": "Test",
+        "tubes": {
+        }
+    },
+    {
+        "id": 0,
+        "name": "Test",
+        "tubes": {
+        }
+    },
+    {
+        "id": 0,
+        "name": "Test",
+        "tubes": {
+        }
+    },
+    {
+        "id": 0,
+        "name": "Test",
+        "tubes": {
+        }
+    },
+    {
+        "id": 0,
+        "name": "Test",
+        "tubes": {
+        }
+    },
+    {
+        "id": 0,
+        "name": "Test",
+        "tubes": {
+        }
+    },
+    {
+        "id": 0,
+        "name": "Long delays",
+        "tubes": {
+            "24a1603a2be9": {
+                "delay": 80,
+                "group": 0
+            },
+            "24a1603aa2dc": {
+                "delay": 240,
+                "group": 0
+            },
+            "24a1603acf56": {
+                "delay": 80,
+                "group": 0
+            },
+            "24a1603d4856": {
+                "delay": 160,
+                "group": 0
+            },
+            "24a1603d864a": {
+                "delay": 0,
+                "group": 0
+            },
+            "24a1603d872f": {
+                "delay": 0,
+                "group": 0
+            },
+            "24a1603d8b0a": {
+                "delay": 240,
+                "group": 0
+            },
+            "60019496c44a": {
+                "delay": 0,
+                "group": 0
+            },
+            "8cce4edeb3c7": {
+                "delay": 160,
+                "group": 0
+            },
+            "8cce4ee1df2e": {
+                "delay": 0,
+                "group": 0
+            },
+            "8cce4ee36bed": {
+                "delay": 0,
+                "group": 0
+            }
+        }
+    },
+    {
+        "id": 0,
+        "name": "Test",
+        "tubes": {
+        }
+    },
+    {
+        "id": 0,
+        "name": "Front Back Delay",
+        "tubes": {
+            "24a1603a2be9": {
+                "delay": 0,
+                "group": 0
+            },
+            "24a1603aa2dc": {
+                "delay": 200,
+                "group": 0
+            },
+            "24a1603acf56": {
+                "delay": 0,
+                "group": 0
+            },
+            "24a1603d4856": {
+                "delay": 200,
+                "group": 0
+            },
+            "24a1603d864a": {
+                "delay": 0,
+                "group": 0
+            },
+            "24a1603d872f": {
+                "delay": 0,
+                "group": 0
+            },
+            "24a1603d8b0a": {
+                "delay": 200,
+                "group": 0
+            },
+            "60019496c44a": {
+                "delay": 0,
+                "group": 0
+            },
+            "8cce4edeb3c7": {
+                "delay": 200,
+                "group": 0
+            },
+            "8cce4ee1df2e": {
+                "delay": 0,
+                "group": 0
+            },
+            "8cce4ee36bed": {
+                "delay": 0,
+                "group": 0
+            }
+        }
+    },
+    {
+        "id": 0,
+        "name": "Test",
+        "tubes": {
+        }
+    },
+    {
+        "id": 0,
+        "name": "Test",
+        "tubes": {
+        }
+    },
+    {
+        "id": 0,
+        "name": "Test",
+        "tubes": {
+        }
+    },
+    {
+        "id": 0,
+        "name": "Test",
+        "tubes": {
+        }
+    },
+    {
+        "id": 0,
+        "name": "Test",
+        "tubes": {
+        }
+    },
+    {
+        "id": 0,
+        "name": "Test",
+        "tubes": {
+        }
+    },
+    {
+        "id": 0,
+        "name": "Test",
+        "tubes": {
+        }
+    },
+    {
+        "id": 0,
+        "name": "Synced, No Groups",
+        "tubes": {
+            "24a1603a2be9": {
+                "delay": 0,
+                "group": 0
+            },
+            "24a1603aa2dc": {
+                "delay": 0,
+                "group": 0
+            },
+            "24a1603acf56": {
+                "delay": 0,
+                "group": 0
+            },
+            "24a1603d4856": {
+                "delay": 0,
+                "group": 0
+            },
+            "24a1603d864a": {
+                "delay": 0,
+                "group": 0
+            },
+            "24a1603d872f": {
+                "delay": 0,
+                "group": 0
+            },
+            "24a1603d8b0a": {
+                "delay": 0,
+                "group": 0
+            },
+            "60019496c44a": {
+                "delay": 0,
+                "group": 0
+            },
+            "8cce4edeb3c7": {
+                "delay": 0,
+                "group": 0
+            },
+            "8cce4ee1df2e": {
+                "delay": 0,
+                "group": 0
+            },
+            "8cce4ee36bed": {
+                "delay": 0,
+                "group": 0
+            }
+        }
+    },
+    {
+        "id": 0,
+        "name": "Individual",
+        "tubes": {
+            "24a1603a2be9": {
+                "delay": 0,
+                "group": 6
+            },
+            "24a1603aa2dc": {
+                "delay": 0,
+                "group": 8
+            },
+            "24a1603acf56": {
+                "delay": 0,
+                "group": 2
+            },
+            "24a1603d4856": {
+                "delay": 0,
+                "group": 3
+            },
+            "24a1603d864a": {
+                "delay": 0,
+                "group": 0
+            },
+            "24a1603d872f": {
+                "delay": 0,
+                "group": 1
+            },
+            "24a1603d8b0a": {
+                "delay": 0,
+                "group": 4
+            },
+            "60019496c44a": {
+                "delay": 0,
+                "group": 0
+            },
+            "8cce4edeb3c7": {
+                "delay": 0,
+                "group": 7
+            },
+            "8cce4ee1df2e": {
+                "delay": 0,
+                "group": 5
+            },
+            "8cce4ee36bed": {
+                "delay": 0,
+                "group": 0
+            }
+        }
+    },
+    {
+        "id": 0,
+        "name": "Curve delay",
+        "tubes": {
+            "24a1603a2be9": {
+                "delay": 200,
+                "group": 0
+            },
+            "24a1603aa2dc": {
+                "delay": 0,
+                "group": 0
+            },
+            "24a1603acf56": {
+                "delay": 200,
+                "group": 0
+            },
+            "24a1603d4856": {
+                "delay": 200,
+                "group": 0
+            },
+            "24a1603d864a": {
+                "delay": 0,
+                "group": 0
+            },
+            "24a1603d872f": {
+                "delay": 0,
+                "group": 0
+            },
+            "24a1603d8b0a": {
+                "delay": 0,
+                "group": 0
+            },
+            "60019496c44a": {
+                "delay": 0,
+                "group": 0
+            },
+            "8cce4edeb3c7": {
+                "delay": 200,
+                "group": 0
+            },
+            "8cce4ee1df2e": {
+                "delay": 0,
+                "group": 0
+            },
+            "8cce4ee36bed": {
+                "delay": 0,
+                "group": 0
+            }
+        }
+    },
+    {
+        "id": 0,
+        "name": "Test",
+        "tubes": {
+        }
+    },
+    {
+        "id": 0,
+        "name": "Test",
+        "tubes": {
+        }
+    },
+    {
+        "id": 0,
+        "name": "Test",
+        "tubes": {
+        }
+    },
+    {
+        "id": 0,
+        "name": "Test",
+        "tubes": {
+        }
+    },
+    {
+        "id": 0,
+        "name": "Test",
+        "tubes": {
+        }
+    },
+    {
+        "id": 0,
+        "name": "Test",
+        "tubes": {
+        }
+    },
+    {
+        "id": 0,
+        "name": "Test",
+        "tubes": {
+        }
+    },
+    {
+        "id": 0,
+        "name": "Left right",
+        "tubes": {
+            "24a1603a2be9": {
+                "delay": 0,
+                "group": 2
+            },
+            "24a1603aa2dc": {
+                "delay": 0,
+                "group": 2
+            },
+            "24a1603acf56": {
+                "delay": 0,
+                "group": 1
+            },
+            "24a1603d4856": {
+                "delay": 0,
+                "group": 1
+            },
+            "24a1603d864a": {
+                "delay": 0,
+                "group": 0
+            },
+            "24a1603d872f": {
+                "delay": 0,
+                "group": 1
+            },
+            "24a1603d8b0a": {
+                "delay": 0,
+                "group": 1
+            },
+            "60019496c44a": {
+                "delay": 0,
+                "group": 0
+            },
+            "8cce4edeb3c7": {
+                "delay": 0,
+                "group": 2
+            },
+            "8cce4ee1df2e": {
+                "delay": 0,
+                "group": 2
+            },
+            "8cce4ee36bed": {
+                "delay": 0,
+                "group": 0
+            }
+        }
+    },
+    {
+        "id": 0,
+        "name": "Sequence",
+        "tubes": {
+            "24a1603a2be9": {
+                "delay": 0,
+                "group": 2
+            },
+            "24a1603aa2dc": {
+                "delay": 0,
+                "group": 4
+            },
+            "24a1603acf56": {
+                "delay": 0,
+                "group": 2
+            },
+            "24a1603d4856": {
+                "delay": 0,
+                "group": 3
+            },
+            "24a1603d864a": {
+                "delay": 0,
+                "group": 0
+            },
+            "24a1603d872f": {
+                "delay": 0,
+                "group": 1
+            },
+            "24a1603d8b0a": {
+                "delay": 0,
+                "group": 4
+            },
+            "60019496c44a": {
+                "delay": 0,
+                "group": 0
+            },
+            "8cce4edeb3c7": {
+                "delay": 0,
+                "group": 3
+            },
+            "8cce4ee1df2e": {
+                "delay": 0,
+                "group": 1
+            },
+            "8cce4ee36bed": {
+                "delay": 0,
+                "group": 0
+            }
+        }
+    },
+    {
+        "id": 0,
+        "name": "Test",
+        "tubes": {
+        }
+    },
+    {
+        "id": 0,
+        "name": "Test",
+        "tubes": {
+        }
+    },
+    {
+        "id": 0,
+        "name": "Test",
+        "tubes": {
+        }
+    },
+    {
+        "id": 0,
+        "name": "Test",
+        "tubes": {
+        }
+    },
+    {
+        "id": 0,
+        "name": "Test",
+        "tubes": {
+        }
+    },
+    {
+        "id": 0,
+        "name": "Test",
+        "tubes": {
+        }
+    },
+    {
+        "id": 0,
+        "name": "Test",
+        "tubes": {
+        }
+    },
+    {
+        "id": 0,
+        "name": "Test",
+        "tubes": {
+        }
+    },
+    {
+        "id": 0,
+        "name": "Quadrants",
+        "tubes": {
+            "24a1603a2be9": {
+                "delay": 0,
+                "group": 3
+            },
+            "24a1603aa2dc": {
+                "delay": 0,
+                "group": 4
+            },
+            "24a1603acf56": {
+                "delay": 0,
+                "group": 1
+            },
+            "24a1603d4856": {
+                "delay": 0,
+                "group": 2
+            },
+            "24a1603d864a": {
+                "delay": 0,
+                "group": 0
+            },
+            "24a1603d872f": {
+                "delay": 0,
+                "group": 1
+            },
+            "24a1603d8b0a": {
+                "delay": 0,
+                "group": 2
+            },
+            "60019496c44a": {
+                "delay": 0,
+                "group": 0
+            },
+            "8cce4edeb3c7": {
+                "delay": 0,
+                "group": 4
+            },
+            "8cce4ee1df2e": {
+                "delay": 0,
+                "group": 3
+            },
+            "8cce4ee36bed": {
+                "delay": 0,
+                "group": 0
+            }
+        }
+    },
+    {
+        "id": 0,
+        "name": "ZigZag",
+        "tubes": {
+            "24a1603a2be9": {
+                "delay": 0,
+                "group": 4
+            },
+            "24a1603aa2dc": {
+                "delay": 0,
+                "group": 8
+            },
+            "24a1603acf56": {
+                "delay": 0,
+                "group": 3
+            },
+            "24a1603d4856": {
+                "delay": 0,
+                "group": 5
+            },
+            "24a1603d864a": {
+                "delay": 0,
+                "group": 0
+            },
+            "24a1603d872f": {
+                "delay": 0,
+                "group": 1
+            },
+            "24a1603d8b0a": {
+                "delay": 0,
+                "group": 7
+            },
+            "60019496c44a": {
+                "delay": 0,
+                "group": 0
+            },
+            "8cce4edeb3c7": {
+                "delay": 0,
+                "group": 6
+            },
+            "8cce4ee1df2e": {
+                "delay": 0,
+                "group": 2
+            },
+            "8cce4ee36bed": {
+                "delay": 0,
+                "group": 0
+            }
+        }
+    },
+    {
+        "id": 0,
+        "name": "Test",
+        "tubes": {
+        }
+    },
+    {
+        "id": 0,
+        "name": "Test",
+        "tubes": {
+        }
+    },
+    {
+        "id": 0,
+        "name": "Test",
+        "tubes": {
+        }
+    },
+    {
+        "id": 0,
+        "name": "Test",
+        "tubes": {
+        }
+    },
+    {
+        "id": 0,
+        "name": "Test",
+        "tubes": {
+        }
+    },
+    {
+        "id": 0,
+        "name": "Test",
+        "tubes": {
+        }
+    },
+    {
+        "id": 0,
+        "name": "Test",
+        "tubes": {
+        }
+    },
+    {
+        "id": 0,
+        "name": "Test",
+        "tubes": {
+        }
+    },
+    {
+        "id": 0,
+        "name": "Test",
+        "tubes": {
+        }
+    },
+    {
+        "id": 0,
+        "name": "Test",
+        "tubes": {
+        }
+    },
+    {
+        "id": 0,
+        "name": "Test",
+        "tubes": {
+        }
+    },
+    {
+        "id": 0,
+        "name": "Test",
+        "tubes": {
+        }
+    },
+    {
+        "id": 0,
+        "name": "Test",
+        "tubes": {
+        }
+    },
+    {
+        "id": 0,
+        "name": "Test",
+        "tubes": {
+        }
+    },
+    {
+        "id": 0,
+        "name": "Test",
+        "tubes": {
+        }
+    },
+    {
+        "id": 0,
+        "name": "Test",
+        "tubes": {
+        }
+    },
+    {
+        "id": 0,
+        "name": "Test",
+        "tubes": {
+        }
+    },
+    {
+        "id": 0,
+        "name": "Test",
+        "tubes": {
+        }
+    },
+    {
+        "id": 0,
+        "name": "Test",
+        "tubes": {
+        }
+    },
+    {
+        "id": 0,
+        "name": "Test",
+        "tubes": {
+        }
+    },
+    {
+        "id": 0,
+        "name": "Test",
+        "tubes": {
+        }
+    },
+    {
+        "id": 0,
+        "name": "Test",
+        "tubes": {
+        }
+    },
+    {
+        "id": 0,
+        "name": "Test",
+        "tubes": {
+        }
+    },
+    {
+        "id": 0,
+        "name": "Test",
+        "tubes": {
+        }
+    },
+    {
+        "id": 0,
+        "name": "Test",
+        "tubes": {
+        }
+    },
+    {
+        "id": 0,
+        "name": "Test",
+        "tubes": {
+        }
+    },
+    {
+        "id": 0,
+        "name": "Test",
+        "tubes": {
+        }
+    },
+    {
+        "id": 0,
+        "name": "Test",
+        "tubes": {
+        }
+    },
+    {
+        "id": 0,
+        "name": "Test",
+        "tubes": {
+        }
+    },
+    {
+        "id": 0,
+        "name": "Test",
+        "tubes": {
+        }
+    },
+    {
+        "id": 0,
+        "name": "Test",
+        "tubes": {
+        }
+    },
+    {
+        "id": 0,
+        "name": "Test",
+        "tubes": {
+        }
+    },
+    {
+        "id": 0,
+        "name": "Test",
+        "tubes": {
+        }
+    },
+    {
+        "id": 0,
+        "name": "Test",
+        "tubes": {
+        }
+    },
+    {
+        "id": 0,
+        "name": "Test",
+        "tubes": {
+        }
+    },
+    {
+        "id": 0,
+        "name": "Test",
+        "tubes": {
+        }
+    },
+    {
+        "id": 0,
+        "name": "Test",
+        "tubes": {
+        }
+    },
+    {
+        "id": 0,
+        "name": "Test",
+        "tubes": {
+        }
+    },
+    {
+        "id": 0,
+        "name": "Test",
+        "tubes": {
+        }
+    },
+    {
+        "id": 0,
+        "name": "Test",
+        "tubes": {
+        }
+    },
+    {
+        "id": 0,
+        "name": "Test",
+        "tubes": {
+        }
+    },
+    {
+        "id": 0,
+        "name": "Test",
+        "tubes": {
+        }
+    },
+    {
+        "id": 0,
+        "name": "Test",
+        "tubes": {
+        }
+    },
+    {
+        "id": 0,
+        "name": "Test",
+        "tubes": {
+        }
+    },
+    {
+        "id": 0,
+        "name": "Test",
+        "tubes": {
+        }
+    },
+    {
+        "id": 0,
+        "name": "Test",
+        "tubes": {
+        }
+    },
+    {
+        "id": 0,
+        "name": "Test",
+        "tubes": {
+        }
+    },
+    {
+        "id": 0,
+        "name": "Test",
+        "tubes": {
+        }
+    },
+    {
+        "id": 0,
+        "name": "Test",
+        "tubes": {
+        }
+    },
+    {
+        "id": 0,
+        "name": "Test",
+        "tubes": {
+        }
+    },
+    {
+        "id": 0,
+        "name": "Test",
+        "tubes": {
+        }
+    },
+    {
+        "id": 0,
+        "name": "Test",
+        "tubes": {
+        }
+    },
+    {
+        "id": 0,
+        "name": "Test",
+        "tubes": {
+        }
+    },
+    {
+        "id": 0,
+        "name": "Test",
+        "tubes": {
+        }
+    },
+    {
+        "id": 0,
+        "name": "Test",
+        "tubes": {
+        }
+    },
+    {
+        "id": 0,
+        "name": "Test",
+        "tubes": {
+        }
+    },
+    {
+        "id": 0,
+        "name": "Test",
+        "tubes": {
+        }
+    },
+    {
+        "id": 0,
+        "name": "Test",
+        "tubes": {
+        }
+    }
+]

@@ -98,7 +98,6 @@ bool NetDevice::checkInterface() {
 
     // Get interface flags (up/down)
     if (ioctl(sockfd, SIOCGIFFLAGS, &ifr) == -1) {
-        perror("SIOCGIFFLAGS");
         close(sockfd);
         return false;
     }
