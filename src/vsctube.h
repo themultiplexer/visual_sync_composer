@@ -5,6 +5,7 @@
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 #include <QApplication>
+#include <random>
 #include "helper.h"
 #include "tubewidget.h"
 
@@ -40,6 +41,9 @@ private:
     QPushButton *leftButton;
     QPushButton *rightButton;
     QSpinBox *delaySpinBox, *groupSpinBox;
+
+
+
     void onMinusClicked();
     void onPlusClicked();
     TubeWidget *ftube;

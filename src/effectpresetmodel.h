@@ -22,8 +22,8 @@ public:
     static EffectPresetModel * fromJson(const QJsonObject &obj);
     CONFIG_DATA getConfig() const;
     void setConfig(const CONFIG_DATA &newConfig);
-    const TubePresetModel* getPresets() const;
-    void setPresets(const TubePresetModel newPresets);
+    TubePresetModel* getPresets();
+    void setPresets(TubePresetModel newPresets);
 };
 
 #endif // EFFECTPRESETMODEL_H

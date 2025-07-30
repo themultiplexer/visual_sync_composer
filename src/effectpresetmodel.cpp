@@ -21,12 +21,12 @@ EffectPresetModel::EffectPresetModel(std::string name, int id, CONFIG_DATA confi
     this->pattern = pattern;
 }
 
-const TubePresetModel* EffectPresetModel::getPresets() const
+TubePresetModel* EffectPresetModel::getPresets()
 {
     return &preset;
 }
 
-void EffectPresetModel::setPresets(const TubePresetModel newPresets)
+void EffectPresetModel::setPresets(TubePresetModel newPresets)
 {
     preset = newPresets;
 }

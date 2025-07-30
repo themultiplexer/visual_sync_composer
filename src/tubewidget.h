@@ -12,6 +12,7 @@
 #include <QOpenGLVertexArrayObject>
 #include <QOpenGLBuffer>
 #include <QOpenGLFunctions>
+#include <random>
 
 
 class TubeWidget : public QOpenGLWidget, protected QOpenGLFunctions
@@ -35,6 +36,10 @@ protected:
     QOpenGLVertexArrayObject vao, vao1;
     QOpenGLBuffer vertexPositionBuffer, vertexBuffer;
     GLuint shaderProgram;
+
+    std::random_device dev;
+    std::mt19937 *rng;
+    std::uniform_int_distribution<std::mt19937::result_type> *pixelRandom;
 private:
     float peak;
     float time;

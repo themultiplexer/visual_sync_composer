@@ -98,7 +98,7 @@ public:
     void loadLyrics();
     void setNewEffect(EffectPresetModel *model);
     int activeEffect;
-    const EffectPresetModel *getCurrentEffect() const;
+    EffectPresetModel *getCurrentEffect();
 
 protected:
     void checkTime();
@@ -114,8 +114,8 @@ private:
     AudioAnalyzer* a;
     QDockWidget *dock;
     OGLWidget *glv, *popoutGlv;
-    const EffectPresetModel* currentEffect;
-    const TubePresetModel* currentPreset;
+    int currentEffect;
+    int currentPreset;
     ColorControl colorMode;
     QLabel *numBeatLabel, *wifiLabel;
     bool lastColorRed;
@@ -127,8 +127,8 @@ private:
     std::vector<QRadioButton*> ledModeRadioButtons;
     std::vector<EffectPresetModel *> effectPresets;
     std::vector<TubePresetModel *> tubePresets;
-    std::map<const EffectPresetModel *, PresetButton *> effectButtons{};
-    std::map<const TubePresetModel *, PresetButton *> tubeButtons{};
+    std::vector<PresetButton *> effectButtons{};
+    std::vector<PresetButton *> tubeButtons{};
 
     FixedQueue<uint64_t, 10> beats;
     FixedQueue<std::array<float, 2>, 4> colors;

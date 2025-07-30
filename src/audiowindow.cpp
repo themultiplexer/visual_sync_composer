@@ -9,7 +9,7 @@
 
 AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     : QMainWindow(parent)
-    , ui(new Ui::MainWindow), popoutGlv(nullptr), fullScreenWindow(new FullscreenWindow()), currentEffect(nullptr), currentPreset(nullptr)
+    , ui(new Ui::MainWindow), popoutGlv(nullptr), fullScreenWindow(new FullscreenWindow()), currentEffect(-1), currentPreset(-1)
 {
     numBeats = 0;
     numGroups = 1;
@@ -196,14 +196,15 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
             PresetButton *button = new PresetButton(model, this);
             presetsLayout->addWidget(button, row, col);
             connect(button, &PresetButton::releasedInstantly, [=](){
+                ptrdiff_t index = std::distance(tubeButtons.begin(), std::find(tubeButtons.begin(), tubeButtons.end(), button));
                 TubePresetModel *model = static_cast<TubePresetModel *>(button->getModel());
-                if (currentPreset) {
-                    tubeButtons.at(currentPreset)->setStyleSheet("");
+                if (currentPreset != -1) {
+                    tubeButtons[currentPreset]->setStyleSheet("");
                 }
                 button->setStyleSheet("background-color: green");
                 std::cout << "WTF" << std::endl;
                 applyTubePreset(model);
-                currentPreset = model;
+                currentPreset = (int)index;
                 sendTubeSyncData();
             });
             connect(button, &PresetButton::longPressed, [=](){
@@ -226,7 +227,7 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
                     PresetModel::saveToJsonFile(tubePresets, "tubes.json");
                 }
             });
-            tubeButtons[model] = button;
+            tubeButtons.push_back(button);
         }
     }
 
@@ -311,12 +312,13 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
             PresetButton *button = new PresetButton(model, this);
             gridLayout->addWidget(button, row, col);
             connect(button, &PresetButton::releasedInstantly, [=](){
+                ptrdiff_t index = std::distance(tubeButtons.begin(), std::find(tubeButtons.begin(), tubeButtons.end(), button));
                 EffectPresetModel *model = static_cast<EffectPresetModel *>(button->getModel());
-                if (currentEffect) {
-                    effectButtons.at(currentEffect)->setStyleSheet("");
+                if (currentEffect != -1) {
+                    effectButtons[currentEffect]->setStyleSheet("");
                 }
                 button->setStyleSheet("background-color: red");
-                currentEffect = model;
+                currentEffect = (int)index;
                 setNewEffect(model);
 
                 applyTubePreset(model->getPresets());
@@ -332,8 +334,8 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
                 if (ok && !text.isEmpty()) {
                     EffectPresetModel *model = static_cast<EffectPresetModel *>(button->getModel());
                     model->setConfig(ep->getMasterconfig());
-                    if (currentPreset) {
-                        model->setPresets(*currentPreset);
+                    if (currentPreset != -1) {
+                        model->setPresets(*tubePresets[currentPreset]);
                     }
                     model->setName(text.toStdString());
                     button->setModel(model);
@@ -344,7 +346,7 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
                     }
                 }
             });
-            effectButtons[model] = button;
+            effectButtons.push_back(button);
         }
     }
     bottomLayout->addLayout(slidersLayout);
@@ -577,9 +579,16 @@ void AudioWindow::setNewEffect(EffectPresetModel *model) {
     ep->setMasterconfig(model->config);
     ep->sendConfig();
 
-    currentPreset = model->getPresets();
-    applyTubePreset(currentPreset);
-    sendTubeSyncData();
+
+    ptrdiff_t pos = std::distance(tubePresets.begin(), std::find(tubePresets.begin(), tubePresets.end(), model->getPresets()));
+    if (pos < tubePresets.size()) {
+        currentPreset = (int)pos;
+    }
+
+    if (currentPreset != -1) {
+        applyTubePreset(tubePresets[currentPreset]);
+        sendTubeSyncData();
+    }
 }
 
 
@@ -717,9 +726,9 @@ void AudioWindow::modifierChanged(bool state)
     ep->sendConfig();
 }
 
-const EffectPresetModel *AudioWindow::getCurrentEffect() const
+EffectPresetModel *AudioWindow::getCurrentEffect()
 {
-    return currentEffect;
+    return effectPresets[currentEffect];
 }
 
 void AudioWindow::closeEvent(QCloseEvent *event)
