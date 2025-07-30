@@ -80,7 +80,7 @@ VSCTube::VSCTube(std::string mac, QWidget *parent) : QWidget(parent) {
     ftube = new TubeWidget(this);
     ftube->setMinimumHeight(150);
     ftube->setMinimumWidth(25);
-    ftube->setMaximumWidth(75);
+    //ftube->setMaximumWidth(75);
     label = new QLabel(QString::fromStdString(mac));
 
     QHBoxLayout *buttonLayout = new QHBoxLayout;

@@ -153,6 +153,9 @@ private:
     VSCSlider *timeSlider;
     VSCSlider *otherSlider;
 
+    QTimer *timer;
+    int tubeFrames;
+
     FullscreenWindow *fullScreenWindow;
     void checkStatus();
     void sendTubeSyncData();

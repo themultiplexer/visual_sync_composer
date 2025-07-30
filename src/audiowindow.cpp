@@ -9,7 +9,7 @@
 
 AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     : QMainWindow(parent)
-    , ui(new Ui::MainWindow), popoutGlv(nullptr), fullScreenWindow(new FullscreenWindow()), currentEffect(-1), currentPreset(-1)
+    , ui(new Ui::MainWindow), popoutGlv(nullptr), fullScreenWindow(new FullscreenWindow()), wifiLabel(nullptr), currentEffect(-1), currentPreset(-1), timer(nullptr), tubeFrames(0)
 {
     numBeats = 0;
     numGroups = 1;
@@ -106,7 +106,22 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     QSplitter* mainLayout = new QSplitter(Qt::Vertical, this);
     this->setCentralWidget(mainLayout);
     mainLayout->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::MinimumExpanding);
-    //splitter->setStretchFactor(0, 0);
+
+    if (false) {
+        VSCTube *demotube = new VSCTube("asdsadasdsadsad", mainLayout);
+        mainLayout->addWidget(demotube);
+        timer = new QTimer(this);
+        QObject::connect(timer, &QTimer::timeout, this, [demotube, this](){
+            if (tubeFrames % 20 == 0) {
+                hsv color = {(float)(*hueRandom)(*rng), 1.0, 1.0};
+                demotube->setPeaked(hsv2rgb(color));
+            }
+            tubeFrames++;
+            demotube->updateGL();
+        });
+        timer->start(16);
+    }
+
 
     QWidget *statusWidget = new QWidget;
     statusWidget->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Minimum);
@@ -145,6 +160,7 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     auto macs = devicereqistry::macs();
     for (auto mac : macs) {
         VSCTube *tube = new VSCTube(arrayToHexString(mac), this);
+        //tube->setMinimumHeight(250);
         tube->setMaximumWidth(250);
         connect(tube, &VSCTube::valueChanged, this, [=, this](){
             sendTubeSyncData();
@@ -384,19 +400,7 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
         });
         colorPaletteLayout->addWidget(radio);
     }
-    /*
-    QPushButton *allButton = new QPushButton("Random", colorPaletteWidget);
-    QPushButton *testButton = new QPushButton("Red/White", colorPaletteWidget);
 
-    for (auto button : {allButton, testButton}) {
-        QObject::connect(button, &QPushButton::released, [=](){
-
-        });
-    }
-    colorPaletteLayout->addWidget(new QLabel("Color:"));
-    colorPaletteLayout->addWidget(allButton);
-    colorPaletteLayout->addWidget(testButton);
-    */
     QWidget *headerWidget = new QWidget;
     QHBoxLayout *header = new QHBoxLayout(headerWidget);
     bpmLabel = new QLabel("bpm");
@@ -537,11 +541,15 @@ void AudioWindow::applyTubePreset(const TubePresetModel *model) {
 
 void AudioWindow::checkStatus() {
     NetDevice h = NetDevice("wlxdc4ef40a3f9f");
-    if (h.checkInterface()) {
-        wifiLabel->setText("Online");
-    } else {
-        wifiLabel->setText("Offline");
+
+    if (wifiLabel) {
+        if (h.checkInterface()) {
+            wifiLabel->setText("Online");
+        } else {
+            wifiLabel->setText("Offline");
+        }
     }
+
 }
 
 void AudioWindow::sendTubeSyncData() {
@@ -606,6 +614,10 @@ void AudioWindow::checkTime(){
     }
 
     std::vector<float> out(fl.size());
+
+    if (false) {
+        return;
+    }
 
     OGLWidget *w = glv;
     if (fullScreenWindow->isActiveWindow()) {
