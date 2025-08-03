@@ -127,10 +127,22 @@ VSCTube::VSCTube(std::string mac, QWidget *parent) : QWidget(parent) {
     connect(groupSpinBox, QOverload<int>::of(&QSpinBox::valueChanged), this, &VSCTube::onGroupValueChanged);
 }
 
-void VSCTube::setPeaked(rgb color) {
+void VSCTube::setEffect(CONFIG_DATA effect) {
+    ftube->setEffect(effect);
+}
+
+void VSCTube::sync() {
     QTimer::singleShot(delaySpinBox->value(), ftube, [=]() {
-        ftube->setPeaked(QColor(color.r * 255, color.g * 255, color.b * 255));  // Request an update every 16ms (~60 FPS)
+        ftube->sync();
     });
+}
+
+void VSCTube::setPeaked(rgb color, int group) {
+    if (group == groupSpinBox->value()) {
+        QTimer::singleShot(delaySpinBox->value(), ftube, [=]() {
+            ftube->setPeaked(QColor(color.r * 255, color.g * 255, color.b * 255));  // Request an update every 16ms (~60 FPS)
+        });
+    }
 }
 
 void VSCTube::updateGL() {

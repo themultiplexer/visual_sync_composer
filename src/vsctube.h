@@ -26,7 +26,7 @@ signals:
 
 public:
     VSCTube(std::string mac, QWidget *parent);
-    void setPeaked(rgb color);
+    void setPeaked(rgb color, int group);
     void updateGL();
     std::string getMac() const;
 
@@ -34,20 +34,21 @@ public:
     int getGroup() const;
     void setDelay(int val);
     void setGroup(int val);
+    void setEffect(CONFIG_DATA effect);
+    void sync();
 private:
     std::string mac;
     QLabel *label;
     QLabel *rightLabel;
     QPushButton *leftButton;
     QPushButton *rightButton;
+    TubeWidget *ftube;
+    QPushButton *flashButton;
     QSpinBox *delaySpinBox, *groupSpinBox;
-
-
 
     void onMinusClicked();
     void onPlusClicked();
-    TubeWidget *ftube;
-    QPushButton *flashButton;
+
     void onFlashClicked();
     void onDelayValueChanged(int s);
     void onGroupValueChanged(int s);

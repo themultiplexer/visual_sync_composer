@@ -168,13 +168,13 @@ MainWindow::MainWindow(WifiEventProcessor *ep, QWidget *parent)
 std::string currentUrl = "";
 
 void MainWindow::updateTrackInfo() {
-    const char* destinationName = "org.mpris.MediaPlayer2.spotify";
-    const char* objectPath = "/org/mpris/MediaPlayer2";
+    sdbus::ServiceName destinationName("org.mpris.MediaPlayer2.spotify");
+    sdbus::ObjectPath objectPath("/org/mpris/MediaPlayer2");
     auto c = sdbus::createSessionBusConnection();
     auto concatenatorProxy = sdbus::createProxy(*c, destinationName, objectPath);
-    std::map<std::string, sdbus::Variant> metadata = concatenatorProxy->getProperty("Metadata").onInterface("org.mpris.MediaPlayer2.Player");
-
-    auto test = metadata["mpris:artUrl"].get<std::string>();
+    sdbus::Variant metadata = concatenatorProxy->getProperty("Metadata").onInterface("org.mpris.MediaPlayer2.Player");
+    auto metamap = metadata.get<std::map<std::string, sdbus::Variant>>();
+    auto test = metamap.at("mpris:artUrl").get<std::string>();
 
     if (test != currentUrl) {
         emit workerThread->startDownload(QString(test.c_str()));
@@ -182,16 +182,16 @@ void MainWindow::updateTrackInfo() {
         std::cout << "Updating Cover: " << test << std::endl;
     }
 
-    uint64_t track_length = metadata["mpris:length"].get<uint64_t>();
+    uint64_t track_length = metamap.at("mpris:length").get<uint64_t>();
     progressSlider->setMaximum(static_cast<double>(track_length) / 1e6);
     timeline->setTrackTime(static_cast<double>(track_length) / 1e6);
     remainingLabel->setText(QString(std::to_string(static_cast<double>(track_length) / 1e6).c_str()));
 
-    if (metadata.count("xesam:artist")) {
+    if (metamap.count("xesam:artist")) {
         // Check if the "xesam:artist" value is a vector of strings
-        if (metadata["xesam:artist"].containsValueOfType<std::vector<std::string>>()) {
+        if (metamap.at("xesam:artist").containsValueOfType<std::vector<std::string>>()) {
             // Check if the vector is not empty
-            auto artistVector = metadata["xesam:artist"].get<std::vector<std::string>>();
+            auto artistVector = metamap.at("xesam:artist").get<std::vector<std::string>>();
             if (!artistVector.empty()) {
                 std::string artists;
                 for (std::string artist : artistVector) {
@@ -208,10 +208,10 @@ void MainWindow::updateTrackInfo() {
         std::cerr << "Error: 'xesam:artist' key not found in metadata." << std::endl;
     }
 
-    if (metadata.count("xesam:title")) {
+    if (metamap.count("xesam:title")) {
         // Check if the "xesam:title" value is a vector of strings
-        if (metadata["xesam:title"].containsValueOfType<std::string>()) {
-            auto title = metadata["xesam:title"].get<std::string>();
+        if (metamap.at("xesam:title").containsValueOfType<std::string>()) {
+            auto title = metamap.at("xesam:title").get<std::string>();
             titleLabel->setText(QString(title.c_str()));
         } else {
             std::cerr << "Error: 'xesam:title' value is not a string." << std::endl;
@@ -240,8 +240,8 @@ void MainWindow::updateTrackInfo() {
 
 void MainWindow::playpause() {
     std::cout << "Clicked " << std::endl;
-    const char* destinationName = "org.mpris.MediaPlayer2.spotify";
-    const char* objectPath = "/org/mpris/MediaPlayer2";
+    sdbus::ServiceName destinationName("org.mpris.MediaPlayer2.spotify");
+    sdbus::ObjectPath objectPath("/org/mpris/MediaPlayer2");
     auto c = sdbus::createSessionBusConnection();
     auto concatenatorProxy = sdbus::createProxy(*c, destinationName, objectPath);
     concatenatorProxy->callMethod("PlayPause").onInterface("org.mpris.MediaPlayer2.Player");
@@ -249,8 +249,8 @@ void MainWindow::playpause() {
 
 void MainWindow::stop() {
     std::cout << "Clicked " << std::endl;
-    const char* destinationName = "org.mpris.MediaPlayer2.spotify";
-    const char* objectPath = "/org/mpris/MediaPlayer2";
+    sdbus::ServiceName destinationName("org.mpris.MediaPlayer2.spotify");
+    sdbus::ObjectPath objectPath("/org/mpris/MediaPlayer2");
     auto c = sdbus::createSessionBusConnection();
     auto concatenatorProxy = sdbus::createProxy(*c, destinationName, objectPath);
     concatenatorProxy->callMethod("Stop").onInterface("org.mpris.MediaPlayer2.Player");
@@ -258,8 +258,8 @@ void MainWindow::stop() {
 
 void MainWindow::seek() {
     std::cout << "Clicked " << std::endl;
-    const char* destinationName = "org.mpris.MediaPlayer2.spotify";
-    const char* objectPath = "/org/mpris/MediaPlayer2";
+    sdbus::ServiceName destinationName("org.mpris.MediaPlayer2.spotify");
+    sdbus::ObjectPath objectPath("/org/mpris/MediaPlayer2");
     auto c = sdbus::createSessionBusConnection();
     auto concatenatorProxy = sdbus::createProxy(*c, destinationName, objectPath);
     concatenatorProxy->callMethod("Seek").onInterface("org.mpris.MediaPlayer2.Player").withArguments((int64_t)-1000000);
@@ -267,12 +267,13 @@ void MainWindow::seek() {
 void MainWindow::sliderChanged() {
     if (sender() == progressSlider) {
         std::cout << "Slider Changed " << progressSlider->value() << std::endl;
-        const char* destinationName = "org.mpris.MediaPlayer2.spotify";
-        const char* objectPath = "/org/mpris/MediaPlayer2";
+        sdbus::ServiceName destinationName("org.mpris.MediaPlayer2.spotify");
+        sdbus::ObjectPath objectPath("/org/mpris/MediaPlayer2");
         auto c = sdbus::createSessionBusConnection();
         auto concatenatorProxy = sdbus::createProxy(*c, destinationName, objectPath);
-        std::map<std::string, sdbus::Variant> metadata = concatenatorProxy->getProperty("Metadata").onInterface("org.mpris.MediaPlayer2.Player");
-        auto trackid = metadata["mpris:trackid"].get<std::string>();
+        sdbus::Variant metadata = concatenatorProxy->getProperty("Metadata").onInterface("org.mpris.MediaPlayer2.Player");
+        auto metamap = metadata.get<std::map<std::string, sdbus::Variant>>();
+        auto trackid = metamap.at("mpris:trackid").get<std::string>();
         auto trackObject = sdbus::ObjectPath(trackid);
         concatenatorProxy->callMethod("SetPosition").onInterface("org.mpris.MediaPlayer2.Player").withArguments(trackObject, (int64_t)(progressSlider->value() * 1e6));
         timeline->setTimeImpl(progressSlider->value());

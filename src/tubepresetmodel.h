@@ -11,6 +11,7 @@ class TubePreset {
 public:
     int delay;
     int group;
+    PATTERN_DATA pattern;
 };
 
 class TubePresetModel : public PresetModel
@@ -21,6 +22,7 @@ public:
 
 
     int id;
+    struct PATTERN_DATA pattern;
     std::map<std::string, TubePreset> tubePresets;
 
     QJsonObject toJson() const;

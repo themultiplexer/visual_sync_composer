@@ -27,7 +27,6 @@
 #include <QVBoxLayout>
 #include <QThread>
 #include <thread>
-#include <ranges>
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
 #include <boost/beast/version.hpp>
@@ -148,7 +147,7 @@ private:
                     try {
                         const std::string& body = request_.body();
                         nlohmann::json action = nlohmann::json::parse(body);
-                        std::wcout << L"Received JSON: " << action.dump().c_str() << std::endl;
+                        std::cout << "Received JSON: " << action.dump().c_str() << std::endl;
                         std::cout << action["value"] << std::endl;
                         std::vector<EffectPresetModel *> presets = PresetModel::readJson<EffectPresetModel>("effects.json");
                         audioWindow->setNewEffect(presets[action["value"]]);
@@ -298,6 +297,7 @@ int main(int argc, char *argv[])
     audioWindow = new AudioWindow(ep);
     audioWindow->setWindowTitle("Hello World");
     audioWindow->resize(1920, 1080);
+    audioWindow->setWindowState(Qt::WindowMaximized);
     audioWindow->show();
 
     std::thread server_thread(start_server);

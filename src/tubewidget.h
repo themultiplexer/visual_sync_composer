@@ -1,6 +1,7 @@
 #ifndef TUBEWIDGET_H
 #define TUBEWIDGET_H
 
+#include "wifieventprocessor.h"
 #include <GL/gl.h>
 #include <QWidget>
 #include <QOpenGLWidget>
@@ -28,6 +29,9 @@ public:
     bool peaked;
     void setPeaked(QColor color);
     QColor color;
+    void setEffect(CONFIG_DATA effect);
+
+    void sync();
 protected:
     void initializeGL();
     void paintGL();
@@ -40,6 +44,10 @@ protected:
     std::random_device dev;
     std::mt19937 *rng;
     std::uniform_int_distribution<std::mt19937::result_type> *pixelRandom;
+    std::chrono::time_point<std::chrono::system_clock> timeRef;
+
+    int particle;
+    CONFIG_DATA effect;
 
     QVector<float> sizes, brightness;
 

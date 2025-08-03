@@ -124,11 +124,15 @@ private:
     std::string values[16] = {"Hue", "Pump","Tube", "Pump Limiter","Duck","FadeToColor","Sparkle","Fire","Bounce", "Colorcycle", "11", "Strobe", "Random Flicker", "Tunnel", "Tunnel2", "Placeholder"};
 
     std::vector<QCheckBox*> ledModifierCheckboxes;
+    std::vector<QCheckBox*> autoCheckboxes;
     std::vector<QRadioButton*> ledModeRadioButtons;
     std::vector<EffectPresetModel *> effectPresets;
     std::vector<TubePresetModel *> tubePresets;
     std::vector<PresetButton *> effectButtons{};
     std::vector<PresetButton *> tubeButtons{};
+
+    PresetButton *activeEffectPresetButton;
+    PresetButton *activeTubePresetButton;
 
     FixedQueue<uint64_t, 10> beats;
     FixedQueue<std::array<float, 2>, 4> colors;

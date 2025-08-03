@@ -9,7 +9,7 @@
 
 AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     : QMainWindow(parent)
-    , ui(new Ui::MainWindow), popoutGlv(nullptr), fullScreenWindow(new FullscreenWindow()), wifiLabel(nullptr), currentEffect(-1), currentPreset(-1), timer(nullptr), tubeFrames(0)
+    , ui(new Ui::MainWindow), popoutGlv(nullptr), activeEffectPresetButton(nullptr), activeTubePresetButton(nullptr), fullScreenWindow(new FullscreenWindow()), wifiLabel(nullptr), currentEffect(-1), currentPreset(-1), timer(nullptr), tubeFrames(0)
 {
     numBeats = 0;
     numGroups = 1;
@@ -103,8 +103,21 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
 
     this->setMenuBar(menuBar);
 
-    QSplitter* mainLayout = new QSplitter(Qt::Vertical, this);
-    this->setCentralWidget(mainLayout);
+    QWidget *superWidget = new QWidget(this);
+    QVBoxLayout *superLayout = new QVBoxLayout();
+    this->setCentralWidget(superWidget);
+
+    QWidget *statusWidget = new QWidget(superWidget);
+    statusWidget->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Minimum);
+    QHBoxLayout* statusLayout = new QHBoxLayout(statusWidget);
+    statusLayout->addWidget(new QLabel("Status:"));
+    wifiLabel = new QLabel("Offline");
+    statusLayout->addWidget(wifiLabel);
+
+    QSplitter* mainLayout = new QSplitter(Qt::Vertical, superWidget);
+
+    superLayout->addWidget(statusWidget);
+    superLayout->addWidget(mainLayout);
     mainLayout->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::MinimumExpanding);
 
     if (false) {
@@ -114,7 +127,7 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
         QObject::connect(timer, &QTimer::timeout, this, [demotube, this](){
             if (tubeFrames % 20 == 0) {
                 hsv color = {(float)(*hueRandom)(*rng), 1.0, 1.0};
-                demotube->setPeaked(hsv2rgb(color));
+                demotube->setPeaked(hsv2rgb(color), 0);
             }
             tubeFrames++;
             demotube->updateGL();
@@ -123,12 +136,7 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     }
 
 
-    QWidget *statusWidget = new QWidget;
-    statusWidget->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Minimum);
-    QHBoxLayout* statusLayout = new QHBoxLayout(statusWidget);
-    statusLayout->addWidget(new QLabel("Status:"));
-    wifiLabel = new QLabel("Offline");
-    statusLayout->addWidget(wifiLabel);
+
 
     QWidget *modesWidget = new QWidget;
     modesWidget->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Minimum);
@@ -153,6 +161,23 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
         modifiersLayout->addWidget(check);
     }
     modifiersLayout->addStretch();
+
+    QWidget *autoSelectorWidget = new QWidget;
+    QHBoxLayout *autoSelectorLayout = new QHBoxLayout(autoSelectorWidget);
+    autoSelectorLayout->addWidget(new QLabel("Auto Mode:"));
+
+    for (std::string effect : {"Color", "Effect", "Composition"}) {
+        QCheckBox *checkbox = new QCheckBox();
+        checkbox->setText(effect.c_str());
+        connect(checkbox, &QCheckBox::toggled, this, [=](){
+
+        });
+        autoSelectorLayout->addWidget(checkbox);
+        autoCheckboxes.push_back(checkbox);
+    }
+    modifiersLayout->addWidget(autoSelectorWidget);
+
+
 
     QWidget *tubesWidget = new QWidget;
     //tubesWidget->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Minimum);
@@ -221,7 +246,12 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
                 std::cout << "WTF" << std::endl;
                 applyTubePreset(model);
                 currentPreset = (int)index;
+                activeTubePresetButton = button;
                 sendTubeSyncData();
+
+                for (auto t : tubes) {
+                    t->sync();
+                }
             });
             connect(button, &PresetButton::longPressed, [=](){
                 bool ok;
@@ -325,9 +355,14 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     for (int row = 0; row < 10; ++row) {
         for (int col = 0; col < 10; ++col) {
             EffectPresetModel *model = effectPresets[row * 10 + col];
+            model->id = row * 10 + col;
             PresetButton *button = new PresetButton(model, this);
             gridLayout->addWidget(button, row, col);
             connect(button, &PresetButton::releasedInstantly, [=](){
+                if (activeEffectPresetButton) {
+                    activeEffectPresetButton->setStyleSheet("");
+                }
+
                 ptrdiff_t index = std::distance(tubeButtons.begin(), std::find(tubeButtons.begin(), tubeButtons.end(), button));
                 EffectPresetModel *model = static_cast<EffectPresetModel *>(button->getModel());
                 if (currentEffect != -1) {
@@ -336,6 +371,7 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
                 button->setStyleSheet("background-color: red");
                 currentEffect = (int)index;
                 setNewEffect(model);
+                activeEffectPresetButton = button;
 
                 applyTubePreset(model->getPresets());
                 sendTubeSyncData();
@@ -417,6 +453,7 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
 
     glv = new OGLWidget(1024);
     glv->setMinimumHeight(100);
+    //glv->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
     connect(glv, &OGLWidget::threshChanged, this, &AudioWindow::sliderChanged);
     connect(glv, &OGLWidget::rangeChanged, this, [=](){
         a->setFilter(new audiofilter());
@@ -481,7 +518,6 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     frequencyLayout->addWidget(otherSlider);
 
     // Add widgets to the layout
-    mainLayout->addWidget(statusWidget);
     mainLayout->addWidget(presetControlsWidget);
     mainLayout->addWidget(colorPaletteWidget);
     mainLayout->addWidget(groupSelectorWidget);
@@ -491,6 +527,8 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     mainLayout->addWidget(modifiersWidget);
     mainLayout->addWidget(bottomWidget);
     mainLayout->addWidget(firmwareWidget);
+
+    mainLayout->setStretchFactor(4, 1);
 
     if (getuid() == 0) {
         printf("Dropping privs\n");
@@ -584,6 +622,16 @@ void AudioWindow::setNewEffect(EffectPresetModel *model) {
     ledModeRadioButtons[model->config.led_mode]->setChecked(true);
     ledModeRadioButtons[model->config.led_mode]->blockSignals(false);
 
+
+    if (activeEffectPresetButton) {
+        activeEffectPresetButton->setStyleSheet("");
+    }
+    if (model->id < effectButtons.size()) {
+        activeEffectPresetButton = effectButtons[model->id];
+        activeEffectPresetButton->setStyleSheet("background-color: red");
+    }
+
+
     ep->setMasterconfig(model->config);
     ep->sendConfig();
 
@@ -630,7 +678,7 @@ void AudioWindow::checkTime(){
             tubeGroupValue = (numBeats  % numGroups) + 1;
         }
 
-        if (numBeats % 16 == 0) {
+        if (numBeats % 16 == 0 && autoCheckboxes[1]->isChecked()) {
             setNewEffect(effectPresets[(*effectRandom)(*rng)]);
         }
 
@@ -642,7 +690,7 @@ void AudioWindow::checkTime(){
         beats.push(region.getBeatMillis());
 
         for (auto t : tubes) {
-            t->setPeaked(hsv2rgb({selectedColor[0] * 360, selectedColor[1], 1.0}));
+            t->setPeaked(hsv2rgb({selectedColor[0] * 360, selectedColor[1], 1.0}), tubeGroupValue);
         }
 
         if (colorMode == RandomHue) {
@@ -708,6 +756,12 @@ void AudioWindow::sliderChanged()
         d.offset = effect4Slider->value();
     } else if (sender() == otherSlider) {
     }
+
+    for (auto t : tubes) {
+        t->setEffect(d);
+        t->sync();
+    }
+
     ep->setMasterconfig(d);
     ep->sendConfig();
 }
@@ -722,6 +776,10 @@ void AudioWindow::effectChanged(bool state)
         d.led_mode = index;
         ep->setMasterconfig(d);
         ep->sendConfig();
+        for (auto t : tubes) {
+            t->setEffect(d);
+            t->sync();
+        }
     }
 }
 

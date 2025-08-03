@@ -11,14 +11,13 @@ EffectPresetModel::EffectPresetModel(std::string name, int id) : preset("empty")
     config.parameter3 = 6;
     config.speed_factor = 4;
     config.offset = 0;
-    this->pattern = PATTERN_DATA { {0} };
 }
 
-EffectPresetModel::EffectPresetModel(std::string name, int id, CONFIG_DATA config, PATTERN_DATA pattern, TubePresetModel tubepreset) : preset(tubepreset) {
+EffectPresetModel::EffectPresetModel(std::string name, int id, CONFIG_DATA config, TubePresetModel tubepreset) : preset(tubepreset) {
     this->name = name;
     this->id = id;
     this->config = config;
-    this->pattern = pattern;
+
 }
 
 TubePresetModel* EffectPresetModel::getPresets()
@@ -71,14 +70,6 @@ EffectPresetModel* EffectPresetModel::fromJson(const QJsonObject &obj) {
 
     TubePresetModel *tubepreset = TubePresetModel::fromJson(obj["tubepresets"].toObject());
 
-    PATTERN_DATA pattern;
-    for (int i = 0; i < 32; i++){
-        if (i % 2 == 0) {
-            pattern.pattern[i] = 0xFF;
-        } else {
-            pattern.pattern[i] = 0x00;
-        }
-    }
-    auto f = new EffectPresetModel(name, obj["id"].toInt(), config, pattern, *tubepreset);
+    auto f = new EffectPresetModel(name, obj["id"].toInt(), config, *tubepreset);
     return f;
 }

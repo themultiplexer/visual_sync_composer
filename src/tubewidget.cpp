@@ -5,10 +5,12 @@
 #define PROGRAM_VERTEX_ATTRIBUTE 0
 
 
-TubeWidget::TubeWidget(QWidget *parent) : QOpenGLWidget(parent), peak(0.0), time(0.0), sizes(20), brightness(20), color(0,0,255)
+TubeWidget::TubeWidget(QWidget *parent) : QOpenGLWidget(parent), peak(0.0), time(0.0), sizes(20), brightness(20), particle(0), color(0,0,255)
 {
     rng = new std::mt19937(dev());
     pixelRandom = new std::uniform_int_distribution<std::mt19937::result_type>(0, 255);
+
+    timeRef = std::chrono::system_clock::now();
 
     setMouseTracking(true);
     installEventFilter(this);
@@ -108,8 +110,6 @@ void TubeWidget::initializeGL()
 
 void TubeWidget::paintGL()
 {
-    glClearColor(0,0,0,1);
-
     program->bind();
     program->setUniformValue("peak", peak);
     program->setUniformValue("color", QVector3D(color.red() / 255.0, color.green() / 255.0, color.blue() / 255.0));
@@ -120,9 +120,24 @@ void TubeWidget::paintGL()
     }
     program->setUniformValueArray("sizes", v, 20, 1);
 
-    for (int i = 0; i < 20; ++i) {
-        brightness[i] = brightness[i] > 0.0 ? brightness[i] - 0.05 : 0.0;
+
+    auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - timeRef);
+
+    if (effect.led_mode == 0) {
+
+    } else {
+        for (int i = 0; i < 20; ++i) {
+            brightness[i] = (i == (int)(sin(diff.count() / 100.0) * 10.0) + 10);
+        }
     }
+
+    if (effect.modifiers & 0x01) {
+        for (int i = 0; i < 20; ++i) {
+            brightness[i] = brightness[i] > 0.0 ? brightness[i] - 0.1 : 0.0;
+        }
+    }
+
+
     program->setUniformValueArray("brightness", brightness.constData(), 20, 1);
 
     vao.bind();
@@ -132,7 +147,17 @@ void TubeWidget::paintGL()
     time += 0.05;
 }
 
+void TubeWidget::setEffect(CONFIG_DATA effect)
+{
+    this->effect = effect;
+}
+
+void TubeWidget::sync() {
+    timeRef = std::chrono::system_clock::now();
+}
+
 void TubeWidget::setPeaked(QColor newColor) {
+    peaked = true;
     for (int i = 0; i < 20; ++i) {
         brightness[i] = ((*pixelRandom)(*rng)) / 255.0;
     }
