@@ -45,7 +45,9 @@ std::string arrayToString(const std::array<T, N>& arr) {
     std::ostringstream oss;
     oss << "[ ";
     for (std::size_t i = 0; i < N; ++i) {
+        oss << std::hex;
         oss << +arr[i]; // Unary + to promote uint8_t to int
+        oss << std::dec;
         if (i != N - 1) {
             oss << ", ";
         }

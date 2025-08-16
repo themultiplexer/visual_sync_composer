@@ -16,8 +16,8 @@ OGLWidget::OGLWidget(int step, QWidget *parent)
         recentFrequencies2.push_back(100);
     }
 
-    regions.push_back(new FrequencyRegion(1, 5, NUM_POINTS, "low"));
-    regions.push_back(new FrequencyRegion(170, 205, NUM_POINTS, "high"));
+    regions.push_back(new FrequencyRegion(1, 1, 5, NUM_POINTS, "low"));
+    regions.push_back(new FrequencyRegion(2, 170, 205, NUM_POINTS, "high"));
 
     setMouseTracking(true);
     installEventFilter(this);
@@ -378,21 +378,22 @@ void OGLWidget::setFrequencies(const std::vector<float> &leftFrequencies, const 
 {
     std::vector<Vertex2D> path1, path2;
     float width = 0.005f;
+    float alpha = 0.7;
 
     for (int i = 0; i < NUM_POINTS; i++) {
+        smoothFrequencies[i] = (alpha * leftFrequencies[i]) + (1.0 - alpha) * smoothFrequencies[i];
+
         if (leftFrequencies[i] > smoothFrequencies[i]) {
-            smoothFrequencies[i] = leftFrequencies[i];
             recentFrequencies[i] = 100;
         } else {
-            smoothFrequencies[i] = (smoothFrequencies[i] > decay) ? smoothFrequencies[i] - decay : 0.0;
             recentFrequencies[i] -= recentFrequencies[i] > 10 ? 10 : 0;
         }
 
+        smoothFrequencies2[i] = (alpha * rightFrequencies[i]) + (1.0 - alpha) * smoothFrequencies2[i];
+
         if (rightFrequencies[i] > smoothFrequencies2[i]) {
-            smoothFrequencies2[i] = rightFrequencies[i];
             recentFrequencies2[i] = 100;
         } else {
-            smoothFrequencies2[i] = (smoothFrequencies2[i] > decay) ? smoothFrequencies2[i] - decay : 0.0;
             recentFrequencies2[i] -= recentFrequencies2[i] > 10 ? 10 : 0;
         }
 

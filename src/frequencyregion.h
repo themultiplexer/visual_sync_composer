@@ -9,7 +9,7 @@ class FrequencyRegion : public QObject {
 Q_OBJECT
 
 public:
-    FrequencyRegion(int min, int max, int step, std::string name = "unnamed");
+    FrequencyRegion(int index, int min, int max, int step, std::string name = "unnamed");
 
     void setThresh(float newThresh);
     float getThresh() const;
@@ -44,6 +44,9 @@ public:
     bool getNewOnStart() const;
 
     bool getNewOnEnd() const;
+    int getIndex() const;
+    void setIndex(int newIndex);
+
 signals:
     void valueChanged();
 
@@ -54,6 +57,7 @@ private:
     std::string name;
     bool mouseDown;
     int beatMillis;
+    int index;
 
     std::chrono::time_point<std::chrono::steady_clock> lastBeat;
     bool hovering, dragging, draggingStart, draggingEnd, onLine, inside, newInside, newOnLine, newOnStart, newOnEnd;

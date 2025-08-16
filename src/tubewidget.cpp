@@ -124,20 +124,18 @@ void TubeWidget::paintGL()
     auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - timeRef);
 
     if (effect.led_mode == 0) {
-
-    } else {
         for (int i = 0; i < 20; ++i) {
             brightness[i] = (i == (int)(sin(diff.count() / 100.0) * 10.0) + 10);
         }
+    } else {
+
     }
 
-    if (effect.modifiers & 0x01) {
+    if (true || effect.modifiers & 0x01) {
         for (int i = 0; i < 20; ++i) {
             brightness[i] = brightness[i] > 0.0 ? brightness[i] - 0.1 : 0.0;
         }
     }
-
-
     program->setUniformValueArray("brightness", brightness.constData(), 20, 1);
 
     vao.bind();

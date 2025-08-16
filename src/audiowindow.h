@@ -78,7 +78,7 @@ enum ColorControl {
 
 enum GroupSelection {
     CountUp,
-    Bounce,
+    Regions,
     Random
 };
 
@@ -114,14 +114,14 @@ private:
     AudioAnalyzer* a;
     QDockWidget *dock;
     OGLWidget *glv, *popoutGlv;
-    int currentEffect;
-    int currentPreset;
+    int currentEffect, currentTab, currentPreset;
     ColorControl colorMode;
     QLabel *numBeatLabel, *wifiLabel;
     bool lastColorRed;
     int numBeats, numGroups;
+    GroupSelection groupMode;
 
-    std::string values[16] = {"Hue", "Pump","Tube", "Pump Limiter","Duck","FadeToColor","Sparkle","Fire","Bounce", "Colorcycle", "11", "Strobe", "Random Flicker", "Tunnel", "Tunnel2", "Placeholder"};
+    std::string values[20] = {"Hue", "Pump","Tube", "Pump Limiter","Duck","FadeToColor","Sparkle","Fire","Bounce", "Colorcycle", "11", "Strobe", "Random Flicker", "Tunnel", "Tunnel2", "Placeholder","confetti", "sinelon", "bpm", "juggle"};
 
     std::vector<QCheckBox*> ledModifierCheckboxes;
     std::vector<QCheckBox*> autoCheckboxes;
@@ -131,18 +131,21 @@ private:
     std::vector<PresetButton *> effectButtons{};
     std::vector<PresetButton *> tubeButtons{};
 
+    std::chrono::time_point<std::chrono::system_clock> lastEffectChange, lastPresetChange, lastDmxSent;
+
     PresetButton *activeEffectPresetButton;
     PresetButton *activeTubePresetButton;
 
     FixedQueue<uint64_t, 10> beats;
-    FixedQueue<std::array<float, 2>, 4> colors;
+    FixedQueue<std::array<float, 2>, 1> colors;
+
+    std::array<float, 2> colorPalette;
 
     std::random_device dev;
     std::mt19937 *rng;
-    std::uniform_int_distribution<std::mt19937::result_type> *hueRandom;
-
-
+    std::uniform_int_distribution<std::mt19937::result_type> *hueRandom, *satRandom;
     std::uniform_int_distribution<std::mt19937::result_type> *effectRandom;
+    std::uniform_int_distribution<std::mt19937::result_type> *presetRandom;
 
     CONFIG_DATA currentEffectConfig;
 
@@ -156,6 +159,7 @@ private:
     std::vector<VSCTube*> tubes;
     VSCSlider *timeSlider;
     VSCSlider *otherSlider;
+    std::array<float,2> currentColor;
 
     QTimer *timer;
     int tubeFrames;
@@ -164,5 +168,7 @@ private:
     void checkStatus();
     void sendTubeSyncData();
     void applyTubePreset(const TubePresetModel *model);
+    CONFIG_DATA slidersToConfig(CONFIG_DATA d);
+    void peakEvent(int group = 0);
 };
 #endif // AUDIOWINDOW_H

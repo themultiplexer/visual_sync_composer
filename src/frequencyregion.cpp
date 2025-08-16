@@ -3,8 +3,8 @@
 #include "qnamespace.h"
 #include <cmath>
 
-FrequencyRegion::FrequencyRegion(int min, int max, int step, std::string name):
-    step(step), level(0.0), thresh(0.7), peak(0.0), mouseDown(false), dragging(false), hovering(false), inside(false), newInside(false), newOnLine(false),  smoothLevel(0.0), start(f((float)min/(float)step)), end(f((float)max/(float)step)), name(name) {
+FrequencyRegion::FrequencyRegion(int index, int min, int max, int step, std::string name):
+    index(index), step(step), level(0.0), thresh(0.7), peak(0.0), mouseDown(false), dragging(false), hovering(false), inside(false), newInside(false), newOnLine(false),  smoothLevel(0.0), start(g((float)min/(float)step)), end(g((float)max/(float)step)), name(name) {
 
 }
 
@@ -39,6 +39,11 @@ bool FrequencyRegion::processData(std::vector<float> &data)
         level = data[i] > level ? data[i] : level;
     }
     //level /= (getMax() - getMin());
+    float alpha = 0.7;
+    smoothLevel = (alpha * level) + (1.0 - alpha) * smoothLevel;
+
+    float beta = 0.0005;
+    thresh = std::max((beta * (level + 0.25 )) + (1.0 - beta) * thresh, 0.5);
 
     bool lowpeak = (level > getThresh());
     beatMillis = std::chrono::duration_cast<std::chrono::milliseconds>(now - lastBeat).count();
@@ -50,14 +55,6 @@ bool FrequencyRegion::processData(std::vector<float> &data)
     } else {
         if (peak > 0) {
             peak -= 0.05;
-        }
-    }
-
-    if (level > smoothLevel) {
-        smoothLevel = level;
-    } else {
-        if (smoothLevel > 0) {
-            smoothLevel -= 0.05;
         }
     }
 
@@ -164,6 +161,16 @@ bool FrequencyRegion::getNewOnStart() const
 bool FrequencyRegion::getNewOnEnd() const
 {
     return newOnEnd;
+}
+
+int FrequencyRegion::getIndex() const
+{
+    return index;
+}
+
+void FrequencyRegion::setIndex(int newIndex)
+{
+    index = newIndex;
 }
 
 float FrequencyRegion::getSmoothLevel() const

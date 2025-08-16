@@ -9,10 +9,14 @@
 
 AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     : QMainWindow(parent)
-    , ui(new Ui::MainWindow), popoutGlv(nullptr), activeEffectPresetButton(nullptr), activeTubePresetButton(nullptr), fullScreenWindow(new FullscreenWindow()), wifiLabel(nullptr), currentEffect(-1), currentPreset(-1), timer(nullptr), tubeFrames(0)
+    , ui(new Ui::MainWindow), popoutGlv(nullptr), activeEffectPresetButton(nullptr), activeTubePresetButton(nullptr), fullScreenWindow(new FullscreenWindow()), wifiLabel(nullptr), currentEffect(-1), currentPreset(-1), currentTab(0), timer(nullptr), tubeFrames(0)
 {
     numBeats = 0;
     numGroups = 1;
+
+    groupMode = GroupSelection::CountUp;
+
+    //colorPalette = {{0.0, 1.0}, {1.0, 1.0}};
 
     this->ep = ep;
     ui->setupUi(this);
@@ -30,10 +34,17 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
 
     rng = new std::mt19937(dev());
     hueRandom = new std::uniform_int_distribution<std::mt19937::result_type>(0, 360);
-    effectRandom = new std::uniform_int_distribution<std::mt19937::result_type>(0, 100);
+    satRandom = new std::uniform_int_distribution<std::mt19937::result_type>(0, 255);
+    effectRandom = new std::uniform_int_distribution<std::mt19937::result_type>(0, 15);
+    presetRandom = new std::uniform_int_distribution<std::mt19937::result_type>(0, 15);
+
+
+    lastEffectChange = std::chrono::system_clock::now();
+    lastPresetChange = std::chrono::system_clock::now();
+
+    lastDmxSent = std::chrono::system_clock::now();
 
     for (auto color : colors) {
-        hsv col = {0.0, 1.0, 0.0};
         colors.push({0.0, 1.0});
     }
 
@@ -104,8 +115,9 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     this->setMenuBar(menuBar);
 
     QWidget *superWidget = new QWidget(this);
-    QVBoxLayout *superLayout = new QVBoxLayout();
+    QVBoxLayout *superLayout = new QVBoxLayout(superWidget);
     this->setCentralWidget(superWidget);
+    //superWidget->setStyleSheet("background-color:green;");
 
     QWidget *statusWidget = new QWidget(superWidget);
     statusWidget->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Minimum);
@@ -115,10 +127,11 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     statusLayout->addWidget(wifiLabel);
 
     QSplitter* mainLayout = new QSplitter(Qt::Vertical, superWidget);
-
+    //mainLayout->setStyleSheet("background-color:red;");
     superLayout->addWidget(statusWidget);
     superLayout->addWidget(mainLayout);
     mainLayout->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::MinimumExpanding);
+    //mainLayout->setMinimumWidth(2560);
 
     if (false) {
         VSCTube *demotube = new VSCTube("asdsadasdsadsad", mainLayout);
@@ -134,9 +147,6 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
         });
         timer->start(16);
     }
-
-
-
 
     QWidget *modesWidget = new QWidget;
     modesWidget->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Minimum);
@@ -191,7 +201,7 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
             sendTubeSyncData();
         });
 
-        connect(tube, &VSCTube::flashClicked, this, [=](){
+        connect(tube, &VSCTube::flashClicked, this, [=, this](){
             auto it = std::find(tubes.begin(), tubes.end(), tube);
             if (it != tubes.end()) {
                 int index = std::distance(tubes.begin(), it);
@@ -199,7 +209,7 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
             }
         });
 
-        connect(tube, &VSCTube::buttonPressed, this, [=](bool right){
+        connect(tube, &VSCTube::buttonPressed, this, [=, this](bool right){
             auto it = std::find(tubes.begin(), tubes.end(), tube);
             if (it != tubes.end()) {
                 int index = std::distance(tubes.begin(), it);
@@ -227,62 +237,6 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
         tubes.push_back(tube);
         tubesLayout->addWidget(tube, 1);
     }
-
-    QWidget *presetsWidget = new QWidget;
-    //tubesWidget->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Minimum);
-    QGridLayout* presetsLayout = new QGridLayout(presetsWidget);
-    for (int row = 0; row < 5; ++row) {
-        for (int col = 0; col < 5; ++col) {
-            TubePresetModel *model = tubePresets[row * 10 + col];
-            PresetButton *button = new PresetButton(model, this);
-            presetsLayout->addWidget(button, row, col);
-            connect(button, &PresetButton::releasedInstantly, [=](){
-                ptrdiff_t index = std::distance(tubeButtons.begin(), std::find(tubeButtons.begin(), tubeButtons.end(), button));
-                TubePresetModel *model = static_cast<TubePresetModel *>(button->getModel());
-                if (currentPreset != -1) {
-                    tubeButtons[currentPreset]->setStyleSheet("");
-                }
-                button->setStyleSheet("background-color: green");
-                std::cout << "WTF" << std::endl;
-                applyTubePreset(model);
-                currentPreset = (int)index;
-                activeTubePresetButton = button;
-                sendTubeSyncData();
-
-                for (auto t : tubes) {
-                    t->sync();
-                }
-            });
-            connect(button, &PresetButton::longPressed, [=](){
-                bool ok;
-                QString text = QInputDialog::getText(this, tr("Tube Config"), tr("Enter preset name:"), QLineEdit::Normal, "", &ok);
-                if (ok && !text.isEmpty()) {
-
-                    std::map<std::string, TubePreset> preset;
-                    for (auto t : tubes) {
-                        TubePreset p = TubePreset();
-                        p.delay = t->getDelay();
-                        p.group = t->getGroup();
-                        preset[t->getMac()] = p;
-                    }
-
-                    TubePresetModel *model = static_cast<TubePresetModel *>(button->getModel());
-                    model->setTubePresets(preset);
-                    model->setName(text.toStdString());
-                    button->setModel(model);
-                    PresetModel::saveToJsonFile(tubePresets, "tubes.json");
-                }
-            });
-            tubeButtons.push_back(button);
-        }
-    }
-
-    QWidget *presetControlsWidget = new QWidget;
-    presetControlsWidget->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Minimum);
-    presetControlsWidget->setMaximumHeight(400);
-    QHBoxLayout *presetControlsLayout = new QHBoxLayout(presetControlsWidget);
-    presetControlsLayout->addWidget(tubesWidget);
-    presetControlsLayout->addWidget(presetsWidget);
 
     sensitivitySlider = new VSCSlider("Sensitivity", Qt::Horizontal, tubesWidget);
     sensitivitySlider->setMinimum(0);
@@ -349,71 +303,146 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     bottomWidget->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Minimum);
     QHBoxLayout *bottomLayout = new QHBoxLayout(bottomWidget);
     bottomWidget->setMaximumHeight(550);
-    QGridLayout *gridLayout = new QGridLayout;
 
-    // Loop to create buttons and add them to the layout
-    for (int row = 0; row < 10; ++row) {
-        for (int col = 0; col < 10; ++col) {
-            EffectPresetModel *model = effectPresets[row * 10 + col];
-            model->id = row * 10 + col;
-            PresetButton *button = new PresetButton(model, this);
-            gridLayout->addWidget(button, row, col);
-            connect(button, &PresetButton::releasedInstantly, [=](){
-                if (activeEffectPresetButton) {
-                    activeEffectPresetButton->setStyleSheet("");
-                }
+    QTabWidget *tabWidget = new QTabWidget(bottomWidget);
+    tabWidget->setMinimumWidth(600);
+    connect(tabWidget, &QTabWidget::currentChanged, [=, this](int index){
+        std::cout << index << std::endl;
+        currentTab = index;
+    });
 
-                ptrdiff_t index = std::distance(tubeButtons.begin(), std::find(tubeButtons.begin(), tubeButtons.end(), button));
-                EffectPresetModel *model = static_cast<EffectPresetModel *>(button->getModel());
-                if (currentEffect != -1) {
-                    effectButtons[currentEffect]->setStyleSheet("");
-                }
-                button->setStyleSheet("background-color: red");
-                currentEffect = (int)index;
-                setNewEffect(model);
-                activeEffectPresetButton = button;
+    for (int tab = 0; tab < 4; ++tab) {
+        // Loop to create buttons and add them to the layout
+        QWidget *gridWidget = new QWidget;
+        QHBoxLayout *tabArea = new QHBoxLayout(gridWidget);
+        QGridLayout *gridLayout = new QGridLayout;
+        for (int row = 0; row < 4; ++row) {
+            for (int col = 0; col < 4; ++col) {
+                int index = tab * 16 + row * 4 + col;
 
-                applyTubePreset(model->getPresets());
-                sendTubeSyncData();
-
-                for (auto const& [id, preset] : model->getPresets()->getTubePresets()) {
-                    std::cout << id << " " << preset.delay << std::endl;
-                }
-            });
-            connect(button, &PresetButton::longPressed, [=](){
-                bool ok;
-                QString text = QInputDialog::getText(this, tr("Effect config"), tr("Enter effect name:"), QLineEdit::Normal, "", &ok);
-                if (ok && !text.isEmpty()) {
+                EffectPresetModel *model = effectPresets[index];
+                model->id = index;
+                PresetButton *button = new PresetButton(model, this);
+                button->setMinimumWidth(100);
+                button->setMaximumWidth(100);
+                button->setMinimumHeight(100);
+                button->setMaximumHeight(100);
+                gridLayout->addWidget(button, row, col);
+                connect(button, &PresetButton::releasedInstantly, [=, this](){
+                    ptrdiff_t index = std::distance(tubeButtons.begin(), std::find(tubeButtons.begin(), tubeButtons.end(), button));
                     EffectPresetModel *model = static_cast<EffectPresetModel *>(button->getModel());
-                    model->setConfig(ep->getMasterconfig());
-                    if (currentPreset != -1) {
-                        model->setPresets(*tubePresets[currentPreset]);
-                    }
-                    model->setName(text.toStdString());
-                    button->setModel(model);
-                    EffectPresetModel::saveToJsonFile(effectPresets, "effects.json");
+                    button->setActive(true);
+                    currentEffect = (int)index;
+                    setNewEffect(model);
+
+                    autoCheckboxes[1]->setChecked(false);
 
                     for (auto const& [id, preset] : model->getPresets()->getTubePresets()) {
                         std::cout << id << " " << preset.delay << std::endl;
                     }
+                    peakEvent();
+                });
+                connect(button, &PresetButton::longPressed, [=, this](){
+                    bool ok;
+                    QString text = QInputDialog::getText(this, tr("Effect config"), tr("Enter effect name:"), QLineEdit::Normal, "", &ok);
+                    if (ok && !text.isEmpty()) {
+                        EffectPresetModel *model = static_cast<EffectPresetModel *>(button->getModel());
+                        model->setConfig(ep->getMasterconfig());
+                        if (currentPreset != -1) {
+                            model->setPresets(*tubePresets[currentPreset]);
+                        }
+                        model->setName(text.toStdString());
+                        button->setModel(model);
+                        EffectPresetModel::saveToJsonFile(effectPresets, "effects.json");
+
+                        for (auto const& [id, preset] : model->getPresets()->getTubePresets()) {
+                            std::cout << id << " " << preset.delay << std::endl;
+                        }
+                    }
+                });
+                effectButtons.push_back(button);
+            }
+        }
+
+        tabArea->addLayout(gridLayout);
+        tabArea->addStretch();
+
+        tabWidget->addTab(gridWidget, tr(("Bank " + std::to_string(tab)).c_str()));
+    }
+
+    QWidget *presetsWidget = new QWidget;
+    //tubesWidget->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Minimum);
+    QGridLayout* presetsLayout = new QGridLayout(presetsWidget);
+    for (int row = 0; row < 4; ++row) {
+        for (int col = 0; col < 4; ++col) {
+            int index = row * 4 + col;
+            TubePresetModel *model = tubePresets[index];
+            model->id = index;
+            PresetButton *button = new PresetButton(model, this);
+            button->setMinimumWidth(100);
+            button->setMaximumWidth(100);
+            button->setMinimumHeight(100);
+            button->setMaximumHeight(100);
+            presetsLayout->addWidget(button, row, col);
+            connect(button, &PresetButton::releasedInstantly, [=, this](){
+                ptrdiff_t index = std::distance(tubeButtons.begin(), std::find(tubeButtons.begin(), tubeButtons.end(), button));
+                TubePresetModel *model = static_cast<TubePresetModel *>(button->getModel());
+                if (currentPreset != -1) {
+                    tubeButtons[currentPreset]->setActive(false);
+                }
+                button->setActive(true);
+                std::cout << "WTF" << std::endl;
+                applyTubePreset(model);
+                currentPreset = (int)index;
+                activeTubePresetButton = button;
+                sendTubeSyncData();
+
+                autoCheckboxes[2]->setChecked(false);
+
+                for (auto t : tubes) {
+                    t->sync();
                 }
             });
-            effectButtons.push_back(button);
+            connect(button, &PresetButton::longPressed, [=, this](){
+                bool ok;
+                QString text = QInputDialog::getText(this, tr("Tube Config"), tr("Enter preset name:"), QLineEdit::Normal, "", &ok);
+                if (ok && !text.isEmpty()) {
+
+                    std::map<std::string, TubePreset> preset;
+                    for (auto t : tubes) {
+                        TubePreset p = TubePreset();
+                        p.delay = t->getDelay();
+                        p.group = t->getGroup();
+                        preset[t->getMac()] = p;
+                    }
+
+                    TubePresetModel *model = static_cast<TubePresetModel *>(button->getModel());
+                    model->setTubePresets(preset);
+                    model->setName(text.toStdString());
+                    button->setModel(model);
+                    PresetModel::saveToJsonFile(tubePresets, "tubes.json");
+                }
+            });
+            tubeButtons.push_back(button);
         }
     }
     bottomLayout->addLayout(slidersLayout);
-    bottomLayout->addLayout(gridLayout);
+    bottomLayout->addWidget(tabWidget);
+    bottomLayout->addWidget(presetsWidget);
+
+    bottomLayout->setStretchFactor(slidersLayout, 1);
 
     QWidget *groupSelectorWidget = new QWidget;
     QHBoxLayout *groupSelectorLayout = new QHBoxLayout(groupSelectorWidget);
     groupSelectorLayout->addWidget(new QLabel("Group Selection:"));
     numBeatLabel = new QLabel("0");
     groupSelectorLayout->addWidget(numBeatLabel);
-    for (std::string effect : {"Count Up", "Region", "Random"}) {
+    std::vector<std::string> groupModes = {"Count Up", "Region", "Random"};
+    for (int i = 0; i < groupModes.size(); i++) {
         QRadioButton *radio = new QRadioButton();
-        radio->setText(effect.c_str());
-        connect(radio, &QRadioButton::toggled, this, [=](){
-
+        radio->setText(groupModes[i].c_str());
+        connect(radio, &QRadioButton::toggled, this, [=, this](){
+            groupMode = (GroupSelection)i;
         });
         groupSelectorLayout->addWidget(radio);
     }
@@ -422,17 +451,20 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     QHBoxLayout *colorPaletteLayout = new QHBoxLayout(colorPaletteWidget);
 
     colorPaletteLayout->addWidget(new QLabel("Color:"));
-    for (std::string effect : {"Random", "Red/White", "Custom"}) {
+    std::vector<std::string> effects = {"Random Hue", "Random Hue&Sat", "Red|White", "Greenish" "Custom"};
+    for (int i = 0; i < effects.size(); i++) {
         QRadioButton *radio = new QRadioButton();
-        radio->setText(effect.c_str());
+        radio->setText(effects[i].c_str());
 
-        connect(radio, &QRadioButton::toggled, this, [=](){
-            if (radio->text() == "Random") {
-                qDebug() << "Random";
+        connect(radio, &QRadioButton::toggled, this, [=, this](){
+            if (i == 0) {
                 colorMode = RandomHue;
+            } else if (i == 1) {
+                colorMode = RandomColor;
             } else {
                 colorMode = Palette;
             }
+            peakEvent();
         });
         colorPaletteLayout->addWidget(radio);
     }
@@ -442,7 +474,7 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     bpmLabel = new QLabel("bpm");
     tmpLabel = new QLabel("name");
     audioCheckBox = new QCheckBox("Audio Filter");
-    connect(audioCheckBox, &QCheckBox::toggled, this, [=](bool checked){
+    connect(audioCheckBox, &QCheckBox::toggled, this, [=, this](bool checked){
         std::cout << checked << std::endl;
         a->setUseFilterOutput(checked);
     });
@@ -455,7 +487,7 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     glv->setMinimumHeight(100);
     //glv->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
     connect(glv, &OGLWidget::threshChanged, this, &AudioWindow::sliderChanged);
-    connect(glv, &OGLWidget::rangeChanged, this, [=](){
+    connect(glv, &OGLWidget::rangeChanged, this, [=, this](){
         a->setFilter(new audiofilter());
         a->getFilter()->setLower(glv->getRegions()[0]->getScaledMin() * (1.0/1024.0) * 24000);
         a->getFilter()->setUpper(glv->getRegions()[0]->getScaledMax() * (1.0/1024.0) * 24000);
@@ -477,7 +509,7 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     });
 
     QPushButton *flashbutton = new QPushButton("FW Update");
-    connect(flashbutton, &QPushButton::pressed, [=](){
+    connect(flashbutton, &QPushButton::pressed, [=, this](){
         QString filename = QFileDialog::getOpenFileName(this, tr("Open Tube Firmware File"), "./", tr("BIN Files (*.bin)"), nullptr, QFileDialog::DontUseNativeDialog);
         if (!filename.isNull()) {
             std::cout << "FLASHING" << std::endl;
@@ -518,7 +550,7 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     frequencyLayout->addWidget(otherSlider);
 
     // Add widgets to the layout
-    mainLayout->addWidget(presetControlsWidget);
+    mainLayout->addWidget(tubesWidget);
     mainLayout->addWidget(colorPaletteWidget);
     mainLayout->addWidget(groupSelectorWidget);
     mainLayout->addWidget(headerWidget);
@@ -528,7 +560,7 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     mainLayout->addWidget(bottomWidget);
     mainLayout->addWidget(firmwareWidget);
 
-    mainLayout->setStretchFactor(4, 1);
+    //mainLayout->setStretchFactor(4, 1);
 
     if (getuid() == 0) {
         printf("Dropping privs\n");
@@ -574,6 +606,18 @@ void AudioWindow::applyTubePreset(const TubePresetModel *model) {
                 continue;
             }
         }
+    }
+
+    if (activeTubePresetButton) {
+        activeTubePresetButton->setActive(false);
+    }
+    if (model->id < tubeButtons.size()) {
+        activeTubePresetButton = tubeButtons[model->id];
+        activeTubePresetButton->setActive(true);
+    }
+
+    for (auto t : tubes) {
+        t->sync();
     }
 }
 
@@ -622,17 +666,20 @@ void AudioWindow::setNewEffect(EffectPresetModel *model) {
     ledModeRadioButtons[model->config.led_mode]->setChecked(true);
     ledModeRadioButtons[model->config.led_mode]->blockSignals(false);
 
-
     if (activeEffectPresetButton) {
-        activeEffectPresetButton->setStyleSheet("");
+        activeEffectPresetButton->setActive(false);
     }
     if (model->id < effectButtons.size()) {
         activeEffectPresetButton = effectButtons[model->id];
-        activeEffectPresetButton->setStyleSheet("background-color: red");
+        activeEffectPresetButton->setActive(true);
     }
+    //activeEffectPresetButton = button;
 
+    applyTubePreset(model->getPresets());
+    sendTubeSyncData();
 
-    ep->setMasterconfig(model->config);
+    CONFIG_DATA d = slidersToConfig(model->config);
+    ep->setMasterconfig(d);
     ep->sendConfig();
 
 
@@ -648,6 +695,42 @@ void AudioWindow::setNewEffect(EffectPresetModel *model) {
 }
 
 
+
+void AudioWindow::peakEvent(int group) {
+    int currentGroup = 0;
+    if (groupMode == CountUp) {
+        if (numGroups > 1) {
+            currentGroup = (numBeats  % numGroups) + 1;
+        }
+    } else if (groupMode == Regions) {
+        currentGroup = group;
+    }
+
+
+    numBeats++;
+    numBeatLabel->setText(QString::number(currentGroup));
+    currentColor = colors.front();
+    ep->peakEvent((int)(currentColor[0] * 255.0), (int)(currentColor[1] * 255.0), currentGroup);
+    ep->sendDmx((int)(currentColor[0] * 255.0), (int)(currentColor[1] * 255.0), 255, 0);
+
+
+    for (auto t : tubes) {
+        t->setPeaked(hsv2rgb({currentColor[0] * 360, currentColor[1], 1.0}), currentGroup);
+    }
+
+    if (colorMode == RandomHue) {
+        colors.push({(float)(*hueRandom)(*rng) / (float) 360, saturationSlider->pct()});
+    } else if (colorMode == RandomColor) {
+        colors.push({(float)(*hueRandom)(*rng) / (float) 360, (float)(*satRandom)(*rng) / (float) 255});
+    } else if (colorMode == Palette) {
+        if (lastColorRed) {
+            colors.push({0.0, 1.0});
+        } else {
+            colors.push({0.0, 0.0});
+        }
+        lastColorRed = !lastColorRed;
+    }
+}
 
 void AudioWindow::checkTime(){
     auto fl = a->getLeftFrequencies();
@@ -672,49 +755,31 @@ void AudioWindow::checkTime(){
         w = popoutGlv;
     }
 
+    if (autoCheckboxes[1]->isChecked()) {
+        auto diff = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now() - lastEffectChange).count();
+        if (numBeats % 16 == 0 || diff >= 2) {
+            currentEffect = currentTab * 16 + (*effectRandom)(*rng);
+            setNewEffect(effectPresets[currentEffect]);
+            lastEffectChange = std::chrono::system_clock::now();
+            numBeats++;
+        }
+    }
+
+    if (autoCheckboxes[2]->isChecked()) {
+        auto diff = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now() - lastPresetChange).count();
+        if (numBeats % 16 == 0 || diff >= 2) {
+            currentPreset = (*presetRandom)(*rng);
+            applyTubePreset(tubePresets[currentPreset]);
+            sendTubeSyncData();
+            lastPresetChange = std::chrono::system_clock::now();
+            numBeats++;
+        }
+    }
+
     w->processData(fl, [this](FrequencyRegion &region){
-        int tubeGroupValue = 0;
-        if (numGroups > 1) {
-            tubeGroupValue = (numBeats  % numGroups) + 1;
-        }
+        peakEvent(region.getIndex());
 
-        if (numBeats % 16 == 0 && autoCheckboxes[1]->isChecked()) {
-            setNewEffect(effectPresets[(*effectRandom)(*rng)]);
-        }
-
-        numBeats++;
-        numBeatLabel->setText(QString::number(tubeGroupValue));
-        std::array<float,2> selectedColor = colors.front();
-        ep->peakEvent((int)(selectedColor[0] * 255.0), (int)(selectedColor[1] * 255.0), tubeGroupValue);
-        std::chrono::time_point<std::chrono::system_clock> now = std::chrono::system_clock::now();
         beats.push(region.getBeatMillis());
-
-        for (auto t : tubes) {
-            t->setPeaked(hsv2rgb({selectedColor[0] * 360, selectedColor[1], 1.0}), tubeGroupValue);
-        }
-
-        if (colorMode == RandomHue) {
-            colors.push({(float)(*hueRandom)(*rng) / (float) 360, saturationSlider->pct()});
-        } else if (colorMode == RandomColor) {
-            colors.push({(float)(*hueRandom)(*rng) / (float) 360, saturationSlider->pct()});
-        } else if (colorMode == Palette) {
-            if (numGroups > 1) {
-                if (lastColorRed) {
-                    colors.push({0.0, 1.0});
-                    colors.push({0.0, 1.0});
-                } else {
-                    colors.push({0.0, 0.0});
-                    colors.push({0.0, 0.0});
-                }
-            } else {
-                if (lastColorRed) {
-                    colors.push({0.0, 1.0});
-                } else {
-                    colors.push({0.0, 0.0});
-                }
-            }
-            lastColorRed = !lastColorRed;
-        }
 
         float sum = std::accumulate(beats.begin(), beats.end(), 0.0);
         float mean = sum / beats.size();
@@ -727,43 +792,45 @@ void AudioWindow::checkTime(){
     for (auto t : tubes) {
         t->updateGL();
     }
+
+    /* TODO think about plain DMX mode...
+    auto now = std::chrono::system_clock::now();
+    auto diff = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now() - lastDmxSent).count();
+    if (diff > 10) {
+        ep->sendDmx((int)(currentColor[0] * 255.0), (int)(currentColor[1] * 255.0), 255, 0);
+        brightness = brightness > 0 ? brightness - 1 : 0;
+        lastDmxSent = now;
+    }
+    */
+}
+
+CONFIG_DATA AudioWindow::slidersToConfig(CONFIG_DATA d) {
+    d.brightness = brightnessSlider->value();
+    d.speed_factor = speedSlider->value();
+    d.parameter1 = effect1Slider->value();
+    d.parameter2 = effect2Slider->value();
+    d.parameter3 = effect3Slider->value();
+    d.offset = effect4Slider->value();
+    return d;
 }
 
 void AudioWindow::sliderChanged()
 {
     if (sender() == glv) {
         sensitivitySlider->setValue(glv->getThresh() * 100);
-    }
-    if (sender() == timeSlider) {
+    } else if (sender() == timeSlider) {
         glv->setDecay(timeSlider->pct() * 0.1);
-    }
-    if (sender() == sensitivitySlider) {
+    } else if (sender() == sensitivitySlider) {
         glv->setThresh(sensitivitySlider->pct());
+    } else {
+        CONFIG_DATA d = slidersToConfig(ep->getMasterconfig());
+        for (auto t : tubes) {
+            t->setEffect(d);
+            t->sync();
+        }
+        ep->setMasterconfig(d);
+        ep->sendConfig();
     }
-
-    CONFIG_DATA d = ep->getMasterconfig();
-    if (sender() == brightnessSlider) {
-        d.brightness = brightnessSlider->value();
-    }  if (sender() == speedSlider) {
-        d.speed_factor = speedSlider->value();
-    } else if (sender() == effect1Slider) {
-        d.parameter1 = effect1Slider->value();
-    } else if (sender() == effect2Slider) {
-        d.parameter2 = effect2Slider->value();
-    } else if (sender() == effect3Slider) {
-        d.parameter3 = effect3Slider->value();
-    } else if (sender() == effect4Slider) {
-        d.offset = effect4Slider->value();
-    } else if (sender() == otherSlider) {
-    }
-
-    for (auto t : tubes) {
-        t->setEffect(d);
-        t->sync();
-    }
-
-    ep->setMasterconfig(d);
-    ep->sendConfig();
 }
 
 void AudioWindow::effectChanged(bool state)
@@ -792,6 +859,12 @@ void AudioWindow::modifierChanged(bool state)
     qDebug() << bits << " " << bitsToBytes(bits.data());
     CONFIG_DATA d = ep->getMasterconfig();
     d.modifiers = bitsToBytes(bits.data());
+
+    for (auto t : tubes) {
+        t->setEffect(d);
+        t->sync();
+    }
+
     ep->setMasterconfig(d);
     ep->sendConfig();
 }

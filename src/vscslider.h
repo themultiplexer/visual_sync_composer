@@ -5,6 +5,7 @@
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 #include <QApplication>
+#include <qcheckbox.h>
 
 #ifndef VSCSLIDER_H
 #define VSCSLIDER_H
@@ -35,12 +36,18 @@ private slots:
     void onSliderValueChanged(int value);
     void onMinusClicked();
     void onPlusClicked();
+    void lockToggled(bool checked);
+
 private:
     QSlider *slider;
     QLabel *leftLabel;
     QLabel *rightLabel;
     QPushButton *leftButton;
     QPushButton *rightButton;
+    QCheckBox *checkbox;
+
+    bool locked;
+
 };
 
 #endif // VSCSLIDER_H

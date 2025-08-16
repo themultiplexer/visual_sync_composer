@@ -34,14 +34,18 @@ int VSCSlider::value() const
 
 void VSCSlider::setValue(int val)
 {
-    slider->blockSignals(true);
-    rightLabel->setText(QString("%1").arg(slider->value()));
-    slider->setValue(val);
-    slider->blockSignals(false);
+    if (!locked) {
+        slider->blockSignals(true);
+        rightLabel->setText(QString("%1").arg(slider->value()));
+        slider->setValue(val);
+        slider->blockSignals(false);
+    }
 }
 
-VSCSlider::VSCSlider(QString name, Qt::Orientation orientation, QWidget *parent) : QWidget(parent) {
+VSCSlider::VSCSlider(QString name, Qt::Orientation orientation, QWidget *parent) : QWidget(parent), locked(false) {
     slider = new QSlider(orientation);
+
+    checkbox = new QCheckBox();
 
     leftButton = new QPushButton("-");
     rightLabel = new QLabel("Right");
@@ -70,7 +74,7 @@ VSCSlider::VSCSlider(QString name, Qt::Orientation orientation, QWidget *parent)
         leftLabel->setMinimumWidth(150);
     }
 
-
+    layout->addWidget(checkbox);
     layout->addWidget(leftLabel);
     layout->addWidget(leftButton);
     layout->addWidget(slider);
@@ -79,6 +83,7 @@ VSCSlider::VSCSlider(QString name, Qt::Orientation orientation, QWidget *parent)
     setLayout(layout);
 
     connect(leftButton, &QPushButton::pressed, this, &VSCSlider::onMinusClicked);
+    connect(checkbox, &QCheckBox::toggled, this, &VSCSlider::lockToggled);
     connect(rightButton, &QPushButton::pressed, this, &VSCSlider::onPlusClicked);
     connect(slider, &QSlider::sliderReleased, this, &VSCSlider::onSliderReleased);
     connect(slider, &QSlider::valueChanged, this, &VSCSlider::onSliderValueChanged);
@@ -100,6 +105,11 @@ void VSCSlider::onPlusClicked()
 {
     slider->setValue(slider->value() + 1);
     emit sliderReleased();
+}
+
+void VSCSlider::lockToggled(bool checked)
+{
+    locked = checked;
 }
 
 float VSCSlider::pct(){

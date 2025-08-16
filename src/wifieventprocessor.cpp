@@ -93,13 +93,30 @@ void WifiEventProcessor::initHandlers() {
     }
 }
 
+static uint8_t brightness;
+
 void WifiEventProcessor::peakEvent(uint8_t hue, uint8_t sat, uint8_t group) {
     PEAK_DATA peak;
     peak.hue = hue;
     peak.sat = sat;
     peak.group = group;
     handler->send(reinterpret_cast<uint8_t*>(&peak), sizeof(PEAK_DATA), {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF});
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
 }
+
+void WifiEventProcessor::sendDmx(uint8_t hue, uint8_t sat, uint8_t brightness, uint8_t group) {
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+
+    DMX_DATA dmx;
+    rgb color = hsv2rgb({(hue/255.0) * 360.0, sat/255.0, 1.0});
+    dmx.channels[0] = color.r * 255;
+    dmx.channels[1] = color.g * 255;
+    dmx.channels[2] = color.b * 255;
+    dmx.channels[3] = 0;
+    dmx.channels[4] = brightness;
+    handler->send(reinterpret_cast<uint8_t*>(&dmx), sizeof(DMX_DATA), {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF});
+}
+
 
 void WifiEventProcessor::sendConfig()
 {
