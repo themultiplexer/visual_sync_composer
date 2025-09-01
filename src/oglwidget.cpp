@@ -1,4 +1,5 @@
 #include "oglwidget.h"
+#include "audiowindow.h"
 #include "qdebug.h"
 #include "qtimer.h"
 #include <cmath>
@@ -9,13 +10,6 @@
 OGLWidget::OGLWidget(int step, QWidget *parent)
     : QOpenGLWidget(parent), step(step), decay(0.02), regions(), currentRegionIndex(0)
 {
-    for (int i = 0; i < NUM_POINTS; ++i) {
-        smoothFrequencies.push_back(0.0);
-        recentFrequencies.push_back(100);
-        smoothFrequencies2.push_back(0.0);
-        recentFrequencies2.push_back(100);
-    }
-
     regions.push_back(new FrequencyRegion(1, 1, 5, NUM_POINTS, "low"));
     regions.push_back(new FrequencyRegion(2, 170, 205, NUM_POINTS, "high"));
 
@@ -364,6 +358,16 @@ bool OGLWidget::eventFilter(QObject *obj, QEvent *event) {
     return false;
 }
 
+VisMode OGLWidget::getVisMode() const
+{
+    return visMode;
+}
+
+void OGLWidget::setVisMode(VisMode newVisMode)
+{
+    visMode = newVisMode;
+}
+
 float OGLWidget::getDecay() const
 {
     return decay;
@@ -374,6 +378,21 @@ void OGLWidget::setDecay(float newDecay)
     decay = newDecay;
 }
 
+void OGLWidget::calcMean(float x_new, std::array<float, 1024> &means, std::array<float, 1024> &vars, std::array<float, 512> &data, int &index) {
+    float mean = means[index];
+    int window_size = 512;
+    int next_index = (index + 1) % window_size;
+    float x_old = data[next_index];
+    float new_mean = mean + (x_new - x_old) / (float)window_size;
+
+    //vars[i] += (x_new - mean) * (x_new - new_mean) - (x_old - mean) * (x_old - new_mean);
+    vars[index] += (x_new + x_old - mean - new_mean) * (x_new - x_old);
+
+    means[index] = new_mean;
+    data[next_index] = x_new;
+    index = next_index;
+}
+
 void OGLWidget::setFrequencies(const std::vector<float> &leftFrequencies, const std::vector<float> &rightFrequencies)
 {
     std::vector<Vertex2D> path1, path2;
@@ -381,15 +400,27 @@ void OGLWidget::setFrequencies(const std::vector<float> &leftFrequencies, const 
     float alpha = 0.7;
 
     for (int i = 0; i < NUM_POINTS; i++) {
-        smoothFrequencies[i] = (alpha * leftFrequencies[i]) + (1.0 - alpha) * smoothFrequencies[i];
+
+        calcMean(leftFrequencies[i], runningMean1, runningVar1, windows1[i], index1);
+        calcMean(rightFrequencies[i], runningMean2, runningVar2, windows2[i], index2);
+
+        if (visMode == VisMode::ExpMean) {
+            smoothFrequencies[i] = (alpha * leftFrequencies[i]) + (1.0 - alpha) * smoothFrequencies[i];
+            smoothFrequencies2[i] = (alpha * rightFrequencies[i]) + (1.0 - alpha) * smoothFrequencies2[i];
+        } else if (visMode == VisMode::Mean) {
+            smoothFrequencies[i] =  runningMean1[i] * 500.0;
+            smoothFrequencies2[i] =  runningMean2[i] * 500.0;
+        } if (visMode == VisMode::Variance) {
+            smoothFrequencies[i] = (runningVar1[i] / (float)512) * 1000.0;
+            smoothFrequencies2[i] = (runningVar2[i] / (float)512) * 1000.0;
+        }
+
 
         if (leftFrequencies[i] > smoothFrequencies[i]) {
             recentFrequencies[i] = 100;
         } else {
             recentFrequencies[i] -= recentFrequencies[i] > 10 ? 10 : 0;
         }
-
-        smoothFrequencies2[i] = (alpha * rightFrequencies[i]) + (1.0 - alpha) * smoothFrequencies2[i];
 
         if (rightFrequencies[i] > smoothFrequencies2[i]) {
             recentFrequencies2[i] = 100;

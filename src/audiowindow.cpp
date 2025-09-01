@@ -9,7 +9,7 @@
 
 AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     : QMainWindow(parent)
-    , ui(new Ui::MainWindow), popoutGlv(nullptr), activeEffectPresetButton(nullptr), activeTubePresetButton(nullptr), fullScreenWindow(new FullscreenWindow()), wifiLabel(nullptr), currentEffect(-1), currentPreset(-1), currentTab(0), timer(nullptr), tubeFrames(0)
+    , ui(new Ui::MainWindow), popoutGlv(nullptr), activeEffectPresetButton(nullptr), activeTubePresetButton(nullptr), fullScreenWindow(new FullscreenWindow()), wifiLabel(nullptr), currentEffect(-1), currentPreset(-1), currentTab(0), timer(nullptr), tubeFrames(0), currentPaletteIndex(0)
 {
     numBeats = 0;
     numGroups = 1;
@@ -37,6 +37,7 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     satRandom = new std::uniform_int_distribution<std::mt19937::result_type>(0, 255);
     effectRandom = new std::uniform_int_distribution<std::mt19937::result_type>(0, 15);
     presetRandom = new std::uniform_int_distribution<std::mt19937::result_type>(0, 15);
+    paletteRandom = new std::uniform_int_distribution<std::mt19937::result_type>(0, 6);
 
 
     lastEffectChange = std::chrono::system_clock::now();
@@ -426,17 +427,31 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
             tubeButtons.push_back(button);
         }
     }
+
+
+
+    QPushButton *button = new QPushButton(bottomWidget);
+    button->setMinimumWidth(100);
+    button->setMaximumWidth(100);
+    button->setMinimumHeight(100);
+    button->setMaximumHeight(100);
+    connect(button, &QPushButton::clicked, [=, this](){
+        peakEvent();
+    });
+
     bottomLayout->addLayout(slidersLayout);
     bottomLayout->addWidget(tabWidget);
     bottomLayout->addWidget(presetsWidget);
+    bottomLayout->addWidget(button);
 
     bottomLayout->setStretchFactor(slidersLayout, 1);
 
-    QWidget *groupSelectorWidget = new QWidget;
-    QHBoxLayout *groupSelectorLayout = new QHBoxLayout(groupSelectorWidget);
+
+    QWidget *topWidget = new QWidget;
+    QVBoxLayout *topLayout = new QVBoxLayout(topWidget);
+
+    QHBoxLayout *groupSelectorLayout = new QHBoxLayout(topWidget);
     groupSelectorLayout->addWidget(new QLabel("Group Selection:"));
-    numBeatLabel = new QLabel("0");
-    groupSelectorLayout->addWidget(numBeatLabel);
     std::vector<std::string> groupModes = {"Count Up", "Region", "Random"};
     for (int i = 0; i < groupModes.size(); i++) {
         QRadioButton *radio = new QRadioButton();
@@ -446,31 +461,69 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
         });
         groupSelectorLayout->addWidget(radio);
     }
+    topLayout->addLayout(groupSelectorLayout);
 
-    QWidget *colorPaletteWidget = new QWidget;
-    QHBoxLayout *colorPaletteLayout = new QHBoxLayout(colorPaletteWidget);
+    QHBoxLayout *colorModeSelectorLayout = new QHBoxLayout(topWidget);
+    colorModeSelectorLayout->addWidget(new QLabel("Color Selection:"));
+    std::vector<std::string> colorModes = {"Count Up", "Region", "Random"};
+    for (int i = 0; i < colorModes.size(); i++) {
+        QRadioButton *radio = new QRadioButton();
+        radio->setText(colorModes[i].c_str());
+        connect(radio, &QRadioButton::toggled, this, [=, this](){
+            colorSelectionMode = (ColorSelectionMode)i;
+        });
+        colorModeSelectorLayout->addWidget(radio);
+    }
+    topLayout->addLayout(colorModeSelectorLayout);
 
-    colorPaletteLayout->addWidget(new QLabel("Color:"));
-    std::vector<std::string> effects = {"Random Hue", "Random Hue&Sat", "Red|White", "Greenish" "Custom"};
+    QHBoxLayout *visModeSelectorLayout = new QHBoxLayout(topWidget);
+    visModeSelectorLayout->addWidget(new QLabel("FFT Vis Mode:"));
+    std::vector<std::string> visModes = {"Exp Mean", "Mean", "Variance"};
+    for (int i = 0; i < visModes.size(); i++) {
+        QRadioButton *radio = new QRadioButton();
+        radio->setText(visModes[i].c_str());
+        connect(radio, &QRadioButton::toggled, this, [=, this](){
+            glv->setVisMode((VisMode)i);
+        });
+        visModeSelectorLayout->addWidget(radio);
+    }
+    topLayout->addLayout(visModeSelectorLayout);
+
+    QHBoxLayout *colorPaletteLayout = new QHBoxLayout(topWidget);
+    std::vector<std::array<std::array<float, 2>, 6>> palettes;
+    palettes.push_back({{ {0.0f, 1.0f}, {0.0f, 0.0f}, {0.0f, 1.0f}, {0.0f, 0.0f}, {0.0f, 1.0f}, {0.0f, 0.0f} }});
+    palettes.push_back({{ {0.333f, 1.0f}, {0.0f, 0.0f}, {0.333f, 1.0f}, {0.0f, 0.0f}, {0.333f, 1.0f}, {0.0f, 0.0f} }});
+    palettes.push_back({{ {0.8f, 1.0f}, {0.2f, 1.0f}, {0.8f, 1.0f}, {0.2f, 1.0f}, {0.8f, 1.0f}, {0.2f, 1.0f} }});
+    colorPaletteLayout->addWidget(new QLabel("Color Palettes:"));
+    std::vector<std::string> effects = {"Random Hue", "Random Hue&Sat", "Red|White", "Greenish",  "Custom"};
     for (int i = 0; i < effects.size(); i++) {
         QRadioButton *radio = new QRadioButton();
         radio->setText(effects[i].c_str());
+        QPalette sample_palette;
+        sample_palette.setColor(QPalette::Window, Qt::white);
+        sample_palette.setColor(QPalette::WindowText, Qt::blue);
+
+        radio->setAutoFillBackground(true);
+        radio->setPalette(sample_palette);
 
         connect(radio, &QRadioButton::toggled, this, [=, this](){
             if (i == 0) {
-                colorMode = RandomHue;
+                colorMode = ColorControl::RandomHue;
             } else if (i == 1) {
-                colorMode = RandomColor;
+                colorMode = ColorControl::RandomColor;
             } else {
-                colorMode = Palette;
+                colorMode = ColorControl::Palette;
+                currentPalette = palettes[i - 2];
             }
             peakEvent();
         });
         colorPaletteLayout->addWidget(radio);
     }
+    topLayout->addLayout(colorPaletteLayout);
 
-    QWidget *headerWidget = new QWidget;
-    QHBoxLayout *header = new QHBoxLayout(headerWidget);
+    QHBoxLayout *header = new QHBoxLayout(topWidget);
+    numBeatLabel = new QLabel("0");
+    header->addWidget(numBeatLabel);
     bpmLabel = new QLabel("bpm");
     tmpLabel = new QLabel("name");
     audioCheckBox = new QCheckBox("Audio Filter");
@@ -482,6 +535,7 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     header->addWidget(bpmLabel);
     header->addWidget(tmpLabel);
     header->addWidget(audioCheckBox);
+    topLayout->addLayout(header);
 
     glv = new OGLWidget(1024);
     glv->setMinimumHeight(100);
@@ -549,11 +603,10 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     }
     frequencyLayout->addWidget(otherSlider);
 
+
     // Add widgets to the layout
     mainLayout->addWidget(tubesWidget);
-    mainLayout->addWidget(colorPaletteWidget);
-    mainLayout->addWidget(groupSelectorWidget);
-    mainLayout->addWidget(headerWidget);
+    mainLayout->addWidget(topWidget);
     mainLayout->addWidget(glvWidget);
     mainLayout->addWidget(modesWidget);
     mainLayout->addWidget(modifiersWidget);
@@ -698,37 +751,41 @@ void AudioWindow::setNewEffect(EffectPresetModel *model) {
 
 void AudioWindow::peakEvent(int group) {
     int currentGroup = 0;
-    if (groupMode == CountUp) {
+    if (groupMode == GroupSelection::CountUp) {
         if (numGroups > 1) {
             currentGroup = (numBeats  % numGroups) + 1;
         }
-    } else if (groupMode == Regions) {
+    } else if (groupMode == GroupSelection::Regions) {
         currentGroup = group;
     }
 
 
     numBeats++;
     numBeatLabel->setText(QString::number(currentGroup));
-    currentColor = colors.front();
+
+    // TODO Generating a random palette would be cooler.
+    std::array<float, 2> color;
+    if (colorMode == ColorControl::RandomHue) {
+        currentColor = {(float)(*hueRandom)(*rng) / (float) 360, saturationSlider->pct()};
+    } else if (colorMode == ColorControl::RandomColor) {
+        currentColor = {(float)(*hueRandom)(*rng) / (float) 360, (float)(*satRandom)(*rng) / (float) 255};
+    } else if (colorMode == ColorControl::Palette) {
+        if (colorSelectionMode == ColorSelectionMode::CountUp) {
+            currentColor = currentPalette[currentPaletteIndex];
+            currentPaletteIndex++;
+            currentPaletteIndex %= 6;
+        } else if (colorSelectionMode == ColorSelectionMode::Random) {
+            currentColor = currentPalette[(*paletteRandom)(*rng)];
+        } else if (colorSelectionMode == ColorSelectionMode::Regions) {
+            currentColor = currentPalette[group > 0 ? group - 1 : 0];
+        }
+    }
+
     ep->peakEvent((int)(currentColor[0] * 255.0), (int)(currentColor[1] * 255.0), currentGroup);
     ep->sendDmx((int)(currentColor[0] * 255.0), (int)(currentColor[1] * 255.0), 255, 0);
 
-
     for (auto t : tubes) {
         t->setPeaked(hsv2rgb({currentColor[0] * 360, currentColor[1], 1.0}), currentGroup);
-    }
-
-    if (colorMode == RandomHue) {
-        colors.push({(float)(*hueRandom)(*rng) / (float) 360, saturationSlider->pct()});
-    } else if (colorMode == RandomColor) {
-        colors.push({(float)(*hueRandom)(*rng) / (float) 360, (float)(*satRandom)(*rng) / (float) 255});
-    } else if (colorMode == Palette) {
-        if (lastColorRed) {
-            colors.push({0.0, 1.0});
-        } else {
-            colors.push({0.0, 0.0});
-        }
-        lastColorRed = !lastColorRed;
     }
 }
 

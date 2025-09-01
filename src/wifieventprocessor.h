@@ -26,6 +26,11 @@ struct DMX_DATA {
     uint8_t channels[5];
 };
 
+struct PALETTE_DATA {
+    uint8_t palette[8];
+};
+
+
 struct CONFIG_DATA {
     uint8_t tube_id;
     uint8_t led_mode;
@@ -92,6 +97,7 @@ public:
     void sendSyncConfig();
     void sendDmx(uint8_t hue, uint8_t sat, uint8_t brightness, uint8_t group);
 
+    void sendPalette(std::array<uint8_t, 8> palette);
 private:
     void callback(std::array<uint8_t, 6> src_mac, std::span<uint8_t> data);
 

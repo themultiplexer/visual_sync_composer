@@ -125,7 +125,7 @@ struct IEEE80211_wlan {
 } __attribute__((__packed__));
 
 
-typedef struct {
+typedef struct ESPNOW_packet {
 	struct IEEE80211_radiotap radiotap;
 	struct IEEE80211_wlan wlan;
 

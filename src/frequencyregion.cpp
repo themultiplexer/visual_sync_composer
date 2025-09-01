@@ -42,8 +42,8 @@ bool FrequencyRegion::processData(std::vector<float> &data)
     float alpha = 0.7;
     smoothLevel = (alpha * level) + (1.0 - alpha) * smoothLevel;
 
-    float beta = 0.0005;
-    thresh = std::max((beta * (level + 0.25 )) + (1.0 - beta) * thresh, 0.5);
+    float beta = 0.0009;
+    thresh = std::max((beta * (level + 0.15 )) + (1.0 - beta) * thresh, 0.5);
 
     bool lowpeak = (level > getThresh());
     beatMillis = std::chrono::duration_cast<std::chrono::milliseconds>(now - lastBeat).count();

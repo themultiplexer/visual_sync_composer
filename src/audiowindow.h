@@ -70,17 +70,25 @@ class MainWindow;
 QT_END_NAMESPACE
 
 
-enum ColorControl {
+enum class ColorControl {
     RandomHue,
     RandomColor,
     Palette
 };
 
-enum GroupSelection {
+enum class ColorSelectionMode {
     CountUp,
     Regions,
     Random
 };
+
+enum class GroupSelection {
+    CountUp,
+    Regions,
+    Random
+};
+
+
 
 class AudioWindow : public QMainWindow
 {
@@ -116,10 +124,13 @@ private:
     OGLWidget *glv, *popoutGlv;
     int currentEffect, currentTab, currentPreset;
     ColorControl colorMode;
+    std::array<std::array<float, 2>, 6> currentPalette;
+    int currentPaletteIndex;
     QLabel *numBeatLabel, *wifiLabel;
     bool lastColorRed;
     int numBeats, numGroups;
     GroupSelection groupMode;
+    ColorSelectionMode colorSelectionMode;
 
     std::string values[20] = {"Hue", "Pump","Tube", "Pump Limiter","Duck","FadeToColor","Sparkle","Fire","Bounce", "Colorcycle", "11", "Strobe", "Random Flicker", "Tunnel", "Tunnel2", "Placeholder","confetti", "sinelon", "bpm", "juggle"};
 
@@ -146,6 +157,7 @@ private:
     std::uniform_int_distribution<std::mt19937::result_type> *hueRandom, *satRandom;
     std::uniform_int_distribution<std::mt19937::result_type> *effectRandom;
     std::uniform_int_distribution<std::mt19937::result_type> *presetRandom;
+    std::uniform_int_distribution<std::mt19937::result_type> *paletteRandom;
 
     CONFIG_DATA currentEffectConfig;
 

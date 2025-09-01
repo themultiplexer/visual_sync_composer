@@ -1,6 +1,6 @@
 #include "audioanalyzer.h"
 
-AudioAnalyzer::AudioAnalyzer(): stereo(false), useFilterOutput(false), filter(new audiofilter()) {
+AudioAnalyzer::AudioAnalyzer(): stereo(true), useFilterOutput(false), filter(new audiofilter()) {
     cfg = kiss_fft_alloc(FRAMES, 0, NULL, NULL);
     adc = new RtAudio(RtAudio::Api::LINUX_PULSE);
 }
