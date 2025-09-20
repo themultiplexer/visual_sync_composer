@@ -50,7 +50,23 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     }
 
     receiver = new MidiReceiver();
-    midithread = std::thread([this] {receiver->start();});
+    receiver->start();
+
+    QObject::connect(receiver, &MidiReceiver::onButtonPressed, [this](int button){
+        std::cout << "Button Pressed" << button << std::endl;
+        std::vector<EffectPresetModel *> presets = PresetModel::readJson<EffectPresetModel>("effects.json");
+        setNewEffect(presets[button]);
+    });
+
+    QObject::connect(receiver, &MidiReceiver::onSliderChanged, [this](int slider, int value){
+        sliderDidChanged = true;
+        std::cout << "Slider Changed" << slider << std::endl;
+        std::vector<VSCSlider *> sliders = { brightnessSlider, speedSlider, effect3Slider};
+
+        sliders[slider]->blockSignals(true);
+        sliders[slider]->setValue(value);
+        sliders[slider]->blockSignals(false);
+    });
 
     setWindowFlags(Qt::Window | Qt::WindowFullscreenButtonHint);
     //setWindowState(Qt::WindowMaximized);
@@ -282,37 +298,37 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     brightnessSlider->setMinimum(0);
     brightnessSlider->setValue(0);
     brightnessSlider->setMaximum(255);
-    connect(brightnessSlider, &VSCSlider::sliderReleased, this, &AudioWindow::sliderChanged);
+    connect(brightnessSlider, &VSCSlider::valueChanged, this, &AudioWindow::sliderChanged);
 
     speedSlider = new VSCSlider("Speed", Qt::Horizontal, tubesWidget);
     speedSlider->setMinimum(1);
     speedSlider->setValue(5);
     speedSlider->setMaximum(255);
-    connect(speedSlider, &VSCSlider::sliderReleased, this, &AudioWindow::sliderChanged);
+    connect(speedSlider, &VSCSlider::valueChanged, this, &AudioWindow::sliderChanged);
 
     effect1Slider = new VSCSlider("Param 1", Qt::Horizontal, tubesWidget);
     effect1Slider->setMinimum(1);
     effect1Slider->setValue(5);
     effect1Slider->setMaximum(255);
-    connect(effect1Slider, &VSCSlider::sliderReleased, this, &AudioWindow::sliderChanged);
+    connect(effect1Slider, &VSCSlider::valueChanged, this, &AudioWindow::sliderChanged);
 
     effect2Slider = new VSCSlider("Param 2", Qt::Horizontal, tubesWidget);
     effect2Slider->setMinimum(1);
     effect2Slider->setValue(5);
     effect2Slider->setMaximum(255);
-    connect(effect2Slider, &VSCSlider::sliderReleased, this, &AudioWindow::sliderChanged);
+    connect(effect2Slider, &VSCSlider::valueChanged, this, &AudioWindow::sliderChanged);
 
     effect3Slider = new VSCSlider("Param 3", Qt::Horizontal, tubesWidget);
     effect3Slider->setMinimum(1);
     effect3Slider->setValue(128);
     effect3Slider->setMaximum(255);
-    connect(effect3Slider, &VSCSlider::sliderReleased, this, &AudioWindow::sliderChanged);
+    connect(effect3Slider, &VSCSlider::valueChanged, this, &AudioWindow::sliderChanged);
 
     effect4Slider = new VSCSlider("Param 4", Qt::Horizontal, tubesWidget);
     effect4Slider->setMinimum(1);
     effect4Slider->setValue(128);
     effect4Slider->setMaximum(255);
-    connect(effect4Slider, &VSCSlider::sliderReleased, this, &AudioWindow::sliderChanged);
+    connect(effect4Slider, &VSCSlider::valueChanged, this, &AudioWindow::sliderChanged);
 
     QVBoxLayout* slidersLayout = new QVBoxLayout();
     slidersLayout->addStretch();
@@ -763,6 +779,19 @@ void AudioWindow::checkTime(){
 
     std::vector<float> out(fl.size());
 
+    if (sliderDidChanged) {
+        auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - lastSliderChange).count();
+        if (diff >= 50) {
+            CONFIG_DATA d = slidersToConfig(ep->getMasterconfig());
+            ep->setMasterconfig(d);
+            ep->sendConfigTo({0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF});
+            sliderChanged();
+
+            lastSliderChange = std::chrono::system_clock::now();
+            sliderDidChanged = false;
+        }
+    }
+
     if (false) {
         return;
     }
@@ -839,14 +868,8 @@ void AudioWindow::sliderChanged()
         glv->setDecay(timeSlider->pct() * 0.1);
     } else if (sender() == sensitivitySlider) {
         glv->setThresh(sensitivitySlider->pct());
-    } else {
-        CONFIG_DATA d = slidersToConfig(ep->getMasterconfig());
-        for (auto t : tubes) {
-            t->setEffect(d);
-            t->sync();
-        }
-        ep->setMasterconfig(d);
-        ep->sendConfig();
+    } else {        
+        sliderDidChanged = true;
     }
 }
 

@@ -127,7 +127,7 @@ private:
     ColorSelectionMode colorSelectionMode;
     PresetButton *activeEffectPresetButton;
     PresetButton *activeTubePresetButton;
-    std::chrono::time_point<std::chrono::system_clock> lastEffectChange, lastPresetChange, lastDmxSent;
+    std::chrono::time_point<std::chrono::system_clock> lastEffectChange, lastPresetChange, lastDmxSent, lastSliderChange;
 
     std::string values[20] = {"Hue", "Pump", "Tube", "Pump Limiter","Duck","FadeToColor","Sparkle","Fire","Bounce", "Colorcycle", "11", "Strobe", "Random Flicker", "Tunnel", "Tunnel2", "Placeholder","confetti", "sinelon", "bpm", "juggle"};
 
@@ -139,6 +139,7 @@ private:
     std::vector<PresetButton *> effectButtons{};
     std::vector<PresetButton *> tubeButtons{};
 
+    bool sliderDidChanged;
 
 
     FixedQueue<uint64_t, 10> beats;

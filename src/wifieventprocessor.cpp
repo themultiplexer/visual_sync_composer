@@ -22,6 +22,7 @@ void WifiEventProcessor::callback(std::array<uint8_t, 6> src_mac, std::span<uint
     } if(data.size() == 1) {
         std::cout << "Got hello from tube: " << arrayToString(src_mac) << std::endl;
         sendConfigTo(src_mac);
+        sendSync();
     } else {
         for (int i = 0; i < data.size(); i++) {
             printf("adsfsadf%02hhX ", data[i]);
@@ -125,11 +126,7 @@ void WifiEventProcessor::sendConfig()
 {
     auto macs = devicereqistry::macs();
     for (int i = 0; i < devicereqistry::macs().size(); i++) {
-        CONFIG_DATA tube_config = masterconfig;
-        tube_config.tube_id = i;
-        handler->send(reinterpret_cast<uint8_t*>(&tube_config), sizeof(CONFIG_DATA), macs[i]);
-        std::cout << "Sending" << tube_config.toString() << " to " << arrayToString(macs[i]) << std::endl;
-        //std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        sendConfigTo(macs[i]);
     }
     sendSync();
 }
@@ -161,7 +158,6 @@ void WifiEventProcessor::sendConfigTo(std::array<uint8_t, 6> dst_mac)
     }
     handler->send(reinterpret_cast<uint8_t*>(&tube_config), sizeof(CONFIG_DATA), dst_mac);
     std::cout << "Sending" << tube_config.toString() << " to " << arrayToString(dst_mac) << std::endl;
-    sendSync();
 }
 
 void WifiEventProcessor::sendSync()
