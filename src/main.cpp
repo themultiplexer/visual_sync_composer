@@ -1,9 +1,5 @@
 #include <GL/glew.h>
 #include "audiowindow.h"
-#include "downloader.h"
-#include "mainwindow.h"
-#include "thread.h"
-
 #include <QGuiApplication>
 #include <QApplication>
 #include <QtNetwork/QNetworkReply>

@@ -1,7 +1,7 @@
 #ifndef EVENTPROCESSOR_H
 #define EVENTPROCESSOR_H
 
-#include "EventModel.h"
+#include <string>
 
 class EventProcessor
 {

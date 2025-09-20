@@ -10,7 +10,7 @@
 
 AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     : QMainWindow(parent)
-    , ui(new Ui::MainWindow), popoutGlv(nullptr), activeEffectPresetButton(nullptr), activeTubePresetButton(nullptr), fullScreenWindow(new FullscreenWindow()), wifiLabel(nullptr), currentEffect(-1), currentPreset(-1), currentTab(0), timer(nullptr), tubeFrames(0), currentPaletteIndex(0)
+    , popoutGlv(nullptr), activeEffectPresetButton(nullptr), activeTubePresetButton(nullptr), fullScreenWindow(new FullscreenWindow()), wifiLabel(nullptr), currentEffect(-1), currentPreset(-1), currentTab(0), timer(nullptr), tubeFrames(0), currentPaletteIndex(0)
 {
     numBeats = 0;
     numGroups = 1;
@@ -20,7 +20,6 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     //colorPalette = {{0.0, 1.0}, {1.0, 1.0}};
 
     this->ep = ep;
-    ui->setupUi(this);
     NetDevice h = NetDevice("wlxdc4ef40a3f9f");
     h.setInterface(false);
     h.enableMonitorMode();
@@ -902,5 +901,5 @@ void AudioWindow::closeEvent(QCloseEvent *event)
 
 AudioWindow::~AudioWindow()
 {
-    delete ui;
+
 }

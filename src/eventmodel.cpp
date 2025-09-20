@@ -1,5 +1,7 @@
-#include "EventModel.h"
-#include "Track.h"
+#include "eventmodel.h"
+
+/*
+#include "track.h"
 
 EventModel::EventModel(Track *track) {
     start = track->startTime;
@@ -7,3 +9,4 @@ EventModel::EventModel(Track *track) {
     lane = (int)track->scenePos().y() / 35;
     text = track->text.toStdString();
 }
+*/

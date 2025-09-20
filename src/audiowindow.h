@@ -14,7 +14,6 @@
 #include <QGroupBox>
 #include "audiofilter.h"
 #include "presetbutton.h"
-#include "thread.h"
 #include <QGuiApplication>
 #include <QApplication>
 #include <QtNetwork/QNetworkReply>
@@ -41,9 +40,7 @@
 #include <QThread>
 #include <QCheckBox>
 #include "fullscreenwindow.h"
-#include "ui_mainwindow.h"
 #include "vscslider.h"
-#include "thread.h"
 #include "audioanalyzer.h"
 #include "oglwidget.h"
 #include "tubewidget.h"
@@ -55,13 +52,12 @@
 
 #include "ProjectModel.h"
 #include "effectpresetmodel.h"
-#include "gltext.h"
 #include "wifieventprocessor.h"
 #include <boost/circular_buffer.hpp>
 #include <QRadioButton>
-#include "netdevice.h"
 #include "helper.h"
 #include "vsctube.h"
+#include "netdevice.h"
 #include "tubepresetmodel.h"
 
 QT_BEGIN_NAMESPACE
@@ -115,7 +111,6 @@ protected:
 
 private:
     Ui::MainWindow *ui;
-    WorkerThread *workerThread;
     WifiEventProcessor *ep;
     VSCSlider *sensitivitySlider, *brightnessSlider, *speedSlider, *effect1Slider, *effect2Slider;
     QLabel *bpmLabel, *tmpLabel;

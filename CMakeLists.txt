@@ -55,31 +55,11 @@ else()
     else()
         add_executable(VisualSyncComposer
             src/main.cpp
-            src/mainwindow.cpp
-            src/mainwindow.h
-            src/thread.h
-            src/downloader.h
-            src/timeline/GraphicsScene.cpp
-            src/timeline/GraphicsScene.h
-            src/timeline/GraphicsView.cpp
-            src/timeline/GraphicsView.h
-            src/timeline/Indicator.cpp
-            src/timeline/Indicator.h
-            src/timeline/Track.cpp
-            src/timeline/Track.h
-            src/timeline/Timeline.h
-            src/timeline/Timeline.cpp
-            src/timeline/ColorLabel.h
-            src/timeline/AlignedTextItem.h
-            src/timeline/AlignedTextItem.cpp
-            src/timeline/TrackGroup.h
-            src/timeline/TrackGroup.cpp
-            src/timeline/GridGraphicsGroup.h
-            src/timeline/EventProcessor.h
-            src/timeline/EventModel.h
-            src/timeline/EventModel.cpp
-            src/espnowsender.cpp
+            src/eventprocessor.h
+            src/eventmodel.h
+            src/eventmodel.cpp
             src/espnowsender.h
+            src/espnowsender.cpp
             src/espnowtypes.cpp
             src/espnowtypes.h
             src/ProjectModel.h
@@ -124,14 +104,16 @@ else()
             src/horizontal_line.cpp
             src/audiofilter.h
             src/audiofilter.cpp
-            src/biquadbandpass.h src/biquadbandpass.cpp
+            src/biquadbandpass.h
+            src/biquadbandpass.cpp
             src/tubepresetmodel.h
             src/tubepresetmodel.cpp
             src/presetmodel.h
             src/presetmodel.cpp
             src/runningvariance.h
             src/runningmean.h
-            src/radioselection.h src/radioselection.cpp
+            src/radioselection.h
+            src/radioselection.cpp
         )
     endif()
 endif()
