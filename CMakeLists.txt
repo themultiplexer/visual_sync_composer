@@ -129,6 +129,9 @@ else()
             src/tubepresetmodel.cpp
             src/presetmodel.h
             src/presetmodel.cpp
+            src/runningvariance.h
+            src/runningmean.h
+            src/radioselection.h src/radioselection.cpp
         )
     endif()
 endif()

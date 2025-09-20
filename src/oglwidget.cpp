@@ -48,10 +48,10 @@ void OGLWidget::setThresh(float newThresh) {
     return regions[0]->setThresh(newThresh);
 }
 
-void OGLWidget::processData(std::vector<float> &data, const std::function <void (FrequencyRegion&)>& callback)
+void OGLWidget::processData(const std::function<void (FrequencyRegion&)>& callback)
 {
     for (auto& reg : regions) {
-        if (reg->processData(data)) {
+        if (reg->processData(smoothFrequencies)) {
             callback(*reg);
         }
     }
@@ -255,7 +255,7 @@ void OGLWidget::paintGL()
     for (auto reg : regions) {
         test.push_back(-1.0 + 2 * reg->getStart());
         test.push_back(-1.0 + 2 * reg->getEnd());
-        test.push_back(reg->getSmoothLevel());
+        test.push_back(reg->getLevel());
         test.push_back(reg->getThresh());
         test.push_back(reg->getPeak());
         test.push_back(static_cast<GLfloat>(reg->getColor()));
@@ -378,43 +378,30 @@ void OGLWidget::setDecay(float newDecay)
     decay = newDecay;
 }
 
-void OGLWidget::calcMean(float x_new, std::array<float, 1024> &means, std::array<float, 1024> &vars, std::array<float, 512> &data, int &index) {
-    float mean = means[index];
-    int window_size = 512;
-    int next_index = (index + 1) % window_size;
-    float x_old = data[next_index];
-    float new_mean = mean + (x_new - x_old) / (float)window_size;
-
-    //vars[i] += (x_new - mean) * (x_new - new_mean) - (x_old - mean) * (x_old - new_mean);
-    vars[index] += (x_new + x_old - mean - new_mean) * (x_new - x_old);
-
-    means[index] = new_mean;
-    data[next_index] = x_new;
-    index = next_index;
-}
-
 void OGLWidget::setFrequencies(const std::vector<float> &leftFrequencies, const std::vector<float> &rightFrequencies)
 {
     std::vector<Vertex2D> path1, path2;
-    float width = 0.005f;
+    float width = 0.001f;
     float alpha = 0.7;
 
     for (int i = 0; i < NUM_POINTS; i++) {
 
-        calcMean(leftFrequencies[i], runningMean1, runningVar1, windows1[i], index1);
-        calcMean(rightFrequencies[i], runningMean2, runningVar2, windows2[i], index2);
+        float mean1 = runningMean1[i].addSample(leftFrequencies[i]);
+        float mean2 = runningMean2[i].addSample(rightFrequencies[i]);
+
+        float var1 = runningVar1[i].addSample(leftFrequencies[i]);
+        float var2 = runningVar2[i].addSample(rightFrequencies[i]);
 
         if (visMode == VisMode::ExpMean) {
             smoothFrequencies[i] = (alpha * leftFrequencies[i]) + (1.0 - alpha) * smoothFrequencies[i];
             smoothFrequencies2[i] = (alpha * rightFrequencies[i]) + (1.0 - alpha) * smoothFrequencies2[i];
         } else if (visMode == VisMode::Mean) {
-            smoothFrequencies[i] =  runningMean1[i] * 500.0;
-            smoothFrequencies2[i] =  runningMean2[i] * 500.0;
+            smoothFrequencies[i] =  mean1;
+            smoothFrequencies2[i] =  mean2;
         } if (visMode == VisMode::Variance) {
-            smoothFrequencies[i] = (runningVar1[i] / (float)512) * 1000.0;
-            smoothFrequencies2[i] = (runningVar2[i] / (float)512) * 1000.0;
+            smoothFrequencies[i] = var1 * 10.0;
+            smoothFrequencies2[i] = var2 * 10.0;
         }
-
 
         if (leftFrequencies[i] > smoothFrequencies[i]) {
             recentFrequencies[i] = 100;

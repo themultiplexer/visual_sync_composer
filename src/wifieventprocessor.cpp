@@ -24,7 +24,7 @@ void WifiEventProcessor::callback(std::array<uint8_t, 6> src_mac, std::span<uint
         sendConfigTo(src_mac);
     } else {
         for (int i = 0; i < data.size(); i++) {
-            printf("%02hhX ", data[i]);
+            printf("adsfsadf%02hhX ", data[i]);
         }
         printf("\n");
     }

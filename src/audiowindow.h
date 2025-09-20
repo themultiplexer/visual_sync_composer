@@ -11,6 +11,7 @@
 #include <QSlider>
 #include <QInputDialog>
 #include <QLineEdit>
+#include <QGroupBox>
 #include "audiofilter.h"
 #include "presetbutton.h"
 #include "thread.h"
@@ -122,17 +123,17 @@ private:
     AudioAnalyzer* a;
     QDockWidget *dock;
     OGLWidget *glv, *popoutGlv;
-    int currentEffect, currentTab, currentPreset;
+    int currentEffect, currentTab, currentPreset, currentPaletteIndex, numBeats, numGroups;
     ColorControl colorMode;
-    std::array<std::array<float, 2>, 6> currentPalette;
-    int currentPaletteIndex;
     QLabel *numBeatLabel, *wifiLabel;
     bool lastColorRed;
-    int numBeats, numGroups;
     GroupSelection groupMode;
     ColorSelectionMode colorSelectionMode;
+    PresetButton *activeEffectPresetButton;
+    PresetButton *activeTubePresetButton;
+    std::chrono::time_point<std::chrono::system_clock> lastEffectChange, lastPresetChange, lastDmxSent;
 
-    std::string values[20] = {"Hue", "Pump","Tube", "Pump Limiter","Duck","FadeToColor","Sparkle","Fire","Bounce", "Colorcycle", "11", "Strobe", "Random Flicker", "Tunnel", "Tunnel2", "Placeholder","confetti", "sinelon", "bpm", "juggle"};
+    std::string values[20] = {"Hue", "Pump", "Tube", "Pump Limiter","Duck","FadeToColor","Sparkle","Fire","Bounce", "Colorcycle", "11", "Strobe", "Random Flicker", "Tunnel", "Tunnel2", "Placeholder","confetti", "sinelon", "bpm", "juggle"};
 
     std::vector<QCheckBox*> ledModifierCheckboxes;
     std::vector<QCheckBox*> autoCheckboxes;
@@ -142,10 +143,7 @@ private:
     std::vector<PresetButton *> effectButtons{};
     std::vector<PresetButton *> tubeButtons{};
 
-    std::chrono::time_point<std::chrono::system_clock> lastEffectChange, lastPresetChange, lastDmxSent;
 
-    PresetButton *activeEffectPresetButton;
-    PresetButton *activeTubePresetButton;
 
     FixedQueue<uint64_t, 10> beats;
     FixedQueue<std::array<float, 2>, 1> colors;
@@ -158,6 +156,8 @@ private:
     std::uniform_int_distribution<std::mt19937::result_type> *effectRandom;
     std::uniform_int_distribution<std::mt19937::result_type> *presetRandom;
     std::uniform_int_distribution<std::mt19937::result_type> *paletteRandom;
+
+    std::array<std::array<float, 2>, 6> currentPalette;
 
     CONFIG_DATA currentEffectConfig;
 

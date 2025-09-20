@@ -2,6 +2,8 @@
 #define OGLWIDGET_H
 
 #include "frequencyregion.h"
+#include "runningmean.h"
+#include "runningvariance.h"
 #include <GL/gl.h>
 #include <QWidget>
 #include <QOpenGLWidget>
@@ -41,7 +43,7 @@ public:
 
     float getThresh();
     void setThresh(float newThresh);
-    void processData(std::vector<float> &data, const std::function<void (FrequencyRegion &)> &callback);
+    void processData(const std::function<void (FrequencyRegion &)> &callback);
     float getDecay() const;
     void setDecay(float newDecay);
     std::vector<FrequencyRegion*> getRegions() const;
@@ -65,10 +67,11 @@ protected:
     QOpenGLVertexArrayObject vao, lineVao;
     QOpenGLBuffer vertexPositionBuffer, lineVertexPositionBuffer, vertexBuffer;
     GLuint shaderProgram;
-    std::array<float, 1024> smoothFrequencies, smoothFrequencies2, runningMean1, runningVar1, runningMean2, runningVar2;
+    std::array<float, 1024> smoothFrequencies, smoothFrequencies2;
+    std::array<RunningMean<16>, 1024> runningMean1, runningMean2;
+    std::array<RunningVariance<64>, 1024> runningVar1, runningVar2;
     std::array<int, 1024> recentFrequencies, recentFrequencies2;
     std::vector<FrequencyRegion*> regions;
-    std::array<std::array<float, 512>, 1024> windows1, windows2;
 
     void createVBO();
 private:
@@ -85,7 +88,6 @@ private:
     std::vector<Vertex2D> generatePolylineQuads(const std::vector<Vertex2D> &points, float width);
     std::vector<Vertex2D> lineVertices, lineVertices2;
     void cleanupGL();
-    void calcMean(float x_new, std::array<float, 1024> &means, std::array<float, 1024> &vars, std::array<float, 512> &data, int &index);
 };
 
 #endif // OGLWIDGET_H

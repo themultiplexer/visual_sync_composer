@@ -3,6 +3,7 @@
 #include "fullscreenwindow.h"
 #include "mdnsflasher.h"
 #include "devicereqistry.h"
+#include "radioselection.h"
 #include <QDockWidget>
 
 #define USE_DOCK 0
@@ -118,21 +119,9 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     QWidget *superWidget = new QWidget(this);
     QVBoxLayout *superLayout = new QVBoxLayout(superWidget);
     this->setCentralWidget(superWidget);
-    //superWidget->setStyleSheet("background-color:green;");
-
-    QWidget *statusWidget = new QWidget(superWidget);
-    statusWidget->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Minimum);
-    QHBoxLayout* statusLayout = new QHBoxLayout(statusWidget);
-    statusLayout->addWidget(new QLabel("Status:"));
-    wifiLabel = new QLabel("Offline");
-    statusLayout->addWidget(wifiLabel);
 
     QSplitter* mainLayout = new QSplitter(Qt::Vertical, superWidget);
-    //mainLayout->setStyleSheet("background-color:red;");
-    superLayout->addWidget(statusWidget);
     superLayout->addWidget(mainLayout);
-    mainLayout->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::MinimumExpanding);
-    //mainLayout->setMinimumWidth(2560);
 
     if (false) {
         VSCTube *demotube = new VSCTube("asdsadasdsadsad", mainLayout);
@@ -149,9 +138,44 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
         timer->start(16);
     }
 
-    QWidget *modesWidget = new QWidget;
+    QWidget *statusWidget = new QWidget(superWidget);
+    statusWidget->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Minimum);
+    QHBoxLayout* statusLayout = new QHBoxLayout(statusWidget);
+    statusLayout->addWidget(new QLabel("Status:"));
+    wifiLabel = new QLabel("Offline");
+    statusLayout->addWidget(wifiLabel);
+
+    QPushButton *fwbutton = new QPushButton("Put All in Firmwareupdate Mode");
+    connect(fwbutton, &QPushButton::pressed, [=](){
+        ep->sendUpdateMessage();
+    });
+
+    QPushButton *flashbutton = new QPushButton("FW Update");
+    connect(flashbutton, &QPushButton::pressed, [=, this](){
+        QString filename = QFileDialog::getOpenFileName(this, tr("Open Tube Firmware File"), "./", tr("BIN Files (*.bin)"), nullptr, QFileDialog::DontUseNativeDialog);
+        if (!filename.isNull()) {
+            std::cout << "FLASHING" << std::endl;
+
+            mdnsflasher::flash(filename.toStdString());
+        }
+    });
+
+    QPushButton *syncbutton = new QPushButton("Sync");
+    connect(syncbutton, &QPushButton::pressed, [=](){
+        ep->sendSync();
+    });
+
+    statusLayout->addWidget(fwbutton);
+    statusLayout->addWidget(flashbutton);
+    statusLayout->addWidget(syncbutton);
+
+    QWidget *effectSettingsWidget = new QWidget;
+    QVBoxLayout *effectSettingsLayout = new QVBoxLayout(effectSettingsWidget);
+
+    QGroupBox *modesWidget = new QGroupBox(effectSettingsWidget);
     modesWidget->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Minimum);
     QHBoxLayout* modesLayout = new QHBoxLayout(modesWidget);
+
     for (std::string effect : values) {
         QRadioButton *radio = new QRadioButton();
         radio->setText(effect.c_str());
@@ -159,10 +183,10 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
         ledModeRadioButtons.push_back(radio);
         modesLayout->addWidget(radio);
     }
+    modesWidget->setMaximumHeight(75);
+    modesWidget->setLayout(modesLayout);
 
-    QWidget *modifiersWidget = new QWidget;
-    modifiersWidget->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Minimum);
-    QHBoxLayout* modifiersLayout = new QHBoxLayout(modifiersWidget);
+    QHBoxLayout* modifiersLayout = new QHBoxLayout(effectSettingsWidget);
     modifiersLayout->addWidget(new QLabel("Modifiers:"));
     for (std::string effect : {"Fadeout After Peak","No Color Delay","Reversed","4","5","6","7","8"}) {
         QCheckBox *check = new QCheckBox();
@@ -187,8 +211,9 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
         autoCheckboxes.push_back(checkbox);
     }
     modifiersLayout->addWidget(autoSelectorWidget);
-
-
+    effectSettingsLayout->setSpacing(0);
+    effectSettingsLayout->addWidget(modesWidget);
+    effectSettingsLayout->addLayout(modifiersLayout);
 
     QWidget *tubesWidget = new QWidget;
     //tubesWidget->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Minimum);
@@ -301,7 +326,6 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     slidersLayout->setSpacing(0);
 
     QWidget *bottomWidget = new QWidget;
-    bottomWidget->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Minimum);
     QHBoxLayout *bottomLayout = new QHBoxLayout(bottomWidget);
     bottomWidget->setMaximumHeight(550);
 
@@ -372,7 +396,6 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     }
 
     QWidget *presetsWidget = new QWidget;
-    //tubesWidget->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Minimum);
     QGridLayout* presetsLayout = new QGridLayout(presetsWidget);
     for (int row = 0; row < 4; ++row) {
         for (int col = 0; col < 4; ++col) {
@@ -428,14 +451,12 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
         }
     }
 
-
-
     QPushButton *button = new QPushButton(bottomWidget);
     button->setMinimumWidth(100);
     button->setMaximumWidth(100);
     button->setMinimumHeight(100);
     button->setMaximumHeight(100);
-    connect(button, &QPushButton::clicked, [=, this](){
+    connect(button, &QPushButton::pressed, [=, this](){
         peakEvent();
     });
 
@@ -443,83 +464,47 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     bottomLayout->addWidget(tabWidget);
     bottomLayout->addWidget(presetsWidget);
     bottomLayout->addWidget(button);
-
     bottomLayout->setStretchFactor(slidersLayout, 1);
 
 
     QWidget *topWidget = new QWidget;
     QVBoxLayout *topLayout = new QVBoxLayout(topWidget);
+    topLayout->setSpacing(0);
 
-    QHBoxLayout *groupSelectorLayout = new QHBoxLayout(topWidget);
-    groupSelectorLayout->addWidget(new QLabel("Group Selection:"));
-    std::vector<std::string> groupModes = {"Count Up", "Region", "Random"};
-    for (int i = 0; i < groupModes.size(); i++) {
-        QRadioButton *radio = new QRadioButton();
-        radio->setText(groupModes[i].c_str());
-        connect(radio, &QRadioButton::toggled, this, [=, this](){
-            groupMode = (GroupSelection)i;
-        });
-        groupSelectorLayout->addWidget(radio);
-    }
-    topLayout->addLayout(groupSelectorLayout);
+    RadioSelection *groupSelection = new RadioSelection("Group Selection Mode:", {"Count Up", "Region", "Random"}, [=, this](int i){
+        groupMode = (GroupSelection)i;
+    }, this);
+    topLayout->addWidget(groupSelection);
 
-    QHBoxLayout *colorModeSelectorLayout = new QHBoxLayout(topWidget);
-    colorModeSelectorLayout->addWidget(new QLabel("Color Selection:"));
-    std::vector<std::string> colorModes = {"Count Up", "Region", "Random"};
-    for (int i = 0; i < colorModes.size(); i++) {
-        QRadioButton *radio = new QRadioButton();
-        radio->setText(colorModes[i].c_str());
-        connect(radio, &QRadioButton::toggled, this, [=, this](){
-            colorSelectionMode = (ColorSelectionMode)i;
-        });
-        colorModeSelectorLayout->addWidget(radio);
-    }
-    topLayout->addLayout(colorModeSelectorLayout);
+    RadioSelection *colorSelection = new RadioSelection("Color Selection Mode:", {"Count Up", "Region", "Random"}, [=, this](int i){
+        colorSelectionMode = (ColorSelectionMode)i;
+    }, this);
+    topLayout->addWidget(colorSelection);
 
-    QHBoxLayout *visModeSelectorLayout = new QHBoxLayout(topWidget);
-    visModeSelectorLayout->addWidget(new QLabel("FFT Vis Mode:"));
-    std::vector<std::string> visModes = {"Exp Mean", "Mean", "Variance"};
-    for (int i = 0; i < visModes.size(); i++) {
-        QRadioButton *radio = new QRadioButton();
-        radio->setText(visModes[i].c_str());
-        connect(radio, &QRadioButton::toggled, this, [=, this](){
-            glv->setVisMode((VisMode)i);
-        });
-        visModeSelectorLayout->addWidget(radio);
-    }
-    topLayout->addLayout(visModeSelectorLayout);
+    RadioSelection *visualModeSelection = new RadioSelection("FFT Vis Mode:", {"Exp Mean", "Mean", "Variance"}, [=, this](int i){
+        glv->setVisMode((VisMode)i);
+    }, this);
+    topLayout->addWidget(visualModeSelection);
 
-    QHBoxLayout *colorPaletteLayout = new QHBoxLayout(topWidget);
+
     std::vector<std::array<std::array<float, 2>, 6>> palettes;
     palettes.push_back({{ {0.0f, 1.0f}, {0.0f, 0.0f}, {0.0f, 1.0f}, {0.0f, 0.0f}, {0.0f, 1.0f}, {0.0f, 0.0f} }});
     palettes.push_back({{ {0.333f, 1.0f}, {0.0f, 0.0f}, {0.333f, 1.0f}, {0.0f, 0.0f}, {0.333f, 1.0f}, {0.0f, 0.0f} }});
     palettes.push_back({{ {0.8f, 1.0f}, {0.2f, 1.0f}, {0.8f, 1.0f}, {0.2f, 1.0f}, {0.8f, 1.0f}, {0.2f, 1.0f} }});
-    colorPaletteLayout->addWidget(new QLabel("Color Palettes:"));
-    std::vector<std::string> effects = {"Random Hue", "Random Hue&Sat", "Red|White", "Greenish",  "Custom"};
-    for (int i = 0; i < effects.size(); i++) {
-        QRadioButton *radio = new QRadioButton();
-        radio->setText(effects[i].c_str());
-        QPalette sample_palette;
-        sample_palette.setColor(QPalette::Window, Qt::white);
-        sample_palette.setColor(QPalette::WindowText, Qt::blue);
 
-        radio->setAutoFillBackground(true);
-        radio->setPalette(sample_palette);
+    RadioSelection *paletteSelection = new RadioSelection("Color Palettes:", {"Random Hue", "Random Hue&Sat", "Red|White", "Greenish",  "Custom"}, [=, this](int i){
+        if (i == 0) {
+            colorMode = ColorControl::RandomHue;
+        } else if (i == 1) {
+            colorMode = ColorControl::RandomColor;
+        } else {
+            colorMode = ColorControl::Palette;
+            currentPalette = palettes[i - 2];
+        }
+        peakEvent();
+    }, this);
+    topLayout->addWidget(paletteSelection);
 
-        connect(radio, &QRadioButton::toggled, this, [=, this](){
-            if (i == 0) {
-                colorMode = ColorControl::RandomHue;
-            } else if (i == 1) {
-                colorMode = ColorControl::RandomColor;
-            } else {
-                colorMode = ColorControl::Palette;
-                currentPalette = palettes[i - 2];
-            }
-            peakEvent();
-        });
-        colorPaletteLayout->addWidget(radio);
-    }
-    topLayout->addLayout(colorPaletteLayout);
 
     QHBoxLayout *header = new QHBoxLayout(topWidget);
     numBeatLabel = new QLabel("0");
@@ -539,7 +524,6 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
 
     glv = new OGLWidget(1024);
     glv->setMinimumHeight(100);
-    //glv->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
     connect(glv, &OGLWidget::threshChanged, this, &AudioWindow::sliderChanged);
     connect(glv, &OGLWidget::rangeChanged, this, [=, this](){
         a->setFilter(new audiofilter());
@@ -553,33 +537,6 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
         dock->setWidget(glv);
         dock->setAllowedAreas(Qt::TopDockWidgetArea);
     }
-
-    QWidget *firmwareWidget = new QWidget;
-    QHBoxLayout *fwButtons = new QHBoxLayout(firmwareWidget);
-
-    QPushButton *fwbutton = new QPushButton("Put All in Firmwareupdate Mode");
-    connect(fwbutton, &QPushButton::pressed, [=](){
-        ep->sendUpdateMessage();
-    });
-
-    QPushButton *flashbutton = new QPushButton("FW Update");
-    connect(flashbutton, &QPushButton::pressed, [=, this](){
-        QString filename = QFileDialog::getOpenFileName(this, tr("Open Tube Firmware File"), "./", tr("BIN Files (*.bin)"), nullptr, QFileDialog::DontUseNativeDialog);
-        if (!filename.isNull()) {
-            std::cout << "FLASHING" << std::endl;
-
-            mdnsflasher::flash(filename.toStdString());
-        }
-    });
-
-    QPushButton *syncbutton = new QPushButton("Sync");
-    connect(syncbutton, &QPushButton::pressed, [=](){
-        ep->sendSync();
-    });
-
-    fwButtons->addWidget(fwbutton);
-    fwButtons->addWidget(flashbutton);
-    fwButtons->addWidget(syncbutton);
 
     QWidget *glvWidget = new QWidget;
     QHBoxLayout *frequencyLayout = new QHBoxLayout(glvWidget);
@@ -605,13 +562,12 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
 
 
     // Add widgets to the layout
+    mainLayout->addWidget(statusWidget);
     mainLayout->addWidget(tubesWidget);
     mainLayout->addWidget(topWidget);
     mainLayout->addWidget(glvWidget);
-    mainLayout->addWidget(modesWidget);
-    mainLayout->addWidget(modifiersWidget);
+    mainLayout->addWidget(effectSettingsWidget);
     mainLayout->addWidget(bottomWidget);
-    mainLayout->addWidget(firmwareWidget);
 
     //mainLayout->setStretchFactor(4, 1);
 
@@ -644,6 +600,11 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     QTimer *qtimer = new QTimer(this);
     connect(qtimer, &QTimer::timeout, this, &AudioWindow::checkStatus);
     qtimer->start(500);
+
+
+    superWidget->setMaximumHeight(2400);
+    mainLayout->resize(mainLayout->minimumSizeHint());
+    superWidget->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
 }
 
 void AudioWindow::applyTubePreset(const TubePresetModel *model) {
@@ -684,7 +645,6 @@ void AudioWindow::checkStatus() {
             wifiLabel->setText("Offline");
         }
     }
-
 }
 
 void AudioWindow::sendTubeSyncData() {
@@ -726,7 +686,6 @@ void AudioWindow::setNewEffect(EffectPresetModel *model) {
         activeEffectPresetButton = effectButtons[model->id];
         activeEffectPresetButton->setActive(true);
     }
-    //activeEffectPresetButton = button;
 
     applyTubePreset(model->getPresets());
     sendTubeSyncData();
@@ -734,7 +693,6 @@ void AudioWindow::setNewEffect(EffectPresetModel *model) {
     CONFIG_DATA d = slidersToConfig(model->config);
     ep->setMasterconfig(d);
     ep->sendConfig();
-
 
     ptrdiff_t pos = std::distance(tubePresets.begin(), std::find(tubePresets.begin(), tubePresets.end(), model->getPresets()));
     if (pos < tubePresets.size()) {
@@ -746,8 +704,6 @@ void AudioWindow::setNewEffect(EffectPresetModel *model) {
         sendTubeSyncData();
     }
 }
-
-
 
 void AudioWindow::peakEvent(int group) {
     int currentGroup = 0;
@@ -833,9 +789,10 @@ void AudioWindow::checkTime(){
         }
     }
 
-    w->processData(fl, [this](FrequencyRegion &region){
-        peakEvent(region.getIndex());
-
+    w->setFrequencies(fl, fr);
+    w->processData([this](FrequencyRegion &region){
+        int i = region.getIndex();
+        peakEvent(i);
         beats.push(region.getBeatMillis());
 
         float sum = std::accumulate(beats.begin(), beats.end(), 0.0);
@@ -843,8 +800,6 @@ void AudioWindow::checkTime(){
         bpmLabel->setText(std::to_string((int)std::round(60.0 / (mean / 1000.0))).c_str());
         tmpLabel->setText(std::to_string(mean).c_str());
     });
-
-    w->setFrequencies(fl, fr);
 
     for (auto t : tubes) {
         t->updateGL();
@@ -859,6 +814,7 @@ void AudioWindow::checkTime(){
         lastDmxSent = now;
     }
     */
+    this->setMaximumHeight(2400);
 }
 
 CONFIG_DATA AudioWindow::slidersToConfig(CONFIG_DATA d) {
@@ -933,7 +889,7 @@ EffectPresetModel *AudioWindow::getCurrentEffect()
 
 void AudioWindow::closeEvent(QCloseEvent *event)
 {
-    QMessageBox::StandardButton resBtn = QMessageBox::question( this, "APP_NAME",
+    QMessageBox::StandardButton resBtn = QMessageBox::question( this, "Quittin'?",
                                                                tr("Are you sure?\n"),
                                                                QMessageBox::No | QMessageBox::Yes,
                                                                QMessageBox::Yes);

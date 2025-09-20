@@ -28,14 +28,13 @@ public:
     void mouseReleased(float x, float y);
 
     float getColor() const;
-    bool processData(std::vector<float> &data);
+    bool processData(std::array<float, 1024> &data);
     float getLevel() const;
     float getPeak() const;
 
     std::chrono::time_point<std::chrono::steady_clock> getLastBeat() const;
 
     int getBeatMillis() const;
-    float getSmoothLevel() const;
     bool getDragging() const;
 
     bool getHovering() const;
@@ -61,7 +60,7 @@ private:
 
     std::chrono::time_point<std::chrono::steady_clock> lastBeat;
     bool hovering, dragging, draggingStart, draggingEnd, onLine, inside, newInside, newOnLine, newOnStart, newOnEnd;
-    float peak, level, smoothLevel;
+    float peak, level;
     float dx, prestart, preend, color;
 };
 

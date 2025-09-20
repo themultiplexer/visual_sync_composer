@@ -4,7 +4,7 @@
 #include <cmath>
 
 FrequencyRegion::FrequencyRegion(int index, int min, int max, int step, std::string name):
-    index(index), step(step), level(0.0), thresh(0.7), peak(0.0), mouseDown(false), dragging(false), hovering(false), inside(false), newInside(false), newOnLine(false),  smoothLevel(0.0), start(g((float)min/(float)step)), end(g((float)max/(float)step)), name(name) {
+    index(index), step(step), level(0.0), thresh(0.7), peak(0.0), mouseDown(false), dragging(false), hovering(false), inside(false), newInside(false), newOnLine(false), start(g((float)min/(float)step)), end(g((float)max/(float)step)), name(name) {
 
 }
 
@@ -30,7 +30,7 @@ int FrequencyRegion::getScaledMax() {
     return f(x) * step;
 }
 
-bool FrequencyRegion::processData(std::vector<float> &data)
+bool FrequencyRegion::processData(std::array<float, 1024> &data)
 {
     auto now = std::chrono::steady_clock::now();
     level = 0.0;
@@ -38,13 +38,7 @@ bool FrequencyRegion::processData(std::vector<float> &data)
         //level += data[i];
         level = data[i] > level ? data[i] : level;
     }
-    //level /= (getMax() - getMin());
-    float alpha = 0.7;
-    smoothLevel = (alpha * level) + (1.0 - alpha) * smoothLevel;
-
     float beta = 0.0009;
-    thresh = std::max((beta * (level + 0.15 )) + (1.0 - beta) * thresh, 0.5);
-
     bool lowpeak = (level > getThresh());
     beatMillis = std::chrono::duration_cast<std::chrono::milliseconds>(now - lastBeat).count();
     bool debounce = (beatMillis > 100);
@@ -52,7 +46,9 @@ bool FrequencyRegion::processData(std::vector<float> &data)
 
     if (peaked) {
         peak = 1.0;
+        thresh = std::max(level - 0.2f, thresh);
     } else {
+        thresh = std::max((beta * (level + 0.2 )) + (1.0 - beta) * thresh, 0.25);
         if (peak > 0) {
             peak -= 0.05;
         }
@@ -171,11 +167,6 @@ int FrequencyRegion::getIndex() const
 void FrequencyRegion::setIndex(int newIndex)
 {
     index = newIndex;
-}
-
-float FrequencyRegion::getSmoothLevel() const
-{
-    return smoothLevel;
 }
 
 std::chrono::time_point<std::chrono::steady_clock> FrequencyRegion::getLastBeat() const
