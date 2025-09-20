@@ -13,6 +13,7 @@
 #include <QLineEdit>
 #include <QGroupBox>
 #include "audiofilter.h"
+#include "midireceiver.h"
 #include "presetbutton.h"
 #include <QGuiApplication>
 #include <QApplication>
@@ -167,6 +168,9 @@ private:
     VSCSlider *timeSlider;
     VSCSlider *otherSlider;
     std::array<float,2> currentColor;
+    MidiReceiver *receiver;
+
+    std::thread midithread;
 
     QTimer *timer;
     int tubeFrames;

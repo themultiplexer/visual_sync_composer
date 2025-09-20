@@ -10,7 +10,7 @@
 
 AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     : QMainWindow(parent)
-    , popoutGlv(nullptr), activeEffectPresetButton(nullptr), activeTubePresetButton(nullptr), fullScreenWindow(new FullscreenWindow()), wifiLabel(nullptr), currentEffect(-1), currentPreset(-1), currentTab(0), timer(nullptr), tubeFrames(0), currentPaletteIndex(0)
+    , popoutGlv(nullptr), activeEffectPresetButton(nullptr), activeTubePresetButton(nullptr), fullScreenWindow(new FullscreenWindow()), wifiLabel(nullptr), currentEffect(-1), currentPreset(-1), currentTab(0), timer(nullptr), tubeFrames(0), currentPaletteIndex(0), receiver(nullptr)
 {
     numBeats = 0;
     numGroups = 1;
@@ -48,6 +48,9 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     for (auto color : colors) {
         colors.push({0.0, 1.0});
     }
+
+    receiver = new MidiReceiver();
+    midithread = std::thread([this] {receiver->start();});
 
     setWindowFlags(Qt::Window | Qt::WindowFullscreenButtonHint);
     //setWindowState(Qt::WindowMaximized);
@@ -604,6 +607,8 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     superWidget->setMaximumHeight(2400);
     mainLayout->resize(mainLayout->minimumSizeHint());
     superWidget->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
+
+    //t1.join();
 }
 
 void AudioWindow::applyTubePreset(const TubePresetModel *model) {
@@ -901,5 +906,6 @@ void AudioWindow::closeEvent(QCloseEvent *event)
 
 AudioWindow::~AudioWindow()
 {
-
+    receiver->setDone(true);
+    midithread.join();
 }

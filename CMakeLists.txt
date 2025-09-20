@@ -35,7 +35,7 @@ find_package(OpenSSL REQUIRED)
 find_package(cpprestsdk REQUIRED)
 find_package(nlohmann_json REQUIRED)
 
-pkg_check_modules(AVAHI REQUIRED avahi-client)
+pkg_check_modules(AVAHI REQUIRED avahi-client rtmidi)
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(VisualSyncComposer
         MANUAL_FINALIZATION
@@ -114,6 +114,8 @@ else()
             src/runningmean.h
             src/radioselection.h
             src/radioselection.cpp
+            src/midireceiver.h
+            src/midireceiver.cpp
         )
     endif()
 endif()
