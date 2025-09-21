@@ -1,6 +1,7 @@
 #include "audiowindow.h"
 #include "audiofilter.h"
 #include "fullscreenwindow.h"
+#include "knobwidget.h"
 #include "mdnsflasher.h"
 #include "devicereqistry.h"
 #include "radioselection.h"
@@ -157,8 +158,8 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     }
 
     QWidget *statusWidget = new QWidget(superWidget);
-    statusWidget->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Minimum);
     QHBoxLayout* statusLayout = new QHBoxLayout(statusWidget);
+    statusLayout->setContentsMargins(0,0,0,0);
     statusLayout->addWidget(new QLabel("Status:"));
     wifiLabel = new QLabel("Offline");
     statusLayout->addWidget(wifiLabel);
@@ -201,7 +202,7 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
         ledModeRadioButtons.push_back(radio);
         modesLayout->addWidget(radio);
     }
-    modesWidget->setMaximumHeight(50);
+    modesWidget->setMaximumHeight(75);
     modesWidget->setLayout(modesLayout);
 
     QHBoxLayout* modifiersLayout = new QHBoxLayout(effectSettingsWidget);
@@ -214,6 +215,13 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
         modifiersLayout->addWidget(check);
     }
     modifiersLayout->addStretch();
+
+    KnobWidget *knob = new KnobWidget();
+    knob->setMinimumHeight(50);
+    knob->setMaximumHeight(50);
+    knob->setMinimumWidth(50);
+    knob->setMaximumWidth(50);
+    modifiersLayout->addWidget(knob);
 
     QWidget *autoSelectorWidget = new QWidget;
     QHBoxLayout *autoSelectorLayout = new QHBoxLayout(autoSelectorWidget);
@@ -229,6 +237,8 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
         autoCheckboxes.push_back(checkbox);
     }
     modifiersLayout->addWidget(autoSelectorWidget);
+    modifiersLayout->setContentsMargins(0,0,0,0);
+    effectSettingsLayout->setContentsMargins(0,0,0,0);
     effectSettingsLayout->setSpacing(0);
     effectSettingsLayout->addWidget(modesWidget);
     effectSettingsLayout->addLayout(modifiersLayout);
@@ -510,10 +520,12 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     palettes.push_back({{ {0.333f, 1.0f}, {0.0f, 0.0f}, {0.333f, 1.0f}, {0.0f, 0.0f}, {0.333f, 1.0f}, {0.0f, 0.0f} }});
     palettes.push_back({{ {0.8f, 1.0f}, {0.2f, 1.0f}, {0.8f, 1.0f}, {0.2f, 1.0f}, {0.8f, 1.0f}, {0.2f, 1.0f} }});
 
-    RadioSelection *paletteSelection = new RadioSelection("Color Palettes:", {"Random Hue", "Random Hue&Sat", "Red|White", "Greenish",  "Custom"}, [=, this](int i){
+    RadioSelection *paletteSelection = new RadioSelection("Color Palettes:", {"Manual", "Random Hue", "Random Hue&Sat", "Red|White", "Greenish",  "Custom"}, [=, this](int i){
         if (i == 0) {
-            colorMode = ColorControl::RandomHue;
+            colorMode = ColorControl::Manual;
         } else if (i == 1) {
+            colorMode = ColorControl::RandomHue;
+        }else if (i == 2) {
             colorMode = ColorControl::RandomColor;
         } else {
             colorMode = ColorControl::Palette;

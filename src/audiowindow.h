@@ -71,7 +71,8 @@ QT_END_NAMESPACE
 enum class ColorControl {
     RandomHue,
     RandomColor,
-    Palette
+    Palette,
+    Manual
 };
 
 enum class ColorSelectionMode {

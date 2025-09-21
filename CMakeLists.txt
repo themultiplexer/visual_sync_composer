@@ -111,6 +111,7 @@ else()
             src/radioselection.cpp
             src/midireceiver.h
             src/midireceiver.cpp
+            src/knobwidget.h src/knobwidget.cpp
         )
     endif()
 endif()
