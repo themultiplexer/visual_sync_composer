@@ -51,7 +51,7 @@
 #include <boost/archive/binary_iarchive.hpp>
 #include <boost/serialization/vector.hpp>
 
-#include "ProjectModel.h"
+#include "projectmodel.h"
 #include "effectpresetmodel.h"
 #include "wifieventprocessor.h"
 #include <boost/circular_buffer.hpp>

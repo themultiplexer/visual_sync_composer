@@ -201,7 +201,7 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
         ledModeRadioButtons.push_back(radio);
         modesLayout->addWidget(radio);
     }
-    modesWidget->setMaximumHeight(75);
+    modesWidget->setMaximumHeight(50);
     modesWidget->setLayout(modesLayout);
 
     QHBoxLayout* modifiersLayout = new QHBoxLayout(effectSettingsWidget);

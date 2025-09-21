@@ -62,7 +62,7 @@ else()
             src/espnowsender.cpp
             src/espnowtypes.cpp
             src/espnowtypes.h
-            src/ProjectModel.h
+            src/projectmodel.h
             src/audioanalyzer.h
             src/audioanalyzer.cpp
             src/oglwidget.h
@@ -71,9 +71,6 @@ else()
             src/wifieventprocessor.cpp
             src/esphandler.h
             src/esphandler.cpp
-            src/gltext.h
-            src/gltext.cpp
-            src/font_rendering.h
             src/netdevice.h
             src/netdevice.cpp
             src/vscslider.h
@@ -100,8 +97,6 @@ else()
             src/frequencyregion.cpp
             src/fullscreenwindow.h
             src/fullscreenwindow.cpp
-            src/horizontal_line.h
-            src/horizontal_line.cpp
             src/audiofilter.h
             src/audiofilter.cpp
             src/biquadbandpass.h
