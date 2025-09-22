@@ -13,6 +13,7 @@
 #include <QLineEdit>
 #include <QGroupBox>
 #include "audiofilter.h"
+#include "knobwidget.h"
 #include "midireceiver.h"
 #include "presetbutton.h"
 #include <QGuiApplication>
@@ -128,7 +129,7 @@ private:
     ColorSelectionMode colorSelectionMode;
     PresetButton *activeEffectPresetButton;
     PresetButton *activeTubePresetButton;
-    std::chrono::time_point<std::chrono::system_clock> lastEffectChange, lastPresetChange, lastDmxSent, lastSliderChange;
+    std::chrono::time_point<std::chrono::system_clock> lastEffectChange, lastPresetChange, lastDmxSent, lastSliderChange, lastKnobChange;
 
     std::string values[20] = {"Hue", "Pump", "Tube", "Pump Limiter","Duck","FadeToColor","Sparkle","Fire","Bounce", "Colorcycle", "11", "Strobe", "Random Flicker", "Tunnel", "Tunnel2", "Placeholder","confetti", "sinelon", "bpm", "juggle"};
 
@@ -139,6 +140,8 @@ private:
     std::vector<TubePresetModel *> tubePresets;
     std::vector<PresetButton *> effectButtons{};
     std::vector<PresetButton *> tubeButtons{};
+
+    std::vector<KnobWidget *> knobWidgets;
 
     bool sliderDidChanged;
 
@@ -183,5 +186,6 @@ private:
     void applyTubePreset(const TubePresetModel *model);
     CONFIG_DATA slidersToConfig(CONFIG_DATA d);
     void peakEvent(int group = 0);
+    bool knobChanged;
 };
 #endif // AUDIOWINDOW_H

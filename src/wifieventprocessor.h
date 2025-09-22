@@ -7,6 +7,10 @@
 #include <QLabel>
 #include <random>
 
+struct HELLO_DATA {
+    uint8_t tube_id;
+};
+
 struct PEAK_DATA {
     uint8_t hue;
     uint8_t sat;
@@ -32,7 +36,6 @@ struct PALETTE_DATA {
 
 
 struct CONFIG_DATA {
-    uint8_t tube_id;
     uint8_t led_mode;
     uint8_t speed_factor;
     uint8_t brightness;
@@ -40,12 +43,10 @@ struct CONFIG_DATA {
     uint8_t parameter2;
     uint8_t parameter3;
     uint8_t modifiers;
-    uint8_t offset;
-    uint8_t group;
 
     std::string toString()
     {
-        return "[tube_id = " + std::to_string(tube_id) + "led_mode = " + std::to_string(led_mode) + ", offset = " + std::to_string(offset) + "]";
+        return "[led_mode = " + std::to_string(led_mode) + "]";
     }
 };
 
@@ -97,6 +98,7 @@ public:
     void sendDmx(uint8_t hue, uint8_t sat, uint8_t brightness, uint8_t group);
     void sendPalette(std::array<uint8_t, 8> palette);
 
+    void sendHelloToAll();
 private:
     void callback(std::array<uint8_t, 6> src_mac, std::span<uint8_t> data);
 
@@ -108,6 +110,8 @@ private:
     std::string dev;
     std::vector<int> tubeOffsets;
     std::vector<int> tubeGroups;
+    void sendHelloTo(std::array<uint8_t, 6> dst_mac);
+    void sendHelloIdTo(uint8_t i, std::array<uint8_t, 6> dst_mac);
 };
 
 #endif // WIFIEVENTPROCESSOR_H

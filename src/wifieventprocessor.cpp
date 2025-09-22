@@ -21,6 +21,7 @@ void WifiEventProcessor::callback(std::array<uint8_t, 6> src_mac, std::span<uint
         std::cout << "Got config: " << std::to_string(d->led_mode) << " ";
     } if(data.size() == 1) {
         std::cout << "Got hello from tube: " << arrayToString(src_mac) << std::endl;
+        sendHelloTo(src_mac);
         sendConfigTo(src_mac);
         sendSync();
     } else {
@@ -133,6 +134,7 @@ void WifiEventProcessor::sendConfig()
 
 void WifiEventProcessor::sendSyncConfig()
 {
+    qDebug() << "Sending Sync Config";
     auto macs = devicereqistry::macs();
     SYNC_DATA sync_config = {{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}};
     for (int i = 0; i < tubeOffsets.size(); i++) {
@@ -148,16 +150,36 @@ void WifiEventProcessor::sendSyncConfig()
 void WifiEventProcessor::sendConfigTo(std::array<uint8_t, 6> dst_mac)
 {
     CONFIG_DATA tube_config = masterconfig;
+    handler->send(reinterpret_cast<uint8_t*>(&tube_config), sizeof(CONFIG_DATA), dst_mac);
+    std::cout << "Sending" << tube_config.toString() << " to " << arrayToString(dst_mac) << std::endl;
+}
+
+void WifiEventProcessor::sendHelloToAll() {
+    std::cout << "Sending hello to all";
+    auto macs = devicereqistry::macs();
+    for (int i = 0; i < macs.size(); ++i) {
+        sendHelloIdTo(i, macs[i]);
+    }
+}
+
+void WifiEventProcessor::sendHelloIdTo(uint8_t i, std::array<uint8_t, 6> dst_mac)
+{
+    HELLO_DATA hello = { i };
+    handler->send(reinterpret_cast<uint8_t*>(&hello), sizeof(HELLO_DATA), dst_mac);
+    std::cout << "Sending hello to " << +i << arrayToString(dst_mac) << std::endl;
+}
+
+void WifiEventProcessor::sendHelloTo(std::array<uint8_t, 6> dst_mac)
+{
     auto macs = devicereqistry::macs();
     auto it = std::find(macs.begin(), macs.end(), dst_mac);
     if (it != macs.end()) {
         int i = std::distance(macs.begin(), it);
         if (i < tubeOffsets.size()) {
-            tube_config.offset = tubeOffsets[i];
+            sendHelloIdTo(i, dst_mac);
         }
     }
-    handler->send(reinterpret_cast<uint8_t*>(&tube_config), sizeof(CONFIG_DATA), dst_mac);
-    std::cout << "Sending" << tube_config.toString() << " to " << arrayToString(dst_mac) << std::endl;
+
 }
 
 void WifiEventProcessor::sendSync()

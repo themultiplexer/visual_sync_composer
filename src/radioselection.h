@@ -45,7 +45,7 @@ class RadioSelection : public QGroupBox
 
 
 public:
-    RadioSelection(std::string title, std::vector<std::string> selection, std::function<void (int)> callback, QWidget *parent);
+    RadioSelection(std::string title, std::vector<std::string> selection, std::function<void (int)> callback, int defaultValue, QWidget *parent);
 };
 
 #endif // RADIOSELECTION_H

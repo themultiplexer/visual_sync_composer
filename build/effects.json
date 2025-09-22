@@ -734,11 +734,55 @@
         "parameter1": 102,
         "parameter2": 170,
         "parameter3": 223,
-        "speed_factor": 10,
+        "speed_factor": 1,
         "tubepresets": {
             "id": 0,
-            "name": "",
+            "name": "Short Delays",
             "tubes": {
+                "24a1603a2be9": {
+                    "delay": 40,
+                    "group": 0
+                },
+                "24a1603aa2dc": {
+                    "delay": 120,
+                    "group": 0
+                },
+                "24a1603acf56": {
+                    "delay": 40,
+                    "group": 0
+                },
+                "24a1603d4856": {
+                    "delay": 80,
+                    "group": 0
+                },
+                "24a1603d864a": {
+                    "delay": 0,
+                    "group": 0
+                },
+                "24a1603d872f": {
+                    "delay": 0,
+                    "group": 0
+                },
+                "24a1603d8b0a": {
+                    "delay": 120,
+                    "group": 0
+                },
+                "60019496c44a": {
+                    "delay": 0,
+                    "group": 0
+                },
+                "8cce4edeb3c7": {
+                    "delay": 80,
+                    "group": 0
+                },
+                "8cce4ee1df2e": {
+                    "delay": 0,
+                    "group": 0
+                },
+                "8cce4ee36bed": {
+                    "delay": 0,
+                    "group": 0
+                }
             }
         }
     },

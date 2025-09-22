@@ -22,6 +22,7 @@ public:
 signals:
     void onButtonPressed(int button);
     void onSliderChanged(int slider, int value);
+    void onKnobChanged(int slider, int value);
 
 private:
     RtMidiIn *midiin;

@@ -5,7 +5,7 @@
 
 
 KnobWidget::KnobWidget(QWidget *parent)
-    : QOpenGLWidget(parent)
+    : QOpenGLWidget(parent), percentage(0.5f), color(255, 0, 0)
 {
 
     setMouseTracking(true);
@@ -29,19 +29,6 @@ void KnobWidget::initializeGL()
 
     setUpdateBehavior(NoPartialUpdate);
     glClearColor(0,0,0,0);
-    glEnable(GL_DEPTH_TEST);
-    glLineWidth(2.0);
-    glPointSize(10.0);
-
-    vao1.create();
-    vao1.bind();
-    vertexBuffer.create();
-    vertexBuffer.bind();
-
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), nullptr);
-    glEnableVertexAttribArray(0);
-    vertexBuffer.release();
-    vao1.release();
 
     // Create and compile the vertex shader using a raw string literal.
     QOpenGLShader *vshader = new QOpenGLShader(QOpenGLShader::Vertex, this);
@@ -66,7 +53,8 @@ void KnobWidget::initializeGL()
 
             uniform float iTime;
             uniform vec2 iResolution;
-            uniform vec3 iMouse;
+            uniform float percentage;
+            uniform vec3 color;
 
             float sdRing( in vec2 p, in vec2 n, in float r, in float th )
             {
@@ -76,37 +64,32 @@ void KnobWidget::initializeGL()
                 return max( abs(length(p)-r)-th*0.5, length(vec2(p.x,max(0.0,abs(r-p.y)-th*0.5)))*sign(p.x) );
             }
 
+            mat2 rot(float a) {
+                float c = cos(a), s = sin(a);
+                return mat2(c,-s,s,c);
+            }
+
             void main()
             {
                 vec2 fragCoord = gl_FragCoord.xy;
                 // normalized pixel coordinates
                 vec2 p = (2.0*fragCoord-iResolution.xy)/iResolution.y;
-                vec2 m = (2.0*iMouse.xy-iResolution.xy)/iResolution.y;
 
-                // animation
-                float t = 3.14159*(0.5+0.5*cos(iTime*0.52));
+                float pv = percentage;
+
+                float t = -(3.14159 * 0.75)*pv - 0.1;
                 vec2 cs = vec2(cos(t),sin(t));
-                const float ra = 0.5;
-                const float th = 0.2;
+                const float ra = 0.8;
+                const float th = 0.3;
+
+                p = rot(t - (3.14159 * 0.25)) * p;
 
                 // distance
                 float d = sdRing(p, cs, ra, th);
+                vec4 col = (d>0.0) ? vec4(vec3(0.207843137), 1.0) : vec4(color, 1.0);
+                col = mix(col, vec4(color, 1.0), 1.0-smoothstep(0.0,0.05,abs(d)));
 
-                // coloring
-                vec3 col = (d>0.0) ? vec3(0.9,0.6,0.3) : vec3(0.65,0.85,1.0);
-                col *= 1.0 - exp2(-24.0*abs(d));
-                col *= 0.8 + 0.2*cos(110.0*abs(d));
-                col = mix( col, vec3(1.0), 1.0-smoothstep(0.0,0.01,abs(d)) );
-
-                // mouse interaction
-                if( iMouse.z>0.001 ) {
-                    d = sdRing(m, cs, ra, th);
-                    d = min( abs(length(p-m)-abs(d))-0.0025,
-                             length(p-m)-0.015 );
-                    col = mix(col, vec3(1.0,1.0,0.0), 1.0-smoothstep(0.0, 0.005, d) );
-                }
-
-                fragColor = vec4(col, 1.0);
+                fragColor = col;
             }
         )";
     fshader->compileSourceCode(fsrc);
@@ -138,13 +121,65 @@ void KnobWidget::initializeGL()
     program->release();
 }
 
+void KnobWidget::mousePressEvent(QMouseEvent *event)
+{
+    if (event->button() == Qt::LeftButton) {
+        lastPos = event->pos();
+    }
+}
+
+void KnobWidget::mouseMoveEvent(QMouseEvent *event)
+{
+    if (event->buttons() & Qt::LeftButton) {
+        int dx = event->pos().x() - lastPos.x();
+        int dy = event->pos().y() - lastPos.y();
+        lastPos = event->pos();
+        float perc = std::clamp(percentage - dy * 0.5 * 0.01, 0.0, 1.0);
+        setPercentage(perc);
+        emit knobChanged(perc);
+    }
+}
+
+void KnobWidget::wheelEvent(QWheelEvent *event)
+{
+    qDebug() << "wheel ev angle delta:" << event->angleDelta();
+    qDebug() << "wheel ev pixel delta:" << event->pixelDelta();
+    int numDegrees = event->angleDelta().y() / 8;
+    int numSteps = numDegrees / 15;
+    distance += numSteps;
+    update();
+}
+
+QColor KnobWidget::getColor() const
+{
+    return color;
+}
+
+void KnobWidget::setColor(const QColor &newColor)
+{
+    color = newColor;
+    update();
+}
+
+float KnobWidget::getPercentage() const
+{
+    return percentage;
+}
+
+void KnobWidget::setPercentage(float newPercentage)
+{
+    percentage = newPercentage;
+    update();
+}
+
 void KnobWidget::paintGL()
 {
     auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - timeZero).count();
     program->bind();
     program->setUniformValue("iTime", ((float)ms / 1000.0f));
     program->setUniformValue("iResolution", QVector2D(width(), height()));
-    program->setUniformValue("iMouse", QVector3D(width(), height(), 0));
+    program->setUniformValue("percentage", percentage);
+    program->setUniformValue("color", QVector3D(color.red() / 255.0, color.green() / 255.0, color.blue() / 255.0));
     vao.bind();
     glDrawArrays(GL_TRIANGLES, 0, 6);
     vao.release();

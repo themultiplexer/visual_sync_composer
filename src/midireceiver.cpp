@@ -31,6 +31,9 @@ void MidiReceiver::mycallback( double deltatime, std::vector< unsigned char > *m
         if ((int)message->at(0) == 176) {
             emit onSliderChanged((int)message->at(1) - 5,(int)message->at(2) * 2);
         }
+        if ((int)message->at(0) == 889) {
+            emit onKnobChanged((int)message->at(1) - 5,(int)message->at(2) * 2);
+        }
     }
 
     for ( unsigned int i=0; i<nBytes; i++ )

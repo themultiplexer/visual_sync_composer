@@ -10,7 +10,6 @@ EffectPresetModel::EffectPresetModel(std::string name, int id) : preset("empty")
     config.parameter2 = 6;
     config.parameter3 = 6;
     config.speed_factor = 4;
-    config.offset = 0;
 }
 
 EffectPresetModel::EffectPresetModel(std::string name, int id, CONFIG_DATA config, TubePresetModel tubepreset) : preset(tubepreset) {
@@ -66,7 +65,6 @@ EffectPresetModel* EffectPresetModel::fromJson(const QJsonObject &obj) {
     config.parameter2 = obj["parameter2"].toInt();
     config.parameter3 = obj["parameter3"].toInt();
     config.modifiers = obj["modifiers"].toInt();
-    config.offset = 0;
 
     TubePresetModel *tubepreset = TubePresetModel::fromJson(obj["tubepresets"].toObject());
 
