@@ -21,7 +21,8 @@ public:
 
 signals:
     void releasedInstantly();
-    void longPressed();
+    void leftLongPressed();
+    void rightLongPressed();
 
 protected:
     void mouseReleaseEvent(QMouseEvent *event);
@@ -29,12 +30,13 @@ protected:
 
     //void resizeEvent(QResizeEvent *event);
 private slots:
-    void onLongPress();
+    void onLeftLongPress();
+    void onRightLongPress();
 
 private:
     QString title;
     PresetModel *model;
-    QTimer *m_timer;
+    QTimer *leftTimer, *rightTimer;
     bool active;
 };
 

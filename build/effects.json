@@ -1,7 +1,7 @@
 [
     {
         "brightness": 255,
-        "id": 0,
+        "id": 1,
         "led_mode": 6,
         "modifiers": 0,
         "name": "Slow Sparkle",
@@ -18,7 +18,7 @@
     },
     {
         "brightness": 255,
-        "id": 1,
+        "id": 0,
         "led_mode": 8,
         "modifiers": 0,
         "name": "Slow Bounce",

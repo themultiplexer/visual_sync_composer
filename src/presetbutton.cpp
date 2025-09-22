@@ -3,30 +3,42 @@
 #include <QApplication>
 #include <QTimer>
 #include <QDebug>
+#include <qevent.h>
 
-PresetButton::PresetButton(PresetModel *model, QWidget *parent) : QLabel(parent), title(model->getName().c_str()), m_timer(new QTimer(this)), model(model)
+PresetButton::PresetButton(PresetModel *model, QWidget *parent) : QLabel(parent), title(model->getName().c_str()), leftTimer(new QTimer(this)), rightTimer(new QTimer(this)), model(model)
 {
     setText(title);
-    m_timer->setSingleShot(true);
-    m_timer->setInterval(500);
+    leftTimer->setSingleShot(true);
+    leftTimer->setInterval(500);
+    rightTimer->setSingleShot(true);
+    rightTimer->setInterval(500);
 
     setWordWrap(true);
 
     setActive(false);
 
-    connect(m_timer, &QTimer::timeout, this, &PresetButton::onLongPress);
+    connect(leftTimer, &QTimer::timeout, this, &PresetButton::onLeftLongPress);
+    connect(rightTimer, &QTimer::timeout, this, &PresetButton::onRightLongPress);
 }
 
 void PresetButton::mousePressEvent(QMouseEvent* event) {
-    m_timer->start();
+    if (event->button() == Qt::LeftButton) {
+        leftTimer->start();
+    }else if (event->button() == Qt::RightButton) {
+        rightTimer->start();
+    }
 }
 
 void PresetButton::mouseReleaseEvent(QMouseEvent* event) {
-    if (m_timer->isActive()) {
-        emit releasedInstantly();
-    }
+    if (event->button() == Qt::LeftButton) {
+        if (leftTimer->isActive()) {
+            emit releasedInstantly();
+        }
 
-    m_timer->stop();
+        leftTimer->stop();
+    }else if (event->button() == Qt::RightButton) {
+        rightTimer->stop();
+    }
 }
 
 /*
@@ -59,12 +71,16 @@ void PresetButton::resizeEvent(QResizeEvent* event)
 */
 
 PresetButton::~PresetButton() {
-    delete m_timer;
+    delete leftTimer;
+    delete rightTimer;
 }
 
-void PresetButton::onLongPress() {
-    qDebug() << "Long press detected!";
-    emit longPressed();
+void PresetButton::onLeftLongPress() {
+    emit leftLongPressed();
+}
+
+void PresetButton::onRightLongPress() {
+    emit rightLongPressed();
 }
 
 bool PresetButton::getActive() const

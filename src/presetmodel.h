@@ -24,7 +24,7 @@ public:
 
     template <typename ModelType>
     static std::vector<ModelType*> readJson(const std::string &filePath) {
-        std::vector<ModelType*> presets;
+        std::vector<ModelType*> presets(100);
         QFile file(filePath.c_str());
         if (file.open(QIODevice::ReadOnly)) {
             QByteArray jsonData = file.readAll();
@@ -35,7 +35,8 @@ public:
                 QJsonArray jsonArray = jsonDoc.array();
                 for (const auto &value : jsonArray) {
                     if (value.isObject()) {
-                        presets.push_back(ModelType::fromJson(value.toObject()));
+                        ModelType *m = ModelType::fromJson(value.toObject());
+                        presets[m->id] = m;
                     }
                 }
             }

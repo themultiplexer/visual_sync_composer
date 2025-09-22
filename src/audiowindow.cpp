@@ -411,7 +411,7 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
                     }
                     peakEvent();
                 });
-                connect(button, &PresetButton::longPressed, [=, this](){
+                connect(button, &PresetButton::leftLongPressed, [=, this](){
                     bool ok;
                     QString text = QInputDialog::getText(this, tr("Effect config"), tr("Enter effect name:"), QLineEdit::Normal, "", &ok);
                     if (ok && !text.isEmpty()) {
@@ -427,6 +427,24 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
                         for (auto const& [id, preset] : model->getPresets()->getTubePresets()) {
                             std::cout << id << " " << preset.delay << std::endl;
                         }
+                    }
+                });
+                connect(button, &PresetButton::rightLongPressed, [=, this](){
+                    bool ok;
+                    int newindex = QInputDialog::getInt(this, tr("Effect position"), tr("Enter index:"), QLineEdit::Normal, -1, 0, 64, &ok);
+                    if (newindex != -1 && ok) {
+                        EffectPresetModel *oldmodel = static_cast<EffectPresetModel *>(effectButtons[newindex]->getModel());
+                        EffectPresetModel *newmodel = static_cast<EffectPresetModel *>(button->getModel());
+
+                        ptrdiff_t index = std::distance(effectButtons.begin(), std::find(effectButtons.begin(), effectButtons.end(), button));
+
+                        oldmodel->id = index;
+                        button->setModel(oldmodel);
+
+                        newmodel->id = newindex;
+                        effectButtons[newindex]->setModel(newmodel);
+
+                        EffectPresetModel::saveToJsonFile(effectPresets, "effects.json");
                     }
                 });
                 effectButtons.push_back(button);
@@ -471,7 +489,7 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
                     t->sync();
                 }
             });
-            connect(button, &PresetButton::longPressed, [=, this](){
+            connect(button, &PresetButton::leftLongPressed, [=, this](){
                 bool ok;
                 QString text = QInputDialog::getText(this, tr("Tube Config"), tr("Enter preset name:"), QLineEdit::Normal, "", &ok);
                 if (ok && !text.isEmpty()) {
@@ -778,7 +796,10 @@ void AudioWindow::peakEvent(int group) {
 
     // TODO Generating a random palette would be cooler.
     std::array<float, 2> color;
-    if (colorMode == ColorControl::RandomHue) {
+    if (colorMode == ColorControl::Manual) {
+        currentColor = currentPalette[0];
+        qDebug() << currentColor[0] << " " << currentColor[1];
+    } else if (colorMode == ColorControl::RandomHue) {
         currentColor = {(float)(*hueRandom)(*rng) / (float) 360, saturationSlider->pct()};
     } else if (colorMode == ColorControl::RandomColor) {
         currentColor = {(float)(*hueRandom)(*rng) / (float) 360, (float)(*satRandom)(*rng) / (float) 255};
@@ -822,8 +843,10 @@ void AudioWindow::checkTime(){
     if (knobChanged) {
         auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - lastKnobChange).count();
         if (diff >= 50) {
-            currentPalette[0][0] = knobWidgets[0]->getPercentage() * 360.0f;
-            currentPalette[0][1] = 1.0;
+            for (int i = 0; i < 4; ++i) {
+                currentPalette[i][0] = knobWidgets[i]->getPercentage();
+                currentPalette[i][1] = 1.0;
+            }
             peakEvent();
             knobChanged = false;
             lastKnobChange = std::chrono::system_clock::now();
@@ -914,7 +937,6 @@ void AudioWindow::sliderChanged()
         glv->setDecay(timeSlider->pct() * 0.1);
     } else if (sender() == sensitivitySlider) {
         glv->setThresh(sensitivitySlider->pct());
-        knobWidgets[0]->setPercentage(sensitivitySlider->pct());
     } else {        
         sliderDidChanged = true;
     }
