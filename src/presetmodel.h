@@ -22,9 +22,9 @@ public:
     std::vector<PresetModel *> readJson(const std::string &filePath);
     void saveToJsonFile(const std::vector<PresetModel *> &presets, const std::string &filePath);
 
-    template <typename ModelType>
+    template <typename ModelType, int a>
     static std::vector<ModelType*> readJson(const std::string &filePath) {
-        std::vector<ModelType*> presets(100);
+        std::vector<ModelType*> presets(a);
         QFile file(filePath.c_str());
         if (file.open(QIODevice::ReadOnly)) {
             QByteArray jsonData = file.readAll();
@@ -42,7 +42,7 @@ public:
             }
         } else {
             qDebug() << "Failed to open file for reading";
-            for (int i = 0; i < 100; ++i) {
+            for (int i = 0; i < a; ++i) {
                 presets.push_back(new ModelType("empty", i));
             }
         }

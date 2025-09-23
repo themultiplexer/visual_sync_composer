@@ -17,11 +17,10 @@ public:
 class TubePresetModel : public PresetModel
 {
 public:
-    TubePresetModel(std::string name, int id = 0);
-    TubePresetModel(std::string name, int id, std::map<std::string, TubePreset> presets);
+    TubePresetModel(std::string name, int index, int id = 0);
+    TubePresetModel(std::string name, int index, int id, std::map<std::string, TubePreset> presets);
 
-
-    int id;
+    int index, id;
     struct PATTERN_DATA pattern;
     std::map<std::string, TubePreset> tubePresets;
 

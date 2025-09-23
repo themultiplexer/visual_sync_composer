@@ -5,7 +5,7 @@
 
 
 KnobWidget::KnobWidget(QWidget *parent)
-    : QOpenGLWidget(parent), percentage(0.5f), color(255, 0, 0)
+    : QOpenGLWidget(parent), outerPercentage(0.5f), innerPercentage(0.75f), color(255, 0, 0), shiftPressed(false)
 {
 
     setMouseTracking(true);
@@ -53,20 +53,35 @@ void KnobWidget::initializeGL()
 
             uniform float iTime;
             uniform vec2 iResolution;
-            uniform float percentage;
-            uniform vec3 color;
+            uniform float per1;
+            uniform float per2;
+            uniform vec3 knobColor;
 
             float sdRing( in vec2 p, in vec2 n, in float r, in float th )
             {
                 p.x = abs(p.x);
+
                 p = mat2(n.x,n.y,-n.y,n.x)*p;
 
-                return max( abs(length(p)-r)-th*0.5, length(vec2(p.x,max(0.0,abs(r-p.y)-th*0.5)))*sign(p.x) );
+                return max( abs(length(p)-r)-th*0.5,
+                            length(vec2(p.x,max(0.0,abs(r-p.y)-th*0.5)))*sign(p.x) );
+            }
+
+            float sdCircle( vec2 p, float r )
+            {
+                return length(p) - r;
             }
 
             mat2 rot(float a) {
                 float c = cos(a), s = sin(a);
                 return mat2(c,-s,s,c);
+            }
+
+            vec3 hsv2rgb(vec3 c)
+            {
+                vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+                vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
+                return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
             }
 
             void main()
@@ -75,21 +90,27 @@ void KnobWidget::initializeGL()
                 // normalized pixel coordinates
                 vec2 p = (2.0*fragCoord-iResolution.xy)/iResolution.y;
 
-                float pv = percentage;
+                float t1 = -(3.14159 * 0.75  - 0.1)*per1 - 0.1;
+                vec2 p1 = rot(t1 - (3.14159 * 0.25)) * p;
 
-                float t = -(3.14159 * 0.75)*pv - 0.1;
-                vec2 cs = vec2(cos(t),sin(t));
-                const float ra = 0.8;
-                const float th = 0.3;
+                float t2 = -(3.14159 * 0.75  - 0.1)*per2 - 0.1;
+                vec2 p2 = rot(t2 - (3.14159 * 0.25)) * p;
 
-                p = rot(t - (3.14159 * 0.25)) * p;
+                float d1 = sdRing(p1, vec2(cos(t1),sin(t1)), 0.8, 0.1);
+                float d2 = sdRing(p2, vec2(cos(t2),sin(t2)), 0.6, 0.1);
 
-                // distance
-                float d = sdRing(p, cs, ra, th);
-                vec4 col = (d>0.0) ? vec4(vec3(0.207843137), 1.0) : vec4(color, 1.0);
-                col = mix(col, vec4(color, 1.0), 1.0-smoothstep(0.0,0.05,abs(d)));
+                vec4 col1 = (d1>0.0) ? vec4(vec3(0.0), 0.0) : vec4(vec3(1.0), 1.0);
+                col1 = mix( col1, vec4(1.0), 1.0-smoothstep(0.0,0.05,abs(d1)) );
 
-                fragColor = col;
+                vec4 col2 = (d2>0.0) ? vec4(vec3(0.0), 0.0) : vec4(vec3(1.0), 1.0);
+                col2 = mix( col2, vec4(1.0), 1.0-smoothstep(0.0,0.05,abs(d2)) );
+
+                float d3 = sdCircle(p, 0.35);
+
+                vec4 col3 = (d3>0.0) ? vec4(vec3(0.207843137), 1.0) : vec4(knobColor, 1.0);
+                col3 = mix( col3, vec4(knobColor, 1.0), 1.0-smoothstep(0.0,0.05, abs(d3)) );
+
+                fragColor = col1 + col2 + col3;
             }
         )";
     fshader->compileSourceCode(fsrc);
@@ -134,9 +155,7 @@ void KnobWidget::mouseMoveEvent(QMouseEvent *event)
         int dx = event->pos().x() - lastPos.x();
         int dy = event->pos().y() - lastPos.y();
         lastPos = event->pos();
-        float perc = std::clamp(percentage - dy * 0.5 * 0.01, 0.0, 1.0);
-        setPercentage(perc);
-        emit knobChanged(perc);
+        emit verticalMouseMovement(dy * 0.5 * 0.01);
     }
 }
 
@@ -161,14 +180,25 @@ void KnobWidget::setColor(const QColor &newColor)
     update();
 }
 
-float KnobWidget::getPercentage() const
+float KnobWidget::getOuterPercentage() const
 {
-    return percentage;
+    return outerPercentage;
 }
 
-void KnobWidget::setPercentage(float newPercentage)
+void KnobWidget::setOuterPercentage(float newPercentage)
 {
-    percentage = newPercentage;
+    outerPercentage = newPercentage;
+    update();
+}
+
+float KnobWidget::getInnerPercentage() const
+{
+    return innerPercentage;
+}
+
+void KnobWidget::setInnerPercentage(float newPercentage)
+{
+    innerPercentage = newPercentage;
     update();
 }
 
@@ -178,8 +208,9 @@ void KnobWidget::paintGL()
     program->bind();
     program->setUniformValue("iTime", ((float)ms / 1000.0f));
     program->setUniformValue("iResolution", QVector2D(width(), height()));
-    program->setUniformValue("percentage", percentage);
-    program->setUniformValue("color", QVector3D(color.red() / 255.0, color.green() / 255.0, color.blue() / 255.0));
+    program->setUniformValue("per1", outerPercentage);
+    program->setUniformValue("per2", innerPercentage);
+    program->setUniformValue("knobColor", QVector3D(color.red() / 255.0, color.green() / 255.0, color.blue() / 255.0));
     vao.bind();
     glDrawArrays(GL_TRIANGLES, 0, 6);
     vao.release();

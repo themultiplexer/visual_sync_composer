@@ -1,19 +1,21 @@
 #include "tubepresetmodel.h"
 #include "qjsonobject.h"
 
-TubePresetModel::TubePresetModel(std::string name, int id) {
+TubePresetModel::TubePresetModel(std::string name, int index, int id) {
     this->name = name;
+    this->index = index;
     this->id = id;
     tubePresets = std::map<std::string, TubePreset>();
     this->pattern = PATTERN_DATA { {0} };
 
 }
 
-TubePresetModel::TubePresetModel(std::string name, int id, std::map<std::string, TubePreset> presets) {
+TubePresetModel::TubePresetModel(std::string name, int index, int id, std::map<std::string, TubePreset> presets) {
     this->name = name;
+    this->index = index;
     this->id = id;
     tubePresets = presets;
-    this->pattern = pattern;
+    this->pattern = PATTERN_DATA { {0} };
 }
 
 std::map<std::string, TubePreset> TubePresetModel::getTubePresets() const
@@ -29,6 +31,7 @@ void TubePresetModel::setTubePresets(const std::map<std::string, TubePreset> &ne
 QJsonObject TubePresetModel::toJson() const {
     QJsonObject json;
     json["name"] = QString::fromStdString(name);
+    json["index"] = index;
     json["id"] = id;
     QJsonObject array;
     for (auto const& [id, preset] : tubePresets) {
@@ -61,7 +64,7 @@ TubePresetModel* TubePresetModel::fromJson(const QJsonObject &obj) {
         }
         presets[key.toStdString()] = p;
     }
-    auto f = new TubePresetModel(obj["name"].toString().toStdString(), obj["id"].toInt(), presets);
+    auto f = new TubePresetModel(obj["name"].toString().toStdString(), obj["id"].toInt(), obj["id"].toInt(), presets);
     return f;
 }
 

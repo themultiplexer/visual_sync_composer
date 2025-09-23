@@ -1,7 +1,7 @@
 #include "effectpresetmodel.h"
 #include "qjsonobject.h"
 
-EffectPresetModel::EffectPresetModel(std::string name, int id) : preset("empty") {
+EffectPresetModel::EffectPresetModel(std::string name, int id) : preset("empty", 0) {
     this->name = name;
     this->id = id;
     config.led_mode = 1;

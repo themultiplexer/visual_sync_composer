@@ -24,22 +24,23 @@ public:
 
     void setFrequencies(const std::vector<float> &newFrequencies, bool peak, float level);
 
-    float getPercentage() const;
-    void setPercentage(float newPercentage);
-
     QColor getColor() const;
     void setColor(const QColor &newColor);
 
+    void setOuterPercentage(float newPercentage);
+    float getOuterPercentage() const;
+    float getInnerPercentage() const;
+    void setInnerPercentage(float newPercentage);
 signals:
-    void knobChanged(float value);
+    void verticalMouseMovement(float diff);
 
 protected:
-    void initializeGL();
-    void paintGL();
+    void initializeGL() override;
+    void paintGL() override;
 
-    void mousePressEvent(QMouseEvent *event);
-    void mouseMoveEvent(QMouseEvent *event);
-    void wheelEvent(QWheelEvent *event);
+    void mousePressEvent(QMouseEvent *event) override;
+    void mouseMoveEvent(QMouseEvent *event) override;
+    void wheelEvent(QWheelEvent *event) override;
 
     QOpenGLShaderProgram *program;
     QOpenGLVertexArrayObject vao, vao1;
@@ -47,12 +48,12 @@ protected:
 
     GLuint shaderProgram;
     std::chrono::time_point<std::chrono::system_clock> timeZero;
-
 private:
-    float percentage;
+    float innerPercentage, outerPercentage;
     QColor color;
     QPoint lastPos;
     double distance;
+    bool shiftPressed;
 };
 
 #endif // KNOBWIDGET_H

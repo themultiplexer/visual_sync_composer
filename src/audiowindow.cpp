@@ -11,7 +11,7 @@
 
 AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     : QMainWindow(parent)
-    , popoutGlv(nullptr), activeEffectPresetButton(nullptr), activeTubePresetButton(nullptr), fullScreenWindow(new FullscreenWindow()), wifiLabel(nullptr), currentEffect(0), currentPreset(0), currentTab(0), timer(nullptr), tubeFrames(0), currentPaletteIndex(0), receiver(nullptr)
+    , popoutGlv(nullptr), activeEffectPresetButton(nullptr), activeTubePresetButton(nullptr), fullScreenWindow(new FullscreenWindow()), wifiLabel(nullptr), currentEffect(0), currentPreset(0), currentTab(0), timer(nullptr), tubeFrames(0), tubePresets(16), currentPaletteIndex(0), receiver(nullptr)
 {
     numBeats = 0;
     numGroups = 1;
@@ -27,8 +27,11 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     h.setInterface(true);
     lastColorRed = false;
 
-    effectPresets = PresetModel::readJson<EffectPresetModel>("effects.json");
-    tubePresets = PresetModel::readJson<TubePresetModel>("tubes.json");
+    effectPresets = PresetModel::readJson<EffectPresetModel, 100>("effects.json");
+    auto tubeConfigs = PresetModel::readJson<TubePresetModel, 16>("tubes.json");
+    for (auto tube : tubeConfigs) {
+        tubePresets[tube->index] = tube;
+    }
 
     ep->initHandlers();
 
@@ -54,8 +57,7 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
 
     QObject::connect(receiver, &MidiReceiver::onButtonPressed, [this](int button){
         std::cout << "Button Pressed" << button << std::endl;
-        std::vector<EffectPresetModel *> presets = PresetModel::readJson<EffectPresetModel>("effects.json");
-        setNewEffect(presets[button]);
+        setNewEffect(button);
     });
 
     QObject::connect(receiver, &MidiReceiver::onSliderChanged, [this](int slider, int value){
@@ -68,7 +70,7 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     QObject::connect(receiver, &MidiReceiver::onKnobChanged, [this](int slider, int value){
         std::cout << "Knob Changed" << slider << std::endl;
 
-        knobWidgets[slider]->setPercentage(value);
+        knobWidgets[slider]->setOuterPercentage(value);
     });
 
     setWindowFlags(Qt::Window | Qt::WindowFullscreenButtonHint);
@@ -221,15 +223,22 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     QHBoxLayout* knobLayout = new QHBoxLayout();
     for (int i = 0; i < 4; ++i) {
         KnobWidget *knob = new KnobWidget();
-        knob->setMinimumHeight(50);
-        knob->setMaximumHeight(50);
-        knob->setMinimumWidth(50);
-        knob->setMaximumWidth(50);
-        connect(knob, &KnobWidget::knobChanged, this, [=, this](float value){
-            rgb color = hsv2rgb({value * 360.0f, 1.0, 1.0});
+        knob->setMinimumHeight(100);
+        knob->setMaximumHeight(100);
+        knob->setMinimumWidth(100);
+        knob->setMaximumWidth(100);
+        connect(knob, &KnobWidget::verticalMouseMovement, this, [=, this](float diff){
+            if (shiftPressed) {
+                knob->setInnerPercentage(std::clamp(knob->getInnerPercentage() - diff, 0.0f, 1.0f));
+            } else {
+                knob->setOuterPercentage(std::clamp(knob->getOuterPercentage() - diff, 0.0f, 1.0f));
+            }
+
+            rgb color = hsv2rgb({knob->getOuterPercentage() * 360.0f, knob->getInnerPercentage(), 1.0});
             qDebug() << color.r << color.g << color.b;
             knob->setColor(QColor(color.r * 255, color.g * 255, color.b * 255));
             knobChanged = true;
+
         });
 
         knobWidgets.push_back(knob);
@@ -431,7 +440,7 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
                 });
                 connect(button, &PresetButton::rightLongPressed, [=, this](){
                     bool ok;
-                    int newindex = QInputDialog::getInt(this, tr("Effect position"), tr("Enter index:"), QLineEdit::Normal, -1, 0, 64, &ok);
+                    int newindex = QInputDialog::getInt(this, tr("Effect position"), tr("Enter index:"), -1, 0, 64, 1, &ok);
                     if (newindex != -1 && ok) {
                         EffectPresetModel *oldmodel = static_cast<EffectPresetModel *>(effectButtons[newindex]->getModel());
                         EffectPresetModel *newmodel = static_cast<EffectPresetModel *>(button->getModel());
@@ -509,6 +518,24 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
                     PresetModel::saveToJsonFile(tubePresets, "tubes.json");
                 }
             });
+            connect(button, &PresetButton::rightLongPressed, [=, this](){
+                bool ok;
+                int newindex = QInputDialog::getInt(this, tr("Preset position"), tr("Enter index:"), -1, 0, 16, 1, &ok);
+                if (newindex != -1 && ok) {
+                    TubePresetModel *oldmodel = static_cast<TubePresetModel *>(tubeButtons[newindex]->getModel());
+                    TubePresetModel *newmodel = static_cast<TubePresetModel *>(button->getModel());
+
+                    ptrdiff_t index = std::distance(tubeButtons.begin(), std::find(tubeButtons.begin(), tubeButtons.end(), button));
+
+                    oldmodel->id = index;
+                    button->setModel(oldmodel);
+
+                    newmodel->id = newindex;
+                    tubeButtons[newindex]->setModel(newmodel);
+
+                    TubePresetModel::saveToJsonFile(tubePresets, "tubes.json");
+                }
+            });
             tubeButtons.push_back(button);
         }
     }
@@ -578,7 +605,7 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
             currentPalette = palettes[i - 3];
             for (int i = 0; i < knobWidgets.size(); ++i) {
                 rgb color = hsv2rgb({currentPalette[i][0] * 360.0f, currentPalette[i][1], 1.0});
-                knobWidgets[i]->setPercentage(currentPalette[i][0]);
+                knobWidgets[i]->setOuterPercentage(currentPalette[i][0]);
                 knobWidgets[i]->setColor(QColor(color.r * 255, color.g * 255, color.b * 255));
             }
         }
@@ -678,9 +705,37 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     mainLayout->resize(mainLayout->minimumSizeHint());
     superWidget->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
 
+    this->installEventFilter(this);
+    setFocusPolicy(Qt::StrongFocus);
+
     //t1.join();
     ep->sendHelloToAll();
 }
+
+
+bool AudioWindow::eventFilter(QObject *obj, QEvent *event)
+{
+    if (obj == this) {
+        if (event->type() == QEvent::KeyPress) {
+            QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
+            if (keyEvent->key() == Qt::Key_Shift) {
+                qDebug() << "Shift pressed";
+                shiftPressed = true;
+                return true;
+            }
+        } else if (event->type() == QEvent::KeyRelease) {
+            QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
+            if (keyEvent->key() == Qt::Key_Shift) {
+                shiftPressed = false;
+                qDebug() << "Shift released";
+                return true;
+            }
+        }
+    }
+    // Default processing
+    return QWidget::eventFilter(obj, event);
+}
+
 
 void AudioWindow::applyTubePreset(const TubePresetModel *model) {
     std::cout << " applyTubePreset " << std::endl;
@@ -736,6 +791,10 @@ void AudioWindow::sendTubeSyncData() {
     ep->setTubeGroups(groups);
     ep->setTubeOffsets(offsets);
     ep->sendSyncConfig();
+}
+
+void AudioWindow::setNewEffect(int index) {
+    setNewEffect(effectPresets[index]);
 }
 
 void AudioWindow::setNewEffect(EffectPresetModel *model) {
@@ -844,8 +903,8 @@ void AudioWindow::checkTime(){
         auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - lastKnobChange).count();
         if (diff >= 50) {
             for (int i = 0; i < 4; ++i) {
-                currentPalette[i][0] = knobWidgets[i]->getPercentage();
-                currentPalette[i][1] = 1.0;
+                currentPalette[i][0] = knobWidgets[i]->getOuterPercentage();
+                currentPalette[i][1] = knobWidgets[i]->getInnerPercentage();
             }
             peakEvent();
             knobChanged = false;

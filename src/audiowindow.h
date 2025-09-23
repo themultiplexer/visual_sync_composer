@@ -98,7 +98,6 @@ public:
     AudioWindow(WifiEventProcessor *ep, QWidget *parent = nullptr);
     ~AudioWindow();
 
-
     void sliderChanged();
     void effectChanged(bool state);
     void setAlbumArtwork(QPixmap *);
@@ -107,10 +106,12 @@ public:
     void setNewEffect(EffectPresetModel *model);
     int activeEffect;
     EffectPresetModel *getCurrentEffect();
+    void setNewEffect(int index);
 
 protected:
     void checkTime();
     void modifierChanged(bool state);
+    bool eventFilter(QObject *obj, QEvent *event) override;
 
 private:
     Ui::MainWindow *ui;
@@ -140,7 +141,6 @@ private:
     std::vector<TubePresetModel *> tubePresets;
     std::vector<PresetButton *> effectButtons{};
     std::vector<PresetButton *> tubeButtons{};
-
     std::vector<KnobWidget *> knobWidgets;
 
     bool sliderDidChanged;
@@ -162,7 +162,7 @@ private:
 
     CONFIG_DATA currentEffectConfig;
 
-    void closeEvent(QCloseEvent *event);
+    void closeEvent(QCloseEvent *event) override;
     void spinboxChanged(int bpm);
 
     VSCSlider *saturationSlider;
@@ -187,5 +187,6 @@ private:
     CONFIG_DATA slidersToConfig(CONFIG_DATA d);
     void peakEvent(int group = 0);
     bool knobChanged;
+    bool shiftPressed;
 };
 #endif // AUDIOWINDOW_H
