@@ -111,15 +111,16 @@ void WifiEventProcessor::peakEvent(uint8_t hue, uint8_t sat, uint8_t group) {
     handler->send(reinterpret_cast<uint8_t*>(&peak), sizeof(PEAK_DATA), {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF});
 }
 
-void WifiEventProcessor::sendDmx(uint8_t hue, uint8_t sat, uint8_t brightness, uint8_t group) {
+void WifiEventProcessor::sendDmx(std::vector<double> channels) {
     DMX_DATA dmx;
-    rgb color = hsv2rgb({(hue/255.0) * 360.0, sat/255.0, 1.0});
-    dmx.channels[0] = color.r * 255;
-    dmx.channels[1] = color.g * 255;
-    dmx.channels[2] = color.b * 255;
-    dmx.channels[3] = 0;
-    dmx.channels[4] = brightness;
-    handler->send(reinterpret_cast<uint8_t*>(&dmx), sizeof(DMX_DATA), {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF});
+    std::array<uint8_t, 5> bytes{};
+    for (size_t i = 0; i < bytes.size(); ++i) {
+        bytes[i] = channels[i] * 255.0f;
+    }
+
+    std::cout << "Sending DMX " << arrayToString<uint8_t>(bytes) << std::endl;
+
+    handler->send(reinterpret_cast<uint8_t*>(bytes.data()), bytes.size(), {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF});
 }
 
 

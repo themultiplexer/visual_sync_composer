@@ -95,7 +95,7 @@ public:
     std::vector<int> getTubeGroups() const;
     void setTubeGroups(const std::vector<int> &newTubeGroups);
     void sendSyncConfig();
-    void sendDmx(uint8_t hue, uint8_t sat, uint8_t brightness, uint8_t group);
+    void sendDmx(std::vector<double> channel);
     void sendPalette(std::array<uint8_t, 8> palette);
 
     void sendHelloToAll();

@@ -112,6 +112,7 @@ else()
             src/midireceiver.h
             src/midireceiver.cpp
             src/knobwidget.h src/knobwidget.cpp
+            src/dmxwindow.h src/dmxwindow.cpp
         )
     endif()
 endif()

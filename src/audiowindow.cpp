@@ -1,5 +1,6 @@
 #include "audiowindow.h"
 #include "audiofilter.h"
+#include "dmxwindow.h"
 #include "fullscreenwindow.h"
 #include "knobwidget.h"
 #include "mdnsflasher.h"
@@ -710,6 +711,9 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
 
     //t1.join();
     ep->sendHelloToAll();
+
+    DmxWindow *dmxw = new DmxWindow(ep);
+    dmxw->show();
 }
 
 
@@ -873,9 +877,13 @@ void AudioWindow::peakEvent(int group) {
             currentColor = currentPalette[group > 0 ? group - 1 : 0];
         }
     }
+    int hue = currentColor[0] * 255.0;
+    int sat = currentColor[1] * 255.0;
 
-    ep->peakEvent((int)(currentColor[0] * 255.0), (int)(currentColor[1] * 255.0), currentGroup);
-    ep->sendDmx((int)(currentColor[0] * 255.0), (int)(currentColor[1] * 255.0), 255, 0);
+    ep->peakEvent(hue, sat, currentGroup);
+
+    rgb c = hsv2rgb({(hue/255.0) * 360.0, sat/255.0, 1.0});
+    ep->sendDmx({c.r, c.g, c.b, 0.0, 1.0});
 
     for (auto t : tubes) {
         t->setPeaked(hsv2rgb({currentColor[0] * 360, currentColor[1], 1.0}), currentGroup);
