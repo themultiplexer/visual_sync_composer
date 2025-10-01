@@ -108,7 +108,10 @@ void OGLWidget::initializeGL()
         }
 
         void main() {
-            FragColor = vec4(0.0);
+            float mx = mod(inverseLogScale(pos.x, 40), stepsize);
+            int ongrid = int(mx > 0.002 && mx < 0.004);
+            vec4 gridcolor = ongrid * vec4(vec3(0.2), 1.0);
+            FragColor = gridcolor;
             for (int i = 0; i < 2; i++) {
                 int ind = i * 6;
                 float start = regions[ind + 0];
@@ -129,13 +132,10 @@ void OGLWidget::initializeGL()
                 if (color == 1) {
                     c = vec4(1.0, peak, peak, 1.0);
                 }
-
                 int visible2 = int(pos.y < (-1.0 + 2.0 * level));
-
-                FragColor += (c * start + c * end) + threshold * visible * vec4(1.0) + vec4(vec3(1.0), 0.5) * visible2 * visible;
+                FragColor += (c * start + c * end) + threshold * visible * vec4(1.0) + (vec4(vec3(1.0), 0.5) * visible2 * visible * (1.0 - ongrid)) + ongrid * visible2 * visible * vec4(vec3(0.2),1.0);
             }
-            float mx = mod(inverseLogScale(pos.x, 40), stepsize);
-            FragColor += int(mx > 0.002 && mx < 0.004) * vec4(vec3(0.2), 1.0);
+
         }
     )";
     fshader->compileSourceCode(fsrc);
@@ -233,6 +233,10 @@ void OGLWidget::initializeGL()
 void OGLWidget::paintGL()
 {
     glClearColor(0,0,0,1);
+
+    lineVertexPositionBuffer.bind();
+    lineVertexPositionBuffer.allocate(lineVertices.data(), lineVertices.size() * sizeof(Vertex2D));
+    lineVertexPositionBuffer.release();
 
     lineShaderProgram->bind();
     lineVao.bind();
@@ -417,15 +421,10 @@ void OGLWidget::setFrequencies(const std::vector<float> &leftFrequencies, const 
 
         rgb c = hsv2rgb({((float)i/(float)NUM_POINTS) * 360, (1.0 - ((float)recentFrequencies[i] / 100.0)), 1.0});
         path1.push_back({glm::vec2(((float)i/(float)NUM_POINTS) * 2.0 - 1.0, smoothFrequencies[i] * 2.0 - (1.0 - width)), glm::vec4(c.r, c.g, c.b, 1.0) });
-        path2.push_back({glm::vec2(((float)i/(float)NUM_POINTS) * 2.0 - 1.0, smoothFrequencies2[i] * 2.0 - (1.1 - width)), glm::vec4(0.5,0.5,0.5, 1.0) });
+        path2.push_back({glm::vec2(((float)i/(float)NUM_POINTS) * 2.0 - 1.0, smoothFrequencies2[i] * 2.0 - (1.1 - width)), glm::vec4(c.r, c.g, c.b, 1.0) });
     }
     lineVertices = generatePolylineQuads(path1, width);
     lineVertices2 = generatePolylineQuads(path2, width);
-
-    lineVertexPositionBuffer.bind();
-    lineVertexPositionBuffer.allocate(lineVertices.data(), lineVertices.size() * sizeof(Vertex2D));
-    lineVertexPositionBuffer.release();
-
 
     update();
 }

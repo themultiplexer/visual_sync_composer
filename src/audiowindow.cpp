@@ -184,9 +184,9 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
         }
     });
 
-    QPushButton *syncbutton = new QPushButton("Sync");
+    QPushButton *syncbutton = new QPushButton("Send Hello");
     connect(syncbutton, &QPushButton::pressed, [=](){
-        ep->sendSync();
+        ep->sendHelloToAll();
     });
 
     statusLayout->addWidget(fwbutton);
@@ -212,7 +212,7 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
 
     QHBoxLayout* modifiersLayout = new QHBoxLayout(effectSettingsWidget);
     modifiersLayout->addWidget(new QLabel("Modifiers:"));
-    for (std::string effect : {"Fadeout After Peak","No Color Delay","Reversed","4","5","6","7","8"}) {
+    for (std::string effect : {"Fadeout After Peak","No Color Delay","Reversed","Stickiness","Pseudo Random","Sync On Peak","7","8"}) {
         QCheckBox *check = new QCheckBox();
         check->setText(effect.c_str());
         connect(check, &QCheckBox::toggled, this, &AudioWindow::modifierChanged);
@@ -825,13 +825,16 @@ void AudioWindow::setNewEffect(EffectPresetModel *model) {
         activeEffectPresetButton->setActive(true);
     }
 
-    applyTubePreset(model->getPresets());
-    sendTubeSyncData();
+
 
     CONFIG_DATA d = slidersToConfig(model->config);
     ep->setMasterconfig(d);
     ep->sendConfig();
 
+    applyTubePreset(model->getPresets());
+    sendTubeSyncData();
+
+    /*
     ptrdiff_t pos = std::distance(tubePresets.begin(), std::find(tubePresets.begin(), tubePresets.end(), model->getPresets()));
     if (pos < tubePresets.size()) {
         currentPreset = (int)pos;
@@ -840,7 +843,7 @@ void AudioWindow::setNewEffect(EffectPresetModel *model) {
     if (currentPreset != -1) {
         applyTubePreset(tubePresets[currentPreset]);
         sendTubeSyncData();
-    }
+    }*/
 }
 
 void AudioWindow::peakEvent(int group) {

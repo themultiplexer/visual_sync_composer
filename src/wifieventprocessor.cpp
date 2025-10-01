@@ -23,7 +23,6 @@ void WifiEventProcessor::callback(std::array<uint8_t, 6> src_mac, std::span<uint
         std::cout << "Got hello from tube: " << arrayToString(src_mac) << std::endl;
         sendHelloTo(src_mac);
         sendConfigTo(src_mac);
-        sendSync();
     } else {
         for (int i = 0; i < data.size(); i++) {
             printf("adsfsadf%02hhX ", data[i]);
@@ -126,11 +125,7 @@ void WifiEventProcessor::sendDmx(std::vector<double> channels) {
 
 void WifiEventProcessor::sendConfig()
 {
-    auto macs = devicereqistry::macs();
-    for (int i = 0; i < devicereqistry::macs().size(); i++) {
-        sendConfigTo(macs[i]);
-    }
-    sendSync();
+    sendConfigTo({0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF});
 }
 
 void WifiEventProcessor::sendSyncConfig()
@@ -145,7 +140,6 @@ void WifiEventProcessor::sendSyncConfig()
         sync_config.group[i] = tubeGroups[i];
     }
     handler->send(reinterpret_cast<uint8_t*>(&sync_config), sizeof(SYNC_DATA), {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF});
-    sendSync();
 }
 
 void WifiEventProcessor::sendConfigTo(std::array<uint8_t, 6> dst_mac)
@@ -181,12 +175,6 @@ void WifiEventProcessor::sendHelloTo(std::array<uint8_t, 6> dst_mac)
         }
     }
 
-}
-
-void WifiEventProcessor::sendSync()
-{
-    SYNC_REQUEST sync;
-    handler->send(reinterpret_cast<uint8_t*>(&sync), sizeof(SYNC_REQUEST), {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF});
 }
 
 void WifiEventProcessor::sendUpdateMessage()

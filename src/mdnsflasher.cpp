@@ -98,6 +98,7 @@ static void client_callback(AvahiClient *client, AvahiClientState state, void *u
 
 int mdnsflasher::flash(std::string firmware)
 {
+    found_hosts.clear();
     services = 0;
     serviceCount = 0;
     devices = 0;

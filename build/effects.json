@@ -39,31 +39,31 @@
         "brightness": 255,
         "id": 2,
         "led_mode": 6,
-        "modifiers": 0,
-        "name": "NEON Flash",
+        "modifiers": 128,
+        "name": "[AR] NEON!",
         "parameter1": 20,
         "parameter2": 10,
-        "parameter3": 255,
+        "parameter3": 126,
         "speed_factor": 1,
         "tubepresets": {
-            "id": 5,
-            "index": 5,
-            "name": "Synced, No Groups",
+            "id": 0,
+            "index": 0,
+            "name": "Short Delays",
             "tubes": {
                 "24a1603a2be9": {
-                    "delay": 0,
+                    "delay": 40,
                     "group": 0
                 },
                 "24a1603aa2dc": {
-                    "delay": 0,
+                    "delay": 120,
                     "group": 0
                 },
                 "24a1603acf56": {
-                    "delay": 0,
+                    "delay": 40,
                     "group": 0
                 },
                 "24a1603d4856": {
-                    "delay": 0,
+                    "delay": 80,
                     "group": 0
                 },
                 "24a1603d864a": {
@@ -75,7 +75,7 @@
                     "group": 0
                 },
                 "24a1603d8b0a": {
-                    "delay": 0,
+                    "delay": 120,
                     "group": 0
                 },
                 "60019496c44a": {
@@ -83,7 +83,87 @@
                     "group": 0
                 },
                 "8cce4edeb3c7": {
+                    "delay": 80,
+                    "group": 0
+                },
+                "8cce4ee1df2e": {
                     "delay": 0,
+                    "group": 0
+                },
+                "8cce4ee36bed": {
+                    "delay": 0,
+                    "group": 0
+                }
+            }
+        }
+    },
+    {
+        "brightness": 255,
+        "id": 3,
+        "led_mode": 13,
+        "modifiers": 0,
+        "name": "Slow Tunnel",
+        "parameter1": 175,
+        "parameter2": 52,
+        "parameter3": 0,
+        "speed_factor": 6,
+        "tubepresets": {
+            "id": 0,
+            "index": 0,
+            "name": "",
+            "tubes": {
+            }
+        }
+    },
+    {
+        "brightness": 210,
+        "id": 4,
+        "led_mode": 7,
+        "modifiers": 0,
+        "name": "Organic Fire",
+        "parameter1": 20,
+        "parameter2": 10,
+        "parameter3": 0,
+        "speed_factor": 10,
+        "tubepresets": {
+            "id": 0,
+            "index": 0,
+            "name": "Short Delays",
+            "tubes": {
+                "24a1603a2be9": {
+                    "delay": 40,
+                    "group": 0
+                },
+                "24a1603aa2dc": {
+                    "delay": 120,
+                    "group": 0
+                },
+                "24a1603acf56": {
+                    "delay": 40,
+                    "group": 0
+                },
+                "24a1603d4856": {
+                    "delay": 80,
+                    "group": 0
+                },
+                "24a1603d864a": {
+                    "delay": 0,
+                    "group": 0
+                },
+                "24a1603d872f": {
+                    "delay": 0,
+                    "group": 0
+                },
+                "24a1603d8b0a": {
+                    "delay": 120,
+                    "group": 0
+                },
+                "60019496c44a": {
+                    "delay": 0,
+                    "group": 0
+                },
+                "8cce4edeb3c7": {
+                    "delay": 80,
                     "group": 0
                 },
                 "8cce4ee1df2e": {
@@ -161,24 +241,6 @@
     },
     {
         "brightness": 210,
-        "id": 29,
-        "led_mode": 11,
-        "modifiers": 0,
-        "name": "Bright color strobe",
-        "parameter1": 20,
-        "parameter2": 10,
-        "parameter3": 0,
-        "speed_factor": 16,
-        "tubepresets": {
-            "id": 0,
-            "index": 0,
-            "name": "",
-            "tubes": {
-            }
-        }
-    },
-    {
-        "brightness": 210,
         "id": 6,
         "led_mode": 7,
         "modifiers": 32,
@@ -236,24 +298,6 @@
                     "delay": 0,
                     "group": 0
                 }
-            }
-        }
-    },
-    {
-        "brightness": 255,
-        "id": 3,
-        "led_mode": 13,
-        "modifiers": 0,
-        "name": "Slow Tunnel",
-        "parameter1": 175,
-        "parameter2": 52,
-        "parameter3": 0,
-        "speed_factor": 6,
-        "tubepresets": {
-            "id": 0,
-            "index": 0,
-            "name": "",
-            "tubes": {
             }
         }
     },
@@ -465,12 +509,12 @@
         "brightness": 255,
         "id": 13,
         "led_mode": 6,
-        "modifiers": 0,
+        "modifiers": 128,
         "name": "[AR] Sparkle+",
         "parameter1": 20,
         "parameter2": 10,
-        "parameter3": 164,
-        "speed_factor": 66,
+        "parameter3": 206,
+        "speed_factor": 5,
         "tubepresets": {
             "id": 0,
             "index": 0,
@@ -924,20 +968,64 @@
         }
     },
     {
-        "brightness": 10,
+        "brightness": 144,
         "id": 24,
-        "led_mode": 1,
-        "modifiers": 0,
-        "name": "-",
-        "parameter1": 7,
-        "parameter2": 6,
-        "parameter3": 6,
-        "speed_factor": 4,
+        "led_mode": 19,
+        "modifiers": 128,
+        "name": "[AR] Juggle",
+        "parameter1": 20,
+        "parameter2": 10,
+        "parameter3": 164,
+        "speed_factor": 217,
         "tubepresets": {
             "id": 0,
             "index": 0,
-            "name": "",
+            "name": "Short Delays",
             "tubes": {
+                "24a1603a2be9": {
+                    "delay": 40,
+                    "group": 0
+                },
+                "24a1603aa2dc": {
+                    "delay": 120,
+                    "group": 0
+                },
+                "24a1603acf56": {
+                    "delay": 40,
+                    "group": 0
+                },
+                "24a1603d4856": {
+                    "delay": 80,
+                    "group": 0
+                },
+                "24a1603d864a": {
+                    "delay": 0,
+                    "group": 0
+                },
+                "24a1603d872f": {
+                    "delay": 0,
+                    "group": 0
+                },
+                "24a1603d8b0a": {
+                    "delay": 120,
+                    "group": 0
+                },
+                "60019496c44a": {
+                    "delay": 0,
+                    "group": 0
+                },
+                "8cce4edeb3c7": {
+                    "delay": 80,
+                    "group": 0
+                },
+                "8cce4ee1df2e": {
+                    "delay": 0,
+                    "group": 0
+                },
+                "8cce4ee36bed": {
+                    "delay": 0,
+                    "group": 0
+                }
             }
         }
     },
@@ -1059,63 +1147,19 @@
     },
     {
         "brightness": 210,
-        "id": 4,
-        "led_mode": 7,
+        "id": 29,
+        "led_mode": 11,
         "modifiers": 0,
-        "name": "Organic Fire",
+        "name": "Bright color strobe",
         "parameter1": 20,
         "parameter2": 10,
         "parameter3": 0,
-        "speed_factor": 10,
+        "speed_factor": 16,
         "tubepresets": {
             "id": 0,
             "index": 0,
-            "name": "Short Delays",
+            "name": "",
             "tubes": {
-                "24a1603a2be9": {
-                    "delay": 40,
-                    "group": 0
-                },
-                "24a1603aa2dc": {
-                    "delay": 120,
-                    "group": 0
-                },
-                "24a1603acf56": {
-                    "delay": 40,
-                    "group": 0
-                },
-                "24a1603d4856": {
-                    "delay": 80,
-                    "group": 0
-                },
-                "24a1603d864a": {
-                    "delay": 0,
-                    "group": 0
-                },
-                "24a1603d872f": {
-                    "delay": 0,
-                    "group": 0
-                },
-                "24a1603d8b0a": {
-                    "delay": 120,
-                    "group": 0
-                },
-                "60019496c44a": {
-                    "delay": 0,
-                    "group": 0
-                },
-                "8cce4edeb3c7": {
-                    "delay": 80,
-                    "group": 0
-                },
-                "8cce4ee1df2e": {
-                    "delay": 0,
-                    "group": 0
-                },
-                "8cce4ee36bed": {
-                    "delay": 0,
-                    "group": 0
-                }
             }
         }
     },

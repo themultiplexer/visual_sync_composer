@@ -17,11 +17,6 @@ struct PEAK_DATA {
     uint8_t group;
 };
 
-struct SYNC_REQUEST {
-    uint8_t a;
-    uint8_t b;
-};
-
 struct UPDATE_REQUEST {
     uint32_t a;
 };
@@ -88,7 +83,6 @@ public:
     void initHandlers();
     void setTubeOffsets(const std::vector<int> &newTubeOffsets);
     void sendConfigTo(std::array<uint8_t, 6> dst_mac);
-    void sendSync();
     void sendUpdateMessageTo(std::array<uint8_t, 6> dst_mac);
     CONFIG_DATA getMasterconfig() const;
     void setMasterconfig(const CONFIG_DATA &newMasterconfig);

@@ -5,7 +5,7 @@
 #define PROGRAM_VERTEX_ATTRIBUTE 0
 
 
-TubeWidget::TubeWidget(QWidget *parent) : QOpenGLWidget(parent), peak(0.0), time(0.0), sizes(20), brightness(20), particle(0), color(0,0,255), effect({0})
+TubeWidget::TubeWidget(QWidget *parent) : QOpenGLWidget(parent), peak(0.0), time(0.0), sizes(20), brightness(20), particle(0), color(0,0,255), effect({1})
 {
     rng = new std::mt19937(dev());
     pixelRandom = new std::uniform_int_distribution<std::mt19937::result_type>(0, 255);
