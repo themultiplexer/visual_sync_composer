@@ -1,8 +1,8 @@
 [
     {
-        "id": 5,
+        "id": 0,
         "index": 0,
-        "name": "Same",
+        "name": "Short Delays",
         "tubes": {
             "24a1603a2be9": {
                 "delay": 40,
@@ -14,10 +14,6 @@
             },
             "24a1603acf56": {
                 "delay": 40,
-                "group": 0
-            },
-            "24a1603b87a7": {
-                "delay": 0,
                 "group": 0
             },
             "24a1603d4856": {
@@ -34,10 +30,6 @@
             },
             "24a1603d8b0a": {
                 "delay": 120,
-                "group": 0
-            },
-            "3c610514165c": {
-                "delay": 0,
                 "group": 0
             },
             "60019496c44a": {
@@ -263,24 +255,28 @@
         }
     },
     {
-        "id": 0,
+        "id": 5,
         "index": 5,
-        "name": "Short Delays",
+        "name": "Same",
         "tubes": {
             "24a1603a2be9": {
-                "delay": 40,
+                "delay": 0,
                 "group": 0
             },
             "24a1603aa2dc": {
-                "delay": 120,
+                "delay": 0,
                 "group": 0
             },
             "24a1603acf56": {
-                "delay": 40,
+                "delay": 0,
+                "group": 0
+            },
+            "24a1603b87a7": {
+                "delay": 0,
                 "group": 0
             },
             "24a1603d4856": {
-                "delay": 80,
+                "delay": 0,
                 "group": 0
             },
             "24a1603d864a": {
@@ -292,7 +288,11 @@
                 "group": 0
             },
             "24a1603d8b0a": {
-                "delay": 120,
+                "delay": 0,
+                "group": 0
+            },
+            "3c610514165c": {
+                "delay": 0,
                 "group": 0
             },
             "60019496c44a": {
@@ -300,7 +300,7 @@
                 "group": 0
             },
             "8cce4edeb3c7": {
-                "delay": 80,
+                "delay": 0,
                 "group": 0
             },
             "8cce4ee1df2e": {

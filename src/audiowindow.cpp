@@ -221,33 +221,6 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     }
     modifiersLayout->addStretch();
 
-    QHBoxLayout* knobLayout = new QHBoxLayout();
-    for (int i = 0; i < 4; ++i) {
-        KnobWidget *knob = new KnobWidget();
-        knob->setMinimumHeight(100);
-        knob->setMaximumHeight(100);
-        knob->setMinimumWidth(100);
-        knob->setMaximumWidth(100);
-        connect(knob, &KnobWidget::verticalMouseMovement, this, [=, this](float diff){
-            if (shiftPressed) {
-                knob->setInnerPercentage(std::clamp(knob->getInnerPercentage() - diff, 0.0f, 1.0f));
-            } else {
-                knob->setOuterPercentage(std::clamp(knob->getOuterPercentage() - diff, 0.0f, 1.0f));
-            }
-
-            rgb color = hsv2rgb({knob->getOuterPercentage() * 360.0f, knob->getInnerPercentage(), 1.0});
-            qDebug() << color.r << color.g << color.b;
-            knob->setColor(QColor(color.r * 255, color.g * 255, color.b * 255));
-            knobChanged = true;
-
-        });
-
-        knobWidgets.push_back(knob);
-        knobLayout->addWidget(knob);
-    }
-    modifiersLayout->addLayout(knobLayout);
-    knobLayout->setSpacing(10);
-
 
     QWidget *autoSelectorWidget = new QWidget;
     QHBoxLayout *autoSelectorLayout = new QHBoxLayout(autoSelectorWidget);
@@ -381,9 +354,9 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
 
     QWidget *bottomWidget = new QWidget;
     QHBoxLayout *bottomLayout = new QHBoxLayout(bottomWidget);
-    bottomWidget->setMaximumHeight(550);
 
     QTabWidget *tabWidget = new QTabWidget(bottomWidget);
+
     tabWidget->setMinimumWidth(600);
     connect(tabWidget, &QTabWidget::currentChanged, [=, this](int index){
         std::cout << index << std::endl;
@@ -393,6 +366,8 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     for (int tab = 0; tab < 4; ++tab) {
         // Loop to create buttons and add them to the layout
         QWidget *gridWidget = new QWidget;
+        gridWidget->setMaximumWidth(550);
+        gridWidget->setMaximumHeight(550);
         QHBoxLayout *tabArea = new QHBoxLayout(gridWidget);
         QGridLayout *gridLayout = new QGridLayout;
         for (int row = 0; row < 4; ++row) {
@@ -402,10 +377,10 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
                 EffectPresetModel *model = effectPresets[index];
                 model->id = index;
                 PresetButton *button = new PresetButton(model, this);
-                button->setMinimumWidth(100);
-                button->setMaximumWidth(100);
-                button->setMinimumHeight(100);
-                button->setMaximumHeight(100);
+                button->setMinimumWidth(120);
+                button->setMaximumWidth(120);
+                button->setMinimumHeight(120);
+                button->setMaximumHeight(120);
                 gridLayout->addWidget(button, row, col);
                 connect(button, &PresetButton::releasedInstantly, [=, this](){
                     ptrdiff_t index = std::distance(tubeButtons.begin(), std::find(tubeButtons.begin(), tubeButtons.end(), button));
@@ -469,16 +444,18 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
 
     QWidget *presetsWidget = new QWidget;
     QGridLayout* presetsLayout = new QGridLayout(presetsWidget);
+    presetsWidget->setMaximumWidth(550);
+    presetsWidget->setMaximumHeight(550);
     for (int row = 0; row < 4; ++row) {
         for (int col = 0; col < 4; ++col) {
             int index = row * 4 + col;
             TubePresetModel *model = tubePresets[index];
             model->id = index;
             PresetButton *button = new PresetButton(model, this);
-            button->setMinimumWidth(100);
-            button->setMaximumWidth(100);
-            button->setMinimumHeight(100);
-            button->setMaximumHeight(100);
+            button->setMinimumWidth(120);
+            button->setMaximumWidth(120);
+            button->setMinimumHeight(120);
+            button->setMaximumHeight(120);
             presetsLayout->addWidget(button, row, col);
             connect(button, &PresetButton::releasedInstantly, [=, this](){
                 ptrdiff_t index = std::distance(tubeButtons.begin(), std::find(tubeButtons.begin(), tubeButtons.end(), button));
@@ -550,9 +527,42 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
         peakEvent();
     });
 
+    QVBoxLayout *layout = new QVBoxLayout(bottomWidget);
+
+    QHBoxLayout* knobLayout = new QHBoxLayout();
+    for (int i = 0; i < 4; ++i) {
+        KnobWidget *knob = new KnobWidget();
+        knob->setMinimumHeight(150);
+        knob->setMaximumHeight(150);
+        knob->setMinimumWidth(150);
+        knob->setMaximumWidth(150);
+        connect(knob, &KnobWidget::verticalMouseMovement, this, [=, this](float diff){
+            if (shiftPressed) {
+                knob->setInnerPercentage(std::clamp(knob->getInnerPercentage() - diff, 0.0f, 1.0f));
+            } else {
+                knob->setOuterPercentage(std::clamp(knob->getOuterPercentage() - diff, 0.0f, 1.0f));
+            }
+
+            rgb color = hsv2rgb({knob->getOuterPercentage() * 360.0f, knob->getInnerPercentage(), 1.0});
+            qDebug() << color.r << color.g << color.b;
+            knob->setColor(QColor(color.r * 255, color.g * 255, color.b * 255));
+            knobChanged = true;
+
+        });
+
+        knobWidgets.push_back(knob);
+        knobLayout->addWidget(knob);
+    }
+    knobLayout->setContentsMargins(0,0,0,0);
+    layout->addLayout(knobLayout);
+    layout->addWidget(presetsWidget);
+    knobLayout->setSpacing(10);
+
+
+
     bottomLayout->addLayout(slidersLayout);
     bottomLayout->addWidget(tabWidget);
-    bottomLayout->addWidget(presetsWidget);
+    bottomLayout->addLayout(layout);
     bottomLayout->addWidget(button);
     bottomLayout->setStretchFactor(slidersLayout, 1);
 
