@@ -189,9 +189,18 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
         ep->sendHelloToAll();
     });
 
+    QPushButton *dmxbutton = new QPushButton("Dmx Tool");
+    connect(dmxbutton, &QPushButton::pressed, [=](){
+        DmxWindow *dmxw = new DmxWindow(ep);
+        dmxw->show();
+    });
+
+
+
     statusLayout->addWidget(fwbutton);
     statusLayout->addWidget(flashbutton);
     statusLayout->addWidget(syncbutton);
+    statusLayout->addWidget(dmxbutton);
 
     QWidget *effectSettingsWidget = new QWidget;
     QVBoxLayout *effectSettingsLayout = new QVBoxLayout(effectSettingsWidget);
@@ -721,9 +730,6 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
 
     //t1.join();
     ep->sendHelloToAll();
-
-    DmxWindow *dmxw = new DmxWindow(ep);
-    dmxw->show();
 }
 
 
