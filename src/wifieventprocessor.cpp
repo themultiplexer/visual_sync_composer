@@ -117,8 +117,6 @@ void WifiEventProcessor::sendDmx(std::vector<double> channels) {
         bytes[i] = channels[i] * 255.0f;
     }
 
-    std::cout << "Sending DMX " << arrayToString<uint8_t>(bytes) << std::endl;
-
     handler->send(reinterpret_cast<uint8_t*>(bytes.data()), bytes.size(), {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF});
 }
 

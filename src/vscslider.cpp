@@ -42,7 +42,7 @@ void VSCSlider::setValue(int val)
     }
 }
 
-VSCSlider::VSCSlider(QString name, Qt::Orientation orientation, QWidget *parent) : QWidget(parent), locked(false) {
+VSCSlider::VSCSlider(QString name, Qt::Orientation orientation, QWidget *parent, bool inverted) : QWidget(parent), locked(false) {
     slider = new QSlider(orientation);
 
     checkbox = new QCheckBox();
@@ -53,6 +53,8 @@ VSCSlider::VSCSlider(QString name, Qt::Orientation orientation, QWidget *parent)
 
     slider->setMinimum(0);
     slider->setMaximum(100);
+
+    this->isInverted = inverted;
 
     // Create a layout for this widget
     QBoxLayout *layout;
@@ -110,6 +112,11 @@ void VSCSlider::onPlusClicked()
 void VSCSlider::lockToggled(bool checked)
 {
     locked = checked;
+}
+
+bool VSCSlider::getIsInverted() const
+{
+    return isInverted;
 }
 
 float VSCSlider::pct(){

@@ -21,7 +21,7 @@ signals:
     void valueChanged();
 
 public:
-    VSCSlider(QString name, Qt::Orientation orientation, QWidget *parent);
+    VSCSlider(QString name, Qt::Orientation orientation, QWidget *parent, bool inverted = false);
 
     int minimum() const;
     void setMinimum(int min);
@@ -31,6 +31,8 @@ public:
     int value() const;
     void setValue(int val);
     float pct();
+    bool getIsInverted() const;
+
 private slots:
     void onSliderReleased();
     void onSliderValueChanged(int value);
@@ -46,7 +48,7 @@ private:
     QPushButton *rightButton;
     QCheckBox *checkbox;
 
-    bool locked;
+    bool locked, isInverted;
 
 };
 

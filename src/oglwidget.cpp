@@ -12,6 +12,8 @@ OGLWidget::OGLWidget(int step, QWidget *parent)
 {
     regions.push_back(new FrequencyRegion(1, 1, 5, NUM_POINTS, "low"));
     regions.push_back(new FrequencyRegion(2, 170, 205, NUM_POINTS, "high"));
+    regions.push_back(new FrequencyRegion(3, 20, 150, NUM_POINTS, "melody"));
+
 
     setMouseTracking(true);
     installEventFilter(this);
@@ -98,7 +100,7 @@ void OGLWidget::initializeGL()
         in vec2 pos;
         out vec4 FragColor;
 
-        uniform float regions[12];
+        uniform float regions[18];
         uniform float stepsize;
 
         float inverseLogScale(float y, float base) {
@@ -112,7 +114,7 @@ void OGLWidget::initializeGL()
             int ongrid = int(mx > 0.002 && mx < 0.004);
             vec4 gridcolor = ongrid * vec4(vec3(0.2), 1.0);
             FragColor = gridcolor;
-            for (int i = 0; i < 2; i++) {
+            for (int i = 0; i < 3; i++) {
                 int ind = i * 6;
                 float start = regions[ind + 0];
                 float end = regions[ind + 1];
@@ -131,6 +133,8 @@ void OGLWidget::initializeGL()
                 vec4 c = vec4(peak, 1.0, peak, 1.0);
                 if (color == 1) {
                     c = vec4(1.0, peak, peak, 1.0);
+                } else if (color == 2) {
+                    c = vec4(peak, peak, 1.0, 1.0);
                 }
                 int visible2 = int(pos.y < (-1.0 + 2.0 * level));
                 FragColor += (c * start + c * end) + threshold * visible * vec4(1.0) + (vec4(vec3(1.0), 0.5) * visible2 * visible * (1.0 - ongrid)) + ongrid * visible2 * visible * vec4(vec3(0.2),1.0);
@@ -264,7 +268,7 @@ void OGLWidget::paintGL()
         test.push_back(reg->getPeak());
         test.push_back(static_cast<GLfloat>(reg->getColor()));
     }
-    regionShaderProgram->setUniformValueArray("regions", test.data(), 12, 1);
+    regionShaderProgram->setUniformValueArray("regions", test.data(), test.size() * 6, 1);
     vao.bind();
     glDrawArrays(GL_TRIANGLES, 0, 6);
     vao.release();

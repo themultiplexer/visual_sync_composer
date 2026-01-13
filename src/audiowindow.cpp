@@ -10,6 +10,12 @@
 
 #define USE_DOCK 0
 
+void AudioWindow::sendToMidiController(int index) {
+    receiver->send(lastButton % 4, lastButton / 4, false);
+    lastButton = index;
+    receiver->send(index % 4, index / 4, true);
+}
+
 AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     : QMainWindow(parent)
     , popoutGlv(nullptr), activeEffectPresetButton(nullptr), activeTubePresetButton(nullptr), fullScreenWindow(new FullscreenWindow()), wifiLabel(nullptr), currentEffect(0), currentPreset(0), currentTab(0), timer(nullptr), tubeFrames(0), tubePresets(16), currentPaletteIndex(0), receiver(nullptr)
@@ -58,20 +64,47 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
 
     QObject::connect(receiver, &MidiReceiver::onButtonPressed, [this](int button){
         std::cout << "Button Pressed" << button << std::endl;
-        setNewEffect(button);
+        if (button < 16) {
+            setNewEffect(button);
+        } else {
+            if (button < 20) {
+                peakEvent(button % 2 + 1);
+            } else {
+                receiver->send(button, false);
+            }
+        }
+    });
+
+    QObject::connect(receiver, &MidiReceiver::onButtonReleased, [this](int button){
+        std::cout << "Button Released" << button << std::endl;
+        if (button < 16) {
+            sendToMidiController(button);
+        } else {
+            if (button < 20) {
+                peakEvent(button % 2);
+            } else {
+                receiver->send(button, true);
+            }
+        }
     });
 
     QObject::connect(receiver, &MidiReceiver::onSliderChanged, [this](int slider, int value){
         std::cout << "Slider Changed" << slider << std::endl;
-        std::vector<VSCSlider *> sliders = { brightnessSlider, speedSlider, effect3Slider};
+        std::vector<VSCSlider *> sliders = { brightnessSlider, speedSlider, effect1Slider, effect2Slider};
 
-        sliders[slider]->setValue(value);
+        if (sliders[slider]->getIsInverted()) {
+            sliders[slider]->setValue(255 - value);
+        } else {
+            sliders[slider]->setValue(value);
+        }
+        sliderDidChanged = true;
     });
 
     QObject::connect(receiver, &MidiReceiver::onKnobChanged, [this](int slider, int value){
-        std::cout << "Knob Changed" << slider << std::endl;
+        std::cout << "Knob Changed " << value << std::endl;
 
-        knobWidgets[slider]->setOuterPercentage(value);
+        knobWidgets[slider]->setOuterPercentage((float)value/225.0f);
+        knobChanged = true;
     });
 
     setWindowFlags(Qt::Window | Qt::WindowFullscreenButtonHint);
@@ -318,7 +351,7 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     brightnessSlider->setMaximum(255);
     connect(brightnessSlider, &VSCSlider::valueChanged, this, &AudioWindow::sliderChanged);
 
-    speedSlider = new VSCSlider("Speed", Qt::Horizontal, tubesWidget);
+    speedSlider = new VSCSlider("Speed", Qt::Horizontal, tubesWidget, true);
     speedSlider->setMinimum(1);
     speedSlider->setValue(5);
     speedSlider->setMaximum(255);
@@ -397,6 +430,7 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
                     button->setActive(true);
                     currentEffect = (int)index;
                     setNewEffect(model);
+                    sendToMidiController((row * 4) + col);
 
                     autoCheckboxes[1]->setChecked(false);
 
@@ -552,11 +586,7 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
                 knob->setOuterPercentage(std::clamp(knob->getOuterPercentage() - diff, 0.0f, 1.0f));
             }
 
-            rgb color = hsv2rgb({knob->getOuterPercentage() * 360.0f, knob->getInnerPercentage(), 1.0});
-            qDebug() << color.r << color.g << color.b;
-            knob->setColor(QColor(color.r * 255, color.g * 255, color.b * 255));
             knobChanged = true;
-
         });
 
         knobWidgets.push_back(knob);
@@ -566,8 +596,6 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     layout->addLayout(knobLayout);
     layout->addWidget(presetsWidget);
     knobLayout->setSpacing(10);
-
-
 
     bottomLayout->addLayout(slidersLayout);
     bottomLayout->addWidget(tabWidget);
@@ -618,7 +646,7 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
             colorMode = ColorControl::Manual;
         } else if (i == 1) {
             colorMode = ColorControl::RandomHue;
-        }else if (i == 2) {
+        } else if (i == 2) {
             colorMode = ColorControl::RandomColor;
         } else {
             colorMode = ColorControl::Palette;
@@ -841,8 +869,6 @@ void AudioWindow::setNewEffect(EffectPresetModel *model) {
         activeEffectPresetButton->setActive(true);
     }
 
-
-
     CONFIG_DATA d = slidersToConfig(model->config);
     ep->setMasterconfig(d);
     ep->sendConfig();
@@ -871,6 +897,12 @@ void AudioWindow::peakEvent(int group) {
     } else if (groupMode == GroupSelection::Regions) {
         currentGroup = group;
     }
+
+    int button = 15 + group;
+    receiver->send(button, false);
+    QTimer::singleShot(200, this, [this, button] () {
+        receiver->send(button, true);
+    });
 
 
     numBeats++;
@@ -923,12 +955,13 @@ void AudioWindow::checkTime(){
         fr[i] = log10(fr[i] * 2.0 + 1.01);
     }
 
-    std::vector<float> out(fl.size());
-
+    int freq_index = std::distance(std::begin(fl), std::max_element(std::begin(fl), std::end(fl)));
+    float log_freq_index = ((float)freq_index / (float)1024);
+    currentPalette[0] = {log_freq_index * 3.5f, 1.0};
 
     if (knobChanged) {
         auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - lastKnobChange).count();
-        if (diff >= 50) {
+        if (diff >= 10) {
             for (int i = 0; i < 4; ++i) {
                 currentPalette[i][0] = knobWidgets[i]->getOuterPercentage();
                 currentPalette[i][1] = knobWidgets[i]->getInnerPercentage();
@@ -940,7 +973,7 @@ void AudioWindow::checkTime(){
     }
     if (sliderDidChanged) {
         auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - lastSliderChange).count();
-        if (diff >= 50) {
+        if (diff >= 10) {
             CONFIG_DATA d = slidersToConfig(ep->getMasterconfig());
             ep->setMasterconfig(d);
             ep->sendConfigTo({0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF});
@@ -961,8 +994,10 @@ void AudioWindow::checkTime(){
     if (autoCheckboxes[1]->isChecked()) {
         auto diff = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now() - lastEffectChange).count();
         if (numBeats % 16 == 0 || diff >= 2) {
-            currentEffect = currentTab * 16 + (*effectRandom)(*rng);
+            int index = (*effectRandom)(*rng);
+            currentEffect = currentTab * 16 + index;
             setNewEffect(effectPresets[currentEffect]);
+            sendToMidiController(index);
             lastEffectChange = std::chrono::system_clock::now();
             numBeats++;
         }
@@ -982,6 +1017,11 @@ void AudioWindow::checkTime(){
     w->setFrequencies(fl, fr);
     w->processData([this](FrequencyRegion &region){
         int i = region.getIndex();
+
+        if (i >= 3) {
+            return;
+        }
+
         peakEvent(i);
         beats.push(region.getBeatMillis());
 

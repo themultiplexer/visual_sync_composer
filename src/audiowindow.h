@@ -116,7 +116,7 @@ protected:
 private:
     Ui::MainWindow *ui;
     WifiEventProcessor *ep;
-    VSCSlider *sensitivitySlider, *brightnessSlider, *speedSlider, *effect1Slider, *effect2Slider;
+    VSCSlider *sensitivitySlider, *brightnessSlider, *speedSlider, *effect1Slider, *effect2Slider, *effect3Slider, *effect4Slider;
     QLabel *bpmLabel, *tmpLabel;
     QCheckBox *audioCheckBox;
     AudioAnalyzer* a;
@@ -166,13 +166,12 @@ private:
     void spinboxChanged(int bpm);
 
     VSCSlider *saturationSlider;
-    VSCSlider *effect3Slider;
-    VSCSlider *effect4Slider;
     TubeWidget *ftube;
     std::vector<VSCTube*> tubes;
     VSCSlider *timeSlider;
     VSCSlider *otherSlider;
     std::array<float,2> currentColor;
+    int lastButton;
     MidiReceiver *receiver;
 
     std::thread midithread;
@@ -188,5 +187,6 @@ private:
     void peakEvent(int group = 0);
     bool knobChanged;
     bool shiftPressed;
+    void sendToMidiController(int index);
 };
 #endif // AUDIOWINDOW_H

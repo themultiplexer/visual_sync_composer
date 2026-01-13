@@ -191,7 +191,7 @@ float FrequencyRegion::getLevel() const
 
 float FrequencyRegion::getColor() const
 {
-    return name == "low";
+    return index;
 }
 
 float FrequencyRegion::getStart() const

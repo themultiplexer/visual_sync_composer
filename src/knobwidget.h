@@ -31,6 +31,7 @@ public:
     float getOuterPercentage() const;
     float getInnerPercentage() const;
     void setInnerPercentage(float newPercentage);
+    void updateColor();
 signals:
     void verticalMouseMovement(float diff);
 

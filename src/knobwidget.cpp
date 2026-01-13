@@ -1,4 +1,5 @@
 #include "knobwidget.h"
+#include "helper.h"
 
 
 #define PROGRAM_VERTEX_ATTRIBUTE 0
@@ -185,9 +186,16 @@ float KnobWidget::getOuterPercentage() const
     return outerPercentage;
 }
 
+void KnobWidget::updateColor() {
+    rgb color = hsv2rgb({getOuterPercentage() * 360.0f, getInnerPercentage(), 1.0});
+    qDebug() << color.r << color.g << color.b;
+    setColor(QColor(color.r * 255, color.g * 255, color.b * 255));
+}
+
 void KnobWidget::setOuterPercentage(float newPercentage)
 {
     outerPercentage = newPercentage;
+    updateColor();
     update();
 }
 
@@ -199,6 +207,7 @@ float KnobWidget::getInnerPercentage() const
 void KnobWidget::setInnerPercentage(float newPercentage)
 {
     innerPercentage = newPercentage;
+    updateColor();
     update();
 }
 
