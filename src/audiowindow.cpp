@@ -6,15 +6,77 @@
 #include "mdnsflasher.h"
 #include "devicereqistry.h"
 #include "radioselection.h"
+
 #include <QDockWidget>
 
 #define USE_DOCK 0
 
 void AudioWindow::sendToMidiController(int index) {
-    receiver->send(lastButton % 4, lastButton / 4, false);
+    //receiver->send(lastButton % 4, lastButton / 4, false);
     lastButton = index;
-    receiver->send(index % 4, index / 4, true);
+    //receiver->send(index % 4, index / 4, true);
 }
+
+void AudioWindow::sendSliderChanged(int index, int value) {
+        std::cout << "Slider Changed" << index << std::endl;
+        std::vector<VSCSlider *> sliders = { brightnessSlider, speedSlider, effect1Slider, effect2Slider};
+
+        if (sliders[index]->getIsInverted()) {
+            sliders[index]->setValue(255 - value);
+        } else {
+            sliders[index]->setValue(value);
+        }
+        sliderDidChanged = true;
+}
+
+void AudioWindow::sendKnobChanged(int index, int value) {
+        std::cout << "Knob Changed " << value << std::endl;
+
+        knobWidgets[index]->setOuterPercentage((float)value/225.0f);
+        knobChanged = true;
+}
+
+void AudioWindow::sendButtonPress(int index) {
+    qDebug() << "pressed!";
+    if (index < 4) {
+        peakEvent(index % 2 + 1);
+        buttonAfterglow[index]= 1.0;
+    } else {
+        controller->setSpecialButton(SpecialLEDButton::SHIFT, 1.0);
+    }
+}
+
+void AudioWindow::sendButtonRelease(int index) {
+    qDebug() << "released!";
+    if (index < 4) {
+
+    } else {
+        controller->setSpecialButton(SpecialLEDButton::SHIFT, 0.0);
+    }
+}
+
+void AudioWindow::sendMatrixButtonPress(int col, int row) {
+    int button = (col * 4) + row;
+    std::cout << "Button Pressed" << button << std::endl;
+    if (button < 16) {
+        setNewEffect(button);
+        controller->setMatrixButton(col, row, LEDColor::white, 1.0);
+    } else {
+
+    }
+}
+void AudioWindow::sendMatrixButtonRelease(int col, int row) {
+    int button = (col * 4) + row;
+    std::cout << "Button Released" << button << std::endl;
+    if (button < 16) {
+        sendToMidiController(button);
+        controller->setMatrixButton(col, row, (LEDColor)(button+1), 0.8);
+    } else {
+
+    }
+}
+
+
 
 AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     : QMainWindow(parent)
@@ -59,53 +121,6 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
         colors.push({0.0, 1.0});
     }
 
-    receiver = new MidiReceiver();
-    receiver->start();
-
-    QObject::connect(receiver, &MidiReceiver::onButtonPressed, [this](int button){
-        std::cout << "Button Pressed" << button << std::endl;
-        if (button < 16) {
-            setNewEffect(button);
-        } else {
-            if (button < 20) {
-                peakEvent(button % 2 + 1);
-            } else {
-                receiver->send(button, false);
-            }
-        }
-    });
-
-    QObject::connect(receiver, &MidiReceiver::onButtonReleased, [this](int button){
-        std::cout << "Button Released" << button << std::endl;
-        if (button < 16) {
-            sendToMidiController(button);
-        } else {
-            if (button < 20) {
-                peakEvent(button % 2);
-            } else {
-                receiver->send(button, true);
-            }
-        }
-    });
-
-    QObject::connect(receiver, &MidiReceiver::onSliderChanged, [this](int slider, int value){
-        std::cout << "Slider Changed" << slider << std::endl;
-        std::vector<VSCSlider *> sliders = { brightnessSlider, speedSlider, effect1Slider, effect2Slider};
-
-        if (sliders[slider]->getIsInverted()) {
-            sliders[slider]->setValue(255 - value);
-        } else {
-            sliders[slider]->setValue(value);
-        }
-        sliderDidChanged = true;
-    });
-
-    QObject::connect(receiver, &MidiReceiver::onKnobChanged, [this](int slider, int value){
-        std::cout << "Knob Changed " << value << std::endl;
-
-        knobWidgets[slider]->setOuterPercentage((float)value/225.0f);
-        knobChanged = true;
-    });
 
     setWindowFlags(Qt::Window | Qt::WindowFullscreenButtonHint);
     //setWindowState(Qt::WindowMaximized);
@@ -758,6 +773,17 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
 
     //t1.join();
     ep->sendHelloToAll();
+
+    std::cout << "WTF" << std::endl;
+
+    controller = new ControllerHandler();
+    controller->setDelegate(this);
+
+    for (int i = 0; i < 4; ++i) {
+        for (int j = 0; j < 4; ++j) {
+            controller->setMatrixButton(i, j, (LEDColor)(i*4+j+1), 0.8);
+        }
+    }
 }
 
 
@@ -888,6 +914,8 @@ void AudioWindow::setNewEffect(EffectPresetModel *model) {
     }*/
 }
 
+float test;
+
 void AudioWindow::peakEvent(int group) {
     int currentGroup = 0;
     if (groupMode == GroupSelection::CountUp) {
@@ -899,11 +927,10 @@ void AudioWindow::peakEvent(int group) {
     }
 
     int button = 15 + group;
-    receiver->send(button, false);
-    QTimer::singleShot(200, this, [this, button] () {
-        receiver->send(button, true);
-    });
 
+    if (group < 4) {
+        buttonAfterglow[group] = 1.0;
+    }
 
     numBeats++;
     numBeatLabel->setText(QString::number(currentGroup));
@@ -939,11 +966,19 @@ void AudioWindow::peakEvent(int group) {
     for (auto t : tubes) {
         t->setPeaked(hsv2rgb({currentColor[0] * 360, currentColor[1], 1.0}), currentGroup);
     }
-
-
 }
 
 void AudioWindow::checkTime(){
+    controller->run();
+
+    for (int i = 0; i < 4; i++) {
+        if (buttonAfterglow[i] > 0.0) {
+            buttonAfterglow[i] -= 0.05;
+            
+            controller->setStopButton(i, buttonAfterglow[i]);
+        }
+    }
+
     auto fl = a->getLeftFrequencies();
     auto fr = a->getRightFrequencies();
 
@@ -973,7 +1008,7 @@ void AudioWindow::checkTime(){
     }
     if (sliderDidChanged) {
         auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - lastSliderChange).count();
-        if (diff >= 10) {
+        if (diff >= 20) {
             CONFIG_DATA d = slidersToConfig(ep->getMasterconfig());
             ep->setMasterconfig(d);
             ep->sendConfigTo({0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF});
@@ -1125,5 +1160,4 @@ void AudioWindow::closeEvent(QCloseEvent *event)
 AudioWindow::~AudioWindow()
 {
     receiver->setDone(true);
-    midithread.join();
 }

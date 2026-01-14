@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.20)
 
 project(VisualSyncComposer VERSION 0.1 LANGUAGES CXX)
 
+
+
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
@@ -15,12 +17,13 @@ set(CMAKE_USE_WIN32_THREADS_INIT 0)
 set(CMAKE_USE_PTHREADS_INIT 1)
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 
-#set(CMAKE_C_COMPILER "gcc-13")
-#set(CMAKE_CXX_COMPILER "g++-13")
-set(CMAKE_C_COMPILER "clang")
-set(CMAKE_CXX_COMPILER "clang++")
+#set(CMAKE_C_COMPILER "gcc-14")
+#set(CMAKE_CXX_COMPILER "g++-14")
+#set(CMAKE_C_COMPILER "clang")
+#set(CMAKE_CXX_COMPILER "clang++")
 #set(CMAKE_CXX_EXTENSIONS OFF)
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++ -std=c++20")
+
 
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets Network REQUIRED)
@@ -117,9 +120,10 @@ else()
     endif()
 endif()
 
+add_subdirectory(src/f1_driver)
 
-include_directories( ${FREETYPE_INCLUDE_DIRS} ${AVAHI_INCLUDE_DIRS} )
-target_link_libraries(VisualSyncComposer PRIVATE Qt${QT_VERSION_MAJOR}::Widgets ${OPENGL_LIBRARIES}  Qt${QT_VERSION_MAJOR}::Network ${FREETYPE_LIBRARIES} ${AVAHI_LIBRARIES} SDBusCpp::sdbus-c++ RtAudio::rtaudio nlohmann_json::nlohmann_json Boost::system Boost::serialization OpenSSL::SSL OpenSSL::Crypto "/usr/lib/x86_64-linux-gnu/libkissfft-float.so.131.1.0")
+include_directories( ${FREETYPE_INCLUDE_DIRS} ${AVAHI_INCLUDE_DIRS})
+target_link_libraries(VisualSyncComposer PRIVATE f1_driver Qt${QT_VERSION_MAJOR}::Widgets ${OPENGL_LIBRARIES}  Qt${QT_VERSION_MAJOR}::Network ${FREETYPE_LIBRARIES} ${AVAHI_LIBRARIES} SDBusCpp::sdbus-c++ RtAudio::rtaudio nlohmann_json::nlohmann_json Boost::system Boost::serialization OpenSSL::SSL OpenSSL::Crypto "/usr/lib/x86_64-linux-gnu/libkissfft-float.so.131.1.0")
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
 # If you are developing for iOS or macOS you should consider setting an

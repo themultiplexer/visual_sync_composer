@@ -2,10 +2,10 @@
 #define AUDIOWINDOW_H
 
 #include <QMainWindow>
+#include "qmainwindow.h"
 #include <QWidget>
 #include <QCloseEvent>
 #include <QSplitter>
-#include <QOpenGLWidget>
 #include <QMessageBox>
 #include <QLabel>
 #include <QSlider>
@@ -61,6 +61,7 @@
 #include "vsctube.h"
 #include "netdevice.h"
 #include "tubepresetmodel.h"
+#include "f1_driver/include/controller_handler.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -90,7 +91,7 @@ enum class GroupSelection {
 
 
 
-class AudioWindow : public QMainWindow
+class AudioWindow : public QMainWindow, ControllerDelegate
 {
     Q_OBJECT
 
@@ -132,6 +133,8 @@ private:
     PresetButton *activeTubePresetButton;
     std::chrono::time_point<std::chrono::system_clock> lastEffectChange, lastPresetChange, lastDmxSent, lastSliderChange, lastKnobChange;
 
+    ControllerHandler *controller;
+
     std::string values[20] = {"Hue", "Pump", "Tube", "Pump Limiter","Duck","FadeToColor","Sparkle","Fire","Bounce", "Colorcycle", "11", "Strobe", "Random Flicker", "Tunnel", "Tunnel2", "Placeholder","confetti", "sinelon", "bpm", "juggle"};
 
     std::vector<QCheckBox*> ledModifierCheckboxes;
@@ -150,6 +153,8 @@ private:
     FixedQueue<std::array<float, 2>, 1> colors;
 
     std::array<float, 2> colorPalette;
+
+    std::array<float, 4> buttonAfterglow;
 
     std::random_device dev;
     std::mt19937 *rng;
@@ -174,8 +179,6 @@ private:
     int lastButton;
     MidiReceiver *receiver;
 
-    std::thread midithread;
-
     QTimer *timer;
     int tubeFrames;
 
@@ -187,6 +190,13 @@ private:
     void peakEvent(int group = 0);
     bool knobChanged;
     bool shiftPressed;
+
     void sendToMidiController(int index);
+    void sendSliderChanged(int index, int value) override;
+    void sendKnobChanged(int index, int value) override;
+    void sendButtonPress(int index) override;
+    void sendButtonRelease(int index) override;
+    void sendMatrixButtonPress(int, int) override;
+    void sendMatrixButtonRelease(int, int) override;
 };
 #endif // AUDIOWINDOW_H
