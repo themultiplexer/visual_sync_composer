@@ -102,12 +102,20 @@ void WifiEventProcessor::sendPalette(std::array<uint8_t, 8> palette) {
     handler->send(reinterpret_cast<uint8_t*>(&pal), sizeof(PEAK_DATA), {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF});
 }
 
-void WifiEventProcessor::peakEvent(uint8_t hue, uint8_t sat, uint8_t group) {
+void WifiEventProcessor::sendBroadcastPeak(uint8_t hue, uint8_t sat, uint8_t group) {
     PEAK_DATA peak;
     peak.hue = hue;
     peak.sat = sat;
     peak.group = group;
     handler->send(reinterpret_cast<uint8_t*>(&peak), sizeof(PEAK_DATA), {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF});
+}
+
+void WifiEventProcessor::sendIndividualPeak(std::array<uint8_t, 6> mac, uint8_t hue, uint8_t sat) {
+    PEAK_DATA peak;
+    peak.hue = hue;
+    peak.sat = sat;
+    peak.group = 0;
+    handler->send(reinterpret_cast<uint8_t*>(&peak), sizeof(PEAK_DATA), mac);
 }
 
 void WifiEventProcessor::sendDmx(std::vector<double> channels) {

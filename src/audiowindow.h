@@ -192,6 +192,8 @@ private:
     bool shiftPressed;
 
     void sendToMidiController(int index);
+    void drawMatrixOnController();
+    
     void sendSliderChanged(int index, int value) override;
     void sendKnobChanged(int index, int value) override;
     void sendButtonPress(int index) override;

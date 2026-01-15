@@ -76,7 +76,8 @@ class WifiEventProcessor : public EventProcessor
 public:
     WifiEventProcessor(std::array<uint8_t, 6> my_mac, std::string dev);
     void textEvent(std::string data);
-    void peakEvent(uint8_t hue, uint8_t sat, uint8_t group);
+    void sendBroadcastPeak(uint8_t hue, uint8_t sat, uint8_t group);
+    void sendIndividualPeak(std::array<uint8_t, 6> mac, uint8_t hue, uint8_t sat);
     void sendConfig();
     void sendUpdateMessage();
     void registerReceiver(WifiTextEventReceiver *receiver);

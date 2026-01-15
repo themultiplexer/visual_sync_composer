@@ -11,6 +11,8 @@
 
 #define USE_DOCK 0
 
+bool shift_mode = false;
+
 void AudioWindow::sendToMidiController(int index) {
     //receiver->send(lastButton % 4, lastButton / 4, false);
     lastButton = index;
@@ -18,7 +20,6 @@ void AudioWindow::sendToMidiController(int index) {
 }
 
 void AudioWindow::sendSliderChanged(int index, int value) {
-        std::cout << "Slider Changed" << index << std::endl;
         std::vector<VSCSlider *> sliders = { brightnessSlider, speedSlider, effect1Slider, effect2Slider};
 
         if (sliders[index]->getIsInverted()) {
@@ -30,28 +31,36 @@ void AudioWindow::sendSliderChanged(int index, int value) {
 }
 
 void AudioWindow::sendKnobChanged(int index, int value) {
-        std::cout << "Knob Changed " << value << std::endl;
-
-        knobWidgets[index]->setOuterPercentage((float)value/225.0f);
-        knobChanged = true;
+    knobWidgets[index]->setOuterPercentage((float)value/225.0f);
+    knobChanged = true;
 }
 
 void AudioWindow::sendButtonPress(int index) {
-    qDebug() << "pressed!";
     if (index < 4) {
         peakEvent(index % 2 + 1);
         buttonAfterglow[index]= 1.0;
     } else {
+        for (int i = 0; i < 4; ++i) {
+            for (int j = 0; j < 4; ++j) {
+                if (j == 0 || j == 3) {
+                    controller->setMatrixButton(i, j, LEDColor::red, 0.8);
+                } else {
+                    controller->setMatrixButton(i, j, LEDColor::black, 0.8);
+                }
+            }
+        }
         controller->setSpecialButton(SpecialLEDButton::SHIFT, 1.0);
+        shift_mode = true;
     }
 }
 
 void AudioWindow::sendButtonRelease(int index) {
-    qDebug() << "released!";
     if (index < 4) {
 
     } else {
         controller->setSpecialButton(SpecialLEDButton::SHIFT, 0.0);
+        drawMatrixOnController();
+        shift_mode = false;
     }
 }
 
@@ -59,7 +68,11 @@ void AudioWindow::sendMatrixButtonPress(int col, int row) {
     int button = (col * 4) + row;
     std::cout << "Button Pressed" << button << std::endl;
     if (button < 16) {
-        setNewEffect(button);
+        if (shift_mode) {
+            peakEvent();
+        } else {
+            setNewEffect(button);
+        }
         controller->setMatrixButton(col, row, LEDColor::white, 1.0);
     } else {
 
@@ -70,9 +83,21 @@ void AudioWindow::sendMatrixButtonRelease(int col, int row) {
     std::cout << "Button Released" << button << std::endl;
     if (button < 16) {
         sendToMidiController(button);
-        controller->setMatrixButton(col, row, (LEDColor)(button+1), 0.8);
+        if (shift_mode) {
+            controller->setMatrixButton(col, row, LEDColor::red, 1.0);
+        } else {
+            controller->setMatrixButton(col, row, (LEDColor)(button+1), 0.8);
+        }
     } else {
+        
+    }
+}
 
+void AudioWindow::drawMatrixOnController(){
+    for (int i = 0; i < 4; ++i) {
+        for (int j = 0; j < 4; ++j) {
+            controller->setMatrixButton(i, j, (LEDColor)(i*4+j+1), 0.8);
+        }
     }
 }
 
@@ -779,11 +804,7 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     controller = new ControllerHandler();
     controller->setDelegate(this);
 
-    for (int i = 0; i < 4; ++i) {
-        for (int j = 0; j < 4; ++j) {
-            controller->setMatrixButton(i, j, (LEDColor)(i*4+j+1), 0.8);
-        }
-    }
+    drawMatrixOnController();
 }
 
 
@@ -958,7 +979,7 @@ void AudioWindow::peakEvent(int group) {
     int hue = currentColor[0] * 255.0;
     int sat = currentColor[1] * 255.0;
 
-    ep->peakEvent(hue, sat, currentGroup);
+    ep->sendBroadcastPeak(hue, sat, currentGroup);
 
     rgb c = hsv2rgb({(hue/255.0) * 360.0, sat/255.0, 1.0});
     ep->sendDmx({c.r, c.g, c.b, 0.0, 1.0});
