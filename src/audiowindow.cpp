@@ -69,7 +69,9 @@ void AudioWindow::sendMatrixButtonPress(int col, int row) {
     std::cout << "Button Pressed" << button << std::endl;
     if (button < 16) {
         if (shift_mode) {
-            peakEvent();
+            int index = (col + (row/3*4) );
+            std::cout << "INDEX" << index << std::endl;
+            peakEvent(0, index + 2);
         } else {
             setNewEffect(button);
         }
@@ -86,7 +88,7 @@ void AudioWindow::sendMatrixButtonRelease(int col, int row) {
         if (shift_mode) {
             controller->setMatrixButton(col, row, LEDColor::red, 1.0);
         } else {
-            controller->setMatrixButton(col, row, (LEDColor)(button+1), 0.8);
+            controller->setMatrixButton(col, row, (LEDColor)(button+1), 1.0);
         }
     } else {
         
@@ -331,7 +333,7 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     for (auto mac : macs) {
         VSCTube *tube = new VSCTube(arrayToHexString(mac), this);
         //tube->setMinimumHeight(250);
-        tube->setMaximumWidth(250);
+        tube->setMaximumWidth(120);
         connect(tube, &VSCTube::valueChanged, this, [=, this](){
             sendTubeSyncData();
         });
@@ -448,8 +450,8 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     for (int tab = 0; tab < 4; ++tab) {
         // Loop to create buttons and add them to the layout
         QWidget *gridWidget = new QWidget;
-        gridWidget->setMaximumWidth(550);
-        gridWidget->setMaximumHeight(550);
+        gridWidget->setMaximumWidth(300);
+        gridWidget->setMaximumHeight(300);
         QHBoxLayout *tabArea = new QHBoxLayout(gridWidget);
         QGridLayout *gridLayout = new QGridLayout;
         for (int row = 0; row < 4; ++row) {
@@ -459,10 +461,10 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
                 EffectPresetModel *model = effectPresets[index];
                 model->id = index;
                 PresetButton *button = new PresetButton(model, this);
-                button->setMinimumWidth(120);
-                button->setMaximumWidth(120);
-                button->setMinimumHeight(120);
-                button->setMaximumHeight(120);
+                button->setMinimumWidth(50);
+                button->setMaximumWidth(50);
+                button->setMinimumHeight(50);
+                button->setMaximumHeight(50);
                 gridLayout->addWidget(button, row, col);
                 connect(button, &PresetButton::releasedInstantly, [=, this](){
                     ptrdiff_t index = std::distance(tubeButtons.begin(), std::find(tubeButtons.begin(), tubeButtons.end(), button));
@@ -535,10 +537,10 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
             TubePresetModel *model = tubePresets[index];
             model->id = index;
             PresetButton *button = new PresetButton(model, this);
-            button->setMinimumWidth(120);
-            button->setMaximumWidth(120);
-            button->setMinimumHeight(120);
-            button->setMaximumHeight(120);
+            button->setMinimumWidth(50);
+            button->setMaximumWidth(50);
+            button->setMinimumHeight(50);
+            button->setMaximumHeight(50);
             presetsLayout->addWidget(button, row, col);
             connect(button, &PresetButton::releasedInstantly, [=, this](){
                 ptrdiff_t index = std::distance(tubeButtons.begin(), std::find(tubeButtons.begin(), tubeButtons.end(), button));
@@ -615,10 +617,10 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     QHBoxLayout* knobLayout = new QHBoxLayout();
     for (int i = 0; i < 4; ++i) {
         KnobWidget *knob = new KnobWidget();
-        knob->setMinimumHeight(150);
-        knob->setMaximumHeight(150);
-        knob->setMinimumWidth(150);
-        knob->setMaximumWidth(150);
+        knob->setMinimumHeight(50);
+        knob->setMaximumHeight(50);
+        knob->setMinimumWidth(50);
+        knob->setMaximumWidth(50);
         connect(knob, &KnobWidget::verticalMouseMovement, this, [=, this](float diff){
             if (shiftPressed) {
                 knob->setInnerPercentage(std::clamp(knob->getInnerPercentage() - diff, 0.0f, 1.0f));
@@ -937,7 +939,7 @@ void AudioWindow::setNewEffect(EffectPresetModel *model) {
 
 float test;
 
-void AudioWindow::peakEvent(int group) {
+void AudioWindow::peakEvent(int group, int index) {
     int currentGroup = 0;
     if (groupMode == GroupSelection::CountUp) {
         if (numGroups > 1) {
@@ -979,14 +981,21 @@ void AudioWindow::peakEvent(int group) {
     int hue = currentColor[0] * 255.0;
     int sat = currentColor[1] * 255.0;
 
-    ep->sendBroadcastPeak(hue, sat, currentGroup);
+    if (index >= 0) {
+        auto macs = devicereqistry::macs();
+        ep->sendIndividualPeak(macs[index], hue, sat);
+        tubes[index]->setPeaked(hsv2rgb({currentColor[0] * 360, currentColor[1], 1.0}), currentGroup);
+    } else {
+        ep->sendBroadcastPeak(hue, sat, currentGroup);
+        for (auto t : tubes) {
+            t->setPeaked(hsv2rgb({currentColor[0] * 360, currentColor[1], 1.0}), currentGroup);
+        }
+    }
 
     rgb c = hsv2rgb({(hue/255.0) * 360.0, sat/255.0, 1.0});
     ep->sendDmx({c.r, c.g, c.b, 0.0, 1.0});
 
-    for (auto t : tubes) {
-        t->setPeaked(hsv2rgb({currentColor[0] * 360, currentColor[1], 1.0}), currentGroup);
-    }
+
 }
 
 void AudioWindow::checkTime(){
@@ -1017,7 +1026,7 @@ void AudioWindow::checkTime(){
 
     if (knobChanged) {
         auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - lastKnobChange).count();
-        if (diff >= 10) {
+        if (diff >= 50) {
             for (int i = 0; i < 4; ++i) {
                 currentPalette[i][0] = knobWidgets[i]->getOuterPercentage();
                 currentPalette[i][1] = knobWidgets[i]->getInnerPercentage();
@@ -1029,7 +1038,7 @@ void AudioWindow::checkTime(){
     }
     if (sliderDidChanged) {
         auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - lastSliderChange).count();
-        if (diff >= 20) {
+        if (diff >= 50) {
             CONFIG_DATA d = slidersToConfig(ep->getMasterconfig());
             ep->setMasterconfig(d);
             ep->sendConfigTo({0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF});
@@ -1049,7 +1058,7 @@ void AudioWindow::checkTime(){
 
     if (autoCheckboxes[1]->isChecked()) {
         auto diff = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now() - lastEffectChange).count();
-        if (numBeats % 16 == 0 || diff >= 2) {
+        if (numBeats % 16 == 0 || diff >= 40) {
             int index = (*effectRandom)(*rng);
             currentEffect = currentTab * 16 + index;
             setNewEffect(effectPresets[currentEffect]);

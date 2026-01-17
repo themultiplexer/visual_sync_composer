@@ -103,6 +103,7 @@ void WifiEventProcessor::sendPalette(std::array<uint8_t, 8> palette) {
 }
 
 void WifiEventProcessor::sendBroadcastPeak(uint8_t hue, uint8_t sat, uint8_t group) {
+    std::cout << "Sending peak to all" << std::endl;
     PEAK_DATA peak;
     peak.hue = hue;
     peak.sat = sat;
@@ -111,6 +112,7 @@ void WifiEventProcessor::sendBroadcastPeak(uint8_t hue, uint8_t sat, uint8_t gro
 }
 
 void WifiEventProcessor::sendIndividualPeak(std::array<uint8_t, 6> mac, uint8_t hue, uint8_t sat) {
+    std::cout << "Sending peak to " << arrayToString(mac)  << std::endl;
     PEAK_DATA peak;
     peak.hue = hue;
     peak.sat = sat;

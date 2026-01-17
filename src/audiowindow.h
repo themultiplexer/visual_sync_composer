@@ -187,7 +187,7 @@ private:
     void sendTubeSyncData();
     void applyTubePreset(const TubePresetModel *model);
     CONFIG_DATA slidersToConfig(CONFIG_DATA d);
-    void peakEvent(int group = 0);
+    void peakEvent(int group = 0, int index = -1);
     bool knobChanged;
     bool shiftPressed;
 

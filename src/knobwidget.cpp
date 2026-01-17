@@ -91,10 +91,10 @@ void KnobWidget::initializeGL()
                 // normalized pixel coordinates
                 vec2 p = (2.0*fragCoord-iResolution.xy)/iResolution.y;
 
-                float t1 = -(3.14159 * 0.75  - 0.1)*per1 - 0.1;
+                float t1 = -(3.14159 * 0.75  - 0.05)*per1 - 0.1;
                 vec2 p1 = rot(t1 - (3.14159 * 0.25)) * p;
 
-                float t2 = -(3.14159 * 0.75  - 0.1)*per2 - 0.1;
+                float t2 = -(3.14159 * 0.75  - 0.05)*per2 - 0.1;
                 vec2 p2 = rot(t2 - (3.14159 * 0.25)) * p;
 
                 float d1 = sdRing(p1, vec2(cos(t1),sin(t1)), 0.8, 0.1);
