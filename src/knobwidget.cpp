@@ -6,7 +6,7 @@
 
 
 KnobWidget::KnobWidget(QWidget *parent)
-    : QOpenGLWidget(parent), outerPercentage(0.5f), innerPercentage(0.75f), color(255, 0, 0), shiftPressed(false)
+    : QOpenGLWidget(parent), outerPercentage(0.5f), innerPercentage(1.0f), color(255, 0, 0), shiftPressed(false)
 {
 
     setMouseTracking(true);

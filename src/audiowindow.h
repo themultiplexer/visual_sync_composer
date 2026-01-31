@@ -89,8 +89,6 @@ enum class GroupSelection {
     Random
 };
 
-
-
 class AudioWindow : public QMainWindow, ControllerDelegate
 {
     Q_OBJECT
@@ -118,6 +116,7 @@ private:
     Ui::MainWindow *ui;
     WifiEventProcessor *ep;
     VSCSlider *sensitivitySlider, *brightnessSlider, *speedSlider, *effect1Slider, *effect2Slider, *effect3Slider, *effect4Slider;
+    QTabWidget *tabWidget;
     QLabel *bpmLabel, *tmpLabel;
     QCheckBox *audioCheckBox;
     AudioAnalyzer* a;
@@ -198,6 +197,7 @@ private:
     void sendKnobChanged(int index, int value) override;
     void sendButtonPress(int index) override;
     void sendButtonRelease(int index) override;
+    void sendWheelChanged(int page) override;
     void sendMatrixButtonPress(int, int) override;
     void sendMatrixButtonRelease(int, int) override;
 };

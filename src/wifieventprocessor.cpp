@@ -103,7 +103,6 @@ void WifiEventProcessor::sendPalette(std::array<uint8_t, 8> palette) {
 }
 
 void WifiEventProcessor::sendBroadcastPeak(uint8_t hue, uint8_t sat, uint8_t group) {
-    std::cout << "Sending peak to all" << std::endl;
     PEAK_DATA peak;
     peak.hue = hue;
     peak.sat = sat;
@@ -112,7 +111,6 @@ void WifiEventProcessor::sendBroadcastPeak(uint8_t hue, uint8_t sat, uint8_t gro
 }
 
 void WifiEventProcessor::sendIndividualPeak(std::array<uint8_t, 6> mac, uint8_t hue, uint8_t sat) {
-    std::cout << "Sending peak to " << arrayToString(mac)  << std::endl;
     PEAK_DATA peak;
     peak.hue = hue;
     peak.sat = sat;
@@ -152,6 +150,7 @@ void WifiEventProcessor::sendSyncConfig()
 
 void WifiEventProcessor::sendConfigTo(std::array<uint8_t, 6> dst_mac)
 {
+    qDebug() << "Sending Config";
     CONFIG_DATA tube_config = masterconfig;
     handler->send(reinterpret_cast<uint8_t*>(&tube_config), sizeof(CONFIG_DATA), dst_mac);
     std::cout << "Sending" << tube_config.toString() << " to " << arrayToString(dst_mac) << std::endl;

@@ -63,7 +63,7 @@
     },
     {
         "brightness": 255,
-        "id": 3,
+        "id": 1,
         "led_mode": 6,
         "modifiers": 128,
         "name": "[AR] Sparkle",
@@ -195,7 +195,7 @@
     },
     {
         "brightness": 255,
-        "id": 1,
+        "id": 3,
         "led_mode": 12,
         "modifiers": 0,
         "name": "Glitter",
@@ -398,62 +398,70 @@
         }
     },
     {
-        "brightness": 255,
+        "brightness": 210,
         "id": 7,
-        "led_mode": 6,
-        "modifiers": 0,
-        "name": "Slow Sparkle",
-        "parameter1": 20,
-        "parameter2": 10,
-        "parameter3": 164,
-        "speed_factor": 66,
+        "led_mode": 7,
+        "modifiers": 128,
+        "name": "[AR] Fire",
+        "parameter1": 102,
+        "parameter2": 170,
+        "parameter3": 223,
+        "speed_factor": 1,
         "tubepresets": {
             "id": 0,
             "index": 0,
-            "name": "",
+            "name": "Short Delays",
             "tubes": {
-            }
-        }
-    },
-    {
-        "brightness": 255,
-        "id": 8,
-        "led_mode": 13,
-        "modifiers": 0,
-        "name": "Short Tunnel",
-        "parameter1": 81,
-        "parameter2": 8,
-        "parameter3": 0,
-        "speed_factor": 6,
-        "tubepresets": {
-            "id": 0,
-            "index": 0,
-            "name": "",
-            "tubes": {
-            }
-        }
-    },
-    {
-        "brightness": 255,
-        "id": 9,
-        "led_mode": 13,
-        "modifiers": 0,
-        "name": "Slow Tunnel",
-        "parameter1": 175,
-        "parameter2": 52,
-        "parameter3": 0,
-        "speed_factor": 6,
-        "tubepresets": {
-            "id": 0,
-            "index": 0,
-            "name": "",
-            "tubes": {
+                "24a1603a2be9": {
+                    "delay": 40,
+                    "group": 0
+                },
+                "24a1603aa2dc": {
+                    "delay": 120,
+                    "group": 0
+                },
+                "24a1603acf56": {
+                    "delay": 40,
+                    "group": 0
+                },
+                "24a1603d4856": {
+                    "delay": 80,
+                    "group": 0
+                },
+                "24a1603d864a": {
+                    "delay": 0,
+                    "group": 0
+                },
+                "24a1603d872f": {
+                    "delay": 0,
+                    "group": 0
+                },
+                "24a1603d8b0a": {
+                    "delay": 120,
+                    "group": 0
+                },
+                "60019496c44a": {
+                    "delay": 0,
+                    "group": 0
+                },
+                "8cce4edeb3c7": {
+                    "delay": 80,
+                    "group": 0
+                },
+                "8cce4ee1df2e": {
+                    "delay": 0,
+                    "group": 0
+                },
+                "8cce4ee36bed": {
+                    "delay": 0,
+                    "group": 0
+                }
             }
         }
     },
     {
         "brightness": 194,
-        "id": 10,
+        "id": 8,
         "led_mode": 15,
         "modifiers": 0,
         "name": "Crush",
@@ -514,33 +522,15 @@
         }
     },
     {
-        "brightness": 210,
-        "id": 11,
-        "led_mode": 10,
+        "brightness": 255,
+        "id": 9,
+        "led_mode": 13,
         "modifiers": 0,
-        "name": "Short flash",
-        "parameter1": 110,
-        "parameter2": 147,
+        "name": "Slow Tunnel",
+        "parameter1": 175,
+        "parameter2": 52,
         "parameter3": 0,
-        "speed_factor": 10,
-        "tubepresets": {
-            "id": 0,
-            "index": 0,
-            "name": "",
-            "tubes": {
-            }
-        }
-    },
-    {
-        "brightness": 144,
-        "id": 14,
-        "led_mode": 15,
-        "modifiers": 0,
-        "name": "Double Bounce",
-        "parameter1": 20,
-        "parameter2": 10,
-        "parameter3": 164,
-        "speed_factor": 217,
+        "speed_factor": 6,
         "tubepresets": {
             "id": 0,
             "index": 0,
@@ -551,33 +541,51 @@
     },
     {
         "brightness": 255,
-        "id": 13,
-        "led_mode": 8,
+        "id": 10,
+        "led_mode": 13,
         "modifiers": 0,
-        "name": "Sine Bounce",
-        "parameter1": 20,
-        "parameter2": 10,
+        "name": "Short Tunnel",
+        "parameter1": 81,
+        "parameter2": 8,
         "parameter3": 0,
-        "speed_factor": 181,
+        "speed_factor": 6,
         "tubepresets": {
             "id": 0,
             "index": 0,
-            "name": "Long delays",
+            "name": "",
+            "tubes": {
+            }
+        }
+    },
+    {
+        "brightness": 210,
+        "id": 11,
+        "led_mode": 10,
+        "modifiers": 0,
+        "name": "Strobe",
+        "parameter1": 46,
+        "parameter2": 40,
+        "parameter3": 1,
+        "speed_factor": 169,
+        "tubepresets": {
+            "id": 0,
+            "index": 0,
+            "name": "Short Delays",
             "tubes": {
                 "24a1603a2be9": {
-                    "delay": 80,
+                    "delay": 40,
                     "group": 0
                 },
                 "24a1603aa2dc": {
-                    "delay": 240,
+                    "delay": 120,
                     "group": 0
                 },
                 "24a1603acf56": {
-                    "delay": 80,
+                    "delay": 40,
                     "group": 0
                 },
                 "24a1603d4856": {
-                    "delay": 160,
+                    "delay": 80,
                     "group": 0
                 },
                 "24a1603d864a": {
@@ -589,7 +597,7 @@
                     "group": 0
                 },
                 "24a1603d8b0a": {
-                    "delay": 240,
+                    "delay": 120,
                     "group": 0
                 },
                 "60019496c44a": {
@@ -597,7 +605,7 @@
                     "group": 0
                 },
                 "8cce4edeb3c7": {
-                    "delay": 160,
+                    "delay": 80,
                     "group": 0
                 },
                 "8cce4ee1df2e": {
@@ -670,6 +678,86 @@
                     "delay": 0,
                     "group": 0
                 }
+            }
+        }
+    },
+    {
+        "brightness": 255,
+        "id": 13,
+        "led_mode": 8,
+        "modifiers": 0,
+        "name": "Sine Bounce",
+        "parameter1": 20,
+        "parameter2": 10,
+        "parameter3": 0,
+        "speed_factor": 181,
+        "tubepresets": {
+            "id": 0,
+            "index": 0,
+            "name": "Long delays",
+            "tubes": {
+                "24a1603a2be9": {
+                    "delay": 80,
+                    "group": 0
+                },
+                "24a1603aa2dc": {
+                    "delay": 240,
+                    "group": 0
+                },
+                "24a1603acf56": {
+                    "delay": 80,
+                    "group": 0
+                },
+                "24a1603d4856": {
+                    "delay": 160,
+                    "group": 0
+                },
+                "24a1603d864a": {
+                    "delay": 0,
+                    "group": 0
+                },
+                "24a1603d872f": {
+                    "delay": 0,
+                    "group": 0
+                },
+                "24a1603d8b0a": {
+                    "delay": 240,
+                    "group": 0
+                },
+                "60019496c44a": {
+                    "delay": 0,
+                    "group": 0
+                },
+                "8cce4edeb3c7": {
+                    "delay": 160,
+                    "group": 0
+                },
+                "8cce4ee1df2e": {
+                    "delay": 0,
+                    "group": 0
+                },
+                "8cce4ee36bed": {
+                    "delay": 0,
+                    "group": 0
+                }
+            }
+        }
+    },
+    {
+        "brightness": 144,
+        "id": 14,
+        "led_mode": 15,
+        "modifiers": 0,
+        "name": "Double Bounce",
+        "parameter1": 20,
+        "parameter2": 10,
+        "parameter3": 164,
+        "speed_factor": 217,
+        "tubepresets": {
+            "id": 0,
+            "index": 0,
+            "name": "",
+            "tubes": {
             }
         }
     },
@@ -932,34 +1020,34 @@
         }
     },
     {
-        "brightness": 210,
+        "brightness": 50,
         "id": 22,
-        "led_mode": 7,
-        "modifiers": 128,
-        "name": "[AR] Fire",
-        "parameter1": 102,
-        "parameter2": 170,
-        "parameter3": 223,
-        "speed_factor": 1,
+        "led_mode": 8,
+        "modifiers": 0,
+        "name": "Delay Bounce",
+        "parameter1": 20,
+        "parameter2": 10,
+        "parameter3": 1,
+        "speed_factor": 77,
         "tubepresets": {
-            "id": 0,
-            "index": 0,
-            "name": "Short Delays",
+            "id": 7,
+            "index": 7,
+            "name": "Curve delay",
             "tubes": {
                 "24a1603a2be9": {
-                    "delay": 40,
+                    "delay": 200,
                     "group": 0
                 },
                 "24a1603aa2dc": {
-                    "delay": 120,
+                    "delay": 0,
                     "group": 0
                 },
                 "24a1603acf56": {
-                    "delay": 40,
+                    "delay": 200,
                     "group": 0
                 },
                 "24a1603d4856": {
-                    "delay": 80,
+                    "delay": 200,
                     "group": 0
                 },
                 "24a1603d864a": {
@@ -971,7 +1059,7 @@
                     "group": 0
                 },
                 "24a1603d8b0a": {
-                    "delay": 120,
+                    "delay": 0,
                     "group": 0
                 },
                 "60019496c44a": {
@@ -979,7 +1067,7 @@
                     "group": 0
                 },
                 "8cce4edeb3c7": {
-                    "delay": 80,
+                    "delay": 200,
                     "group": 0
                 },
                 "8cce4ee1df2e": {
@@ -1016,30 +1104,34 @@
         "id": 24,
         "led_mode": 19,
         "modifiers": 128,
-        "name": "[AR] Juggle",
+        "name": "[AR] Flicker",
         "parameter1": 20,
         "parameter2": 10,
         "parameter3": 164,
         "speed_factor": 217,
         "tubepresets": {
-            "id": 0,
-            "index": 0,
-            "name": "Short Delays",
+            "id": 5,
+            "index": 5,
+            "name": "Same",
             "tubes": {
                 "24a1603a2be9": {
-                    "delay": 40,
+                    "delay": 0,
                     "group": 0
                 },
                 "24a1603aa2dc": {
-                    "delay": 120,
+                    "delay": 0,
                     "group": 0
                 },
                 "24a1603acf56": {
-                    "delay": 40,
+                    "delay": 0,
+                    "group": 0
+                },
+                "24a1603b87a7": {
+                    "delay": 0,
                     "group": 0
                 },
                 "24a1603d4856": {
-                    "delay": 80,
+                    "delay": 0,
                     "group": 0
                 },
                 "24a1603d864a": {
@@ -1051,7 +1143,11 @@
                     "group": 0
                 },
                 "24a1603d8b0a": {
-                    "delay": 120,
+                    "delay": 0,
+                    "group": 0
+                },
+                "3c610514165c": {
+                    "delay": 0,
                     "group": 0
                 },
                 "60019496c44a": {
@@ -1059,7 +1155,7 @@
                     "group": 0
                 },
                 "8cce4edeb3c7": {
-                    "delay": 80,
+                    "delay": 0,
                     "group": 0
                 },
                 "8cce4ee1df2e": {
@@ -1136,15 +1232,15 @@
         }
     },
     {
-        "brightness": 50,
+        "brightness": 255,
         "id": 26,
-        "led_mode": 8,
+        "led_mode": 6,
         "modifiers": 0,
-        "name": "Dim Bounce",
+        "name": "Slow Sparkle",
         "parameter1": 20,
         "parameter2": 10,
-        "parameter3": 0,
-        "speed_factor": 77,
+        "parameter3": 164,
+        "speed_factor": 66,
         "tubepresets": {
             "id": 0,
             "index": 0,
@@ -1216,20 +1312,64 @@
         }
     },
     {
-        "brightness": 10,
+        "brightness": 255,
         "id": 28,
-        "led_mode": 1,
-        "modifiers": 0,
-        "name": "-",
-        "parameter1": 7,
-        "parameter2": 6,
-        "parameter3": 6,
-        "speed_factor": 4,
+        "led_mode": 12,
+        "modifiers": 8,
+        "name": "Pseudo",
+        "parameter1": 20,
+        "parameter2": 10,
+        "parameter3": 1,
+        "speed_factor": 19,
         "tubepresets": {
             "id": 0,
             "index": 0,
-            "name": "",
+            "name": "Short Delays",
             "tubes": {
+                "24a1603a2be9": {
+                    "delay": 40,
+                    "group": 0
+                },
+                "24a1603aa2dc": {
+                    "delay": 120,
+                    "group": 0
+                },
+                "24a1603acf56": {
+                    "delay": 40,
+                    "group": 0
+                },
+                "24a1603d4856": {
+                    "delay": 80,
+                    "group": 0
+                },
+                "24a1603d864a": {
+                    "delay": 0,
+                    "group": 0
+                },
+                "24a1603d872f": {
+                    "delay": 0,
+                    "group": 0
+                },
+                "24a1603d8b0a": {
+                    "delay": 120,
+                    "group": 0
+                },
+                "60019496c44a": {
+                    "delay": 0,
+                    "group": 0
+                },
+                "8cce4edeb3c7": {
+                    "delay": 80,
+                    "group": 0
+                },
+                "8cce4ee1df2e": {
+                    "delay": 0,
+                    "group": 0
+                },
+                "8cce4ee36bed": {
+                    "delay": 0,
+                    "group": 0
+                }
             }
         }
     },
@@ -1270,20 +1410,64 @@
         }
     },
     {
-        "brightness": 10,
+        "brightness": 255,
         "id": 31,
-        "led_mode": 1,
+        "led_mode": 16,
         "modifiers": 0,
-        "name": "-",
-        "parameter1": 7,
-        "parameter2": 6,
-        "parameter3": 6,
-        "speed_factor": 4,
+        "name": "Fast Glitter",
+        "parameter1": 20,
+        "parameter2": 10,
+        "parameter3": 164,
+        "speed_factor": 66,
         "tubepresets": {
             "id": 0,
             "index": 0,
-            "name": "",
+            "name": "Short Delays",
             "tubes": {
+                "24a1603a2be9": {
+                    "delay": 40,
+                    "group": 0
+                },
+                "24a1603aa2dc": {
+                    "delay": 120,
+                    "group": 0
+                },
+                "24a1603acf56": {
+                    "delay": 40,
+                    "group": 0
+                },
+                "24a1603d4856": {
+                    "delay": 80,
+                    "group": 0
+                },
+                "24a1603d864a": {
+                    "delay": 0,
+                    "group": 0
+                },
+                "24a1603d872f": {
+                    "delay": 0,
+                    "group": 0
+                },
+                "24a1603d8b0a": {
+                    "delay": 120,
+                    "group": 0
+                },
+                "60019496c44a": {
+                    "delay": 0,
+                    "group": 0
+                },
+                "8cce4edeb3c7": {
+                    "delay": 80,
+                    "group": 0
+                },
+                "8cce4ee1df2e": {
+                    "delay": 0,
+                    "group": 0
+                },
+                "8cce4ee36bed": {
+                    "delay": 0,
+                    "group": 0
+                }
             }
         }
     },

@@ -12,22 +12,26 @@
 #define USE_DOCK 0
 
 bool shift_mode = false;
+BRGColor color[32] = {{150,20,30},{200,20,30},{225,20,30},{255,20,30},{10,100,30},{10,150,30},{10,200,30},{10,255,30},{100,200,0},{200,100,0},{80,150,50},{50,150,0},{0,255,200},{200,200,50},{50,50,200},{10,20,30},
+                      {100,100,30},{150,20,30},{200,20,30},{255,20,30},{10,100,30},{10,150,30},{10,200,30},{10,255,30},{10,20,30},{10,20,30},{10,20,30},{10,20,30},{10,20,30},{10,20,30},{10,20,30},{10,20,30}};
 
-void AudioWindow::sendToMidiController(int index) {
-    //receiver->send(lastButton % 4, lastButton / 4, false);
-    lastButton = index;
-    //receiver->send(index % 4, index / 4, true);
+
+
+void AudioWindow::sendWheelChanged(int page) {
+    tabWidget->setCurrentIndex((page - 1) % 4);
 }
 
 void AudioWindow::sendSliderChanged(int index, int value) {
-        std::vector<VSCSlider *> sliders = { brightnessSlider, speedSlider, effect1Slider, effect2Slider};
+    std::vector<VSCSlider *> sliders = { brightnessSlider, speedSlider, effect1Slider, effect2Slider};
 
-        if (sliders[index]->getIsInverted()) {
-            sliders[index]->setValue(255 - value);
-        } else {
-            sliders[index]->setValue(value);
-        }
-        sliderDidChanged = true;
+    if (sliders[index]->getIsInverted()) {
+        sliders[index]->setValue(255 - value);
+    } else {
+        sliders[index]->setValue(value);
+    }
+
+    sliderDidChanged = true;
+
 }
 
 void AudioWindow::sendKnobChanged(int index, int value) {
@@ -35,22 +39,44 @@ void AudioWindow::sendKnobChanged(int index, int value) {
     knobChanged = true;
 }
 
+bool captureToggle = true;
+
 void AudioWindow::sendButtonPress(int index) {
     if (index < 4) {
         peakEvent(index % 2 + 1);
         buttonAfterglow[index]= 1.0;
     } else {
-        for (int i = 0; i < 4; ++i) {
-            for (int j = 0; j < 4; ++j) {
-                if (j == 0 || j == 3) {
-                    controller->setMatrixButton(i, j, LEDColor::red, 0.8);
-                } else {
-                    controller->setMatrixButton(i, j, LEDColor::black, 0.8);
+        int specialIndex = index - 4;
+        if (specialIndex == 0) {
+            for (int i = 0; i < 4; ++i) {
+                for (int j = 0; j < 4; ++j) {
+                    if (j == 0 || j == 3) {
+                        controller->setMatrixButton(i, j, LEDColor::red, 0.8);
+                    } else {
+                        controller->setMatrixButton(i, j, LEDColor::black, 0.8);
+                    }
                 }
             }
+            controller->setButton(LEDButton::SHIFT, 1.0);
+            shift_mode = true;
+
+        } else if (specialIndex == 1)  {
+            std::cout << "Button Reversed" << std::endl;
+            controller->setButton(LEDButton::REVERSE, 1.0);
+            ledModifierCheckboxes[2]->setChecked(true);
+        } else if (specialIndex == 6)  {
+            std::cout << "Button Sync" << std::endl;
+            controller->setButton(LEDButton::SYNC, 1.0);
+            ledModifierCheckboxes[4]->setChecked(true);
+        } else if (specialIndex == 8)  {
+            std::cout << "Button Capture" << std::endl;
+            captureToggle = !captureToggle;
+            if (captureToggle) {
+                controller->setButton(LEDButton::CAPTURE, 1.0);
+            } else {
+                controller->setButton(LEDButton::CAPTURE, 0.0);
+            }
         }
-        controller->setSpecialButton(SpecialLEDButton::SHIFT, 1.0);
-        shift_mode = true;
     }
 }
 
@@ -58,9 +84,21 @@ void AudioWindow::sendButtonRelease(int index) {
     if (index < 4) {
 
     } else {
-        controller->setSpecialButton(SpecialLEDButton::SHIFT, 0.0);
-        drawMatrixOnController();
-        shift_mode = false;
+        int specialIndex = index - 4;
+        if (specialIndex == 0) {
+            controller->setButton(LEDButton::SHIFT, 0.0);
+            drawMatrixOnController();
+            shift_mode = false;
+        } else if (specialIndex == 1)  {
+            controller->setButton(LEDButton::REVERSE, 0.0);
+            std::cout << "Button Reversed" << std::endl;
+            ledModifierCheckboxes[2]->setChecked(false);
+        } else if (specialIndex == 6)  {
+            std::cout << "Button Sync" << std::endl;
+            controller->setButton(LEDButton::SYNC, 0.0);
+            ledModifierCheckboxes[4]->setChecked(false);
+        }
+
     }
 }
 
@@ -71,9 +109,9 @@ void AudioWindow::sendMatrixButtonPress(int col, int row) {
         if (shift_mode) {
             int index = (col + (row/3*4) );
             std::cout << "INDEX" << index << std::endl;
-            peakEvent(0, index + 2);
+            peakEvent(0, index + 3); // TODO device handling
         } else {
-            setNewEffect(button);
+            setNewEffect(currentTab * 16 + button);
         }
         controller->setMatrixButton(col, row, LEDColor::white, 1.0);
     } else {
@@ -84,11 +122,11 @@ void AudioWindow::sendMatrixButtonRelease(int col, int row) {
     int button = (col * 4) + row;
     std::cout << "Button Released" << button << std::endl;
     if (button < 16) {
-        sendToMidiController(button);
         if (shift_mode) {
             controller->setMatrixButton(col, row, LEDColor::red, 1.0);
         } else {
-            controller->setMatrixButton(col, row, (LEDColor)(button+1), 1.0);
+            drawMatrixOnController();
+            controller->setMatrixButton(col, row, color[currentTab * 16 + button], 0.8);
         }
     } else {
         
@@ -98,12 +136,10 @@ void AudioWindow::sendMatrixButtonRelease(int col, int row) {
 void AudioWindow::drawMatrixOnController(){
     for (int i = 0; i < 4; ++i) {
         for (int j = 0; j < 4; ++j) {
-            controller->setMatrixButton(i, j, (LEDColor)(i*4+j+1), 0.8);
+            controller->setMatrixButton(i, j, color[currentTab * 16 + (i*4+j)], 0.5);
         }
     }
 }
-
-
 
 AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     : QMainWindow(parent)
@@ -114,7 +150,8 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
 
     groupMode = GroupSelection::CountUp;
 
-    //colorPalette = {{0.0, 1.0}, {1.0, 1.0}};
+    controller = new ControllerHandler();
+    controller->setDelegate(this);
 
     this->ep = ep;
     NetDevice h = NetDevice("wlxdc4ef40a3f9f");
@@ -439,12 +476,14 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     QWidget *bottomWidget = new QWidget;
     QHBoxLayout *bottomLayout = new QHBoxLayout(bottomWidget);
 
-    QTabWidget *tabWidget = new QTabWidget(bottomWidget);
+    tabWidget = new QTabWidget(bottomWidget);
 
     tabWidget->setMinimumWidth(600);
     connect(tabWidget, &QTabWidget::currentChanged, [=, this](int index){
         std::cout << index << std::endl;
         currentTab = index;
+        drawMatrixOnController();
+        controller->setPage(index + 1);
     });
 
     for (int tab = 0; tab < 4; ++tab) {
@@ -472,7 +511,6 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
                     button->setActive(true);
                     currentEffect = (int)index;
                     setNewEffect(model);
-                    sendToMidiController((row * 4) + col);
 
                     autoCheckboxes[1]->setChecked(false);
 
@@ -803,8 +841,7 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
 
     std::cout << "WTF" << std::endl;
 
-    controller = new ControllerHandler();
-    controller->setDelegate(this);
+
 
     drawMatrixOnController();
 }
@@ -894,8 +931,15 @@ void AudioWindow::setNewEffect(int index) {
     setNewEffect(effectPresets[index]);
 }
 
+
 void AudioWindow::setNewEffect(EffectPresetModel *model) {
-    activeEffect = model->id;
+    activeEffect = model->id % 16;
+
+    drawMatrixOnController();
+    int col = activeEffect / 4;
+    int row = activeEffect % 4;
+    //controller->setMatrixButton(col, row, color[activeEffect]);
+
     this->brightnessSlider->setValue(model->config.brightness);
     this->speedSlider->setValue(model->config.speed_factor);
     this->effect1Slider->setValue(model->config.parameter1);
@@ -1062,7 +1106,6 @@ void AudioWindow::checkTime(){
             int index = (*effectRandom)(*rng);
             currentEffect = currentTab * 16 + index;
             setNewEffect(effectPresets[currentEffect]);
-            sendToMidiController(index);
             lastEffectChange = std::chrono::system_clock::now();
             numBeats++;
         }
@@ -1087,8 +1130,10 @@ void AudioWindow::checkTime(){
             return;
         }
 
-        peakEvent(i);
-        beats.push(region.getBeatMillis());
+        if (captureToggle) {
+            peakEvent(i);
+            beats.push(region.getBeatMillis());
+        }
 
         float sum = std::accumulate(beats.begin(), beats.end(), 0.0);
         float mean = sum / beats.size();
