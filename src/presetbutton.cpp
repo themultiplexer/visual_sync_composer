@@ -17,6 +17,8 @@ PresetButton::PresetButton(PresetModel *model, QWidget *parent) : QLabel(parent)
 
     setActive(false);
 
+    setColor(model->color, false);
+
     connect(leftTimer, &QTimer::timeout, this, &PresetButton::onLeftLongPress);
     connect(rightTimer, &QTimer::timeout, this, &PresetButton::onRightLongPress);
 }
@@ -92,10 +94,11 @@ void PresetButton::setActive(bool newActive)
 {
     active = newActive;
     if (active) {
-        setStyleSheet("padding :5px; background-color: red");
+        setColor(color, true);
     } else {
-        setStyleSheet("padding :5px; background-color: gray");
+        setColor(color, false);
     }
+
 }
 
 PresetModel *PresetButton::getModel() const

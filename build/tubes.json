@@ -1,5 +1,10 @@
 [
     {
+        "button_color": [
+            0,
+            255,
+            38
+        ],
         "id": 0,
         "index": 0,
         "name": "Short Delays",
@@ -51,6 +56,11 @@
         }
     },
     {
+        "button_color": [
+            0,
+            0,
+            0
+        ],
         "id": 1,
         "index": 1,
         "name": "Accelerate",
@@ -102,6 +112,11 @@
         }
     },
     {
+        "button_color": [
+            0,
+            0,
+            0
+        ],
         "id": 2,
         "index": 2,
         "name": "Front Back",
@@ -153,6 +168,11 @@
         }
     },
     {
+        "button_color": [
+            0,
+            0,
+            0
+        ],
         "id": 3,
         "index": 3,
         "name": "Long delays",
@@ -204,6 +224,11 @@
         }
     },
     {
+        "button_color": [
+            0,
+            0,
+            0
+        ],
         "id": 4,
         "index": 4,
         "name": "Front Back Delay",
@@ -255,6 +280,11 @@
         }
     },
     {
+        "button_color": [
+            0,
+            0,
+            0
+        ],
         "id": 5,
         "index": 5,
         "name": "Same",
@@ -314,6 +344,11 @@
         }
     },
     {
+        "button_color": [
+            0,
+            0,
+            0
+        ],
         "id": 6,
         "index": 6,
         "name": "Individual",
@@ -365,6 +400,11 @@
         }
     },
     {
+        "button_color": [
+            0,
+            0,
+            0
+        ],
         "id": 7,
         "index": 7,
         "name": "Curve delay",
@@ -416,6 +456,11 @@
         }
     },
     {
+        "button_color": [
+            0,
+            0,
+            0
+        ],
         "id": 8,
         "index": 8,
         "name": "Left right",
@@ -467,6 +512,11 @@
         }
     },
     {
+        "button_color": [
+            0,
+            0,
+            0
+        ],
         "id": 9,
         "index": 9,
         "name": "Sequence",
@@ -518,6 +568,11 @@
         }
     },
     {
+        "button_color": [
+            0,
+            0,
+            0
+        ],
         "id": 10,
         "index": 10,
         "name": "Quadrants",
@@ -569,6 +624,11 @@
         }
     },
     {
+        "button_color": [
+            0,
+            0,
+            0
+        ],
         "id": 11,
         "index": 11,
         "name": "ZigZag",
@@ -620,6 +680,11 @@
         }
     },
     {
+        "button_color": [
+            0,
+            0,
+            0
+        ],
         "id": 12,
         "index": 12,
         "name": "Circle",
@@ -671,6 +736,11 @@
         }
     },
     {
+        "button_color": [
+            0,
+            0,
+            0
+        ],
         "id": 13,
         "index": 13,
         "name": "Square ",
@@ -726,6 +796,11 @@
         }
     },
     {
+        "button_color": [
+            0,
+            0,
+            0
+        ],
         "id": 14,
         "index": 14,
         "name": "123",
@@ -777,6 +852,11 @@
         }
     },
     {
+        "button_color": [
+            0,
+            0,
+            0
+        ],
         "id": 15,
         "index": 15,
         "name": "Side Long",

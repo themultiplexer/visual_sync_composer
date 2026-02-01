@@ -10,12 +10,13 @@ TubePresetModel::TubePresetModel(std::string name, int index, int id) {
 
 }
 
-TubePresetModel::TubePresetModel(std::string name, int index, int id, std::map<std::string, TubePreset> presets) {
+TubePresetModel::TubePresetModel(std::string name, int index, int id, std::map<std::string, TubePreset> presets, QColor color) {
     this->name = name;
     this->index = index;
     this->id = id;
     tubePresets = presets;
     this->pattern = PATTERN_DATA { {0} };
+    this->color = color;
 }
 
 std::map<std::string, TubePreset> TubePresetModel::getTubePresets() const
@@ -42,6 +43,9 @@ QJsonObject TubePresetModel::toJson() const {
         array[id.c_str()] = obj;
     }
     json["tubes"] = array;
+    QJsonArray c;
+    c << color.red() << color.green() << color.blue();
+    json.insert("button_color", c);
     return json;
 }
 
@@ -64,7 +68,9 @@ TubePresetModel* TubePresetModel::fromJson(const QJsonObject &obj) {
         }
         presets[key.toStdString()] = p;
     }
-    auto f = new TubePresetModel(obj["name"].toString().toStdString(), obj["id"].toInt(), obj["id"].toInt(), presets);
+    QJsonArray array = obj["button_color"].toArray();
+    QColor color = QColor(array[0].toInt(), array[1].toInt(), array[2].toInt());
+    auto f = new TubePresetModel(obj["name"].toString().toStdString(), obj["id"].toInt(), obj["id"].toInt(), presets, color);
     return f;
 }
 

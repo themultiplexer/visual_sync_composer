@@ -150,7 +150,6 @@ void WifiEventProcessor::sendSyncConfig()
 
 void WifiEventProcessor::sendConfigTo(std::array<uint8_t, 6> dst_mac)
 {
-    qDebug() << "Sending Config";
     CONFIG_DATA tube_config = masterconfig;
     handler->send(reinterpret_cast<uint8_t*>(&tube_config), sizeof(CONFIG_DATA), dst_mac);
     std::cout << "Sending" << tube_config.toString() << " to " << arrayToString(dst_mac) << std::endl;

@@ -1,11 +1,12 @@
 #ifndef PRESETMODEL_H
 #define PRESETMODEL_H
 
-
+#include "helper.h"
 #include "qjsonobject.h"
 #include "qjsonarray.h"
 #include "qjsondocument.h"
 #include "qfile.h"
+#include <qcolor.h>
 #include <string>
 #include <vector>
 
@@ -16,8 +17,8 @@ public:
 
     std::string name;
     std::string getName() const;
+    QColor color;
     void setName(const std::string newName);
-
 
     std::vector<PresetModel *> readJson(const std::string &filePath);
     void saveToJsonFile(const std::vector<PresetModel *> &presets, const std::string &filePath);
@@ -25,6 +26,7 @@ public:
     template <typename ModelType, int a>
     static std::vector<ModelType*> readJson(const std::string &filePath) {
         std::vector<ModelType*> presets(a);
+
         QFile file(filePath.c_str());
         if (file.open(QIODevice::ReadOnly)) {
             QByteArray jsonData = file.readAll();
@@ -67,6 +69,8 @@ public:
             qDebug() << "Failed to open file for writing";
         }
     }
+    QColor getColor() const;
+    void setColor(const QColor &newColor);
 };
 
 #endif // PRESETMODEL_H

@@ -18,7 +18,7 @@ class TubePresetModel : public PresetModel
 {
 public:
     TubePresetModel(std::string name, int index, int id = 0);
-    TubePresetModel(std::string name, int index, int id, std::map<std::string, TubePreset> presets);
+    TubePresetModel(std::string name, int index, int id, std::map<std::string, TubePreset> presets, QColor color);
 
     int index, id;
     struct PATTERN_DATA pattern;

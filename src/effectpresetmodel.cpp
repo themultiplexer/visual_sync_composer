@@ -12,11 +12,11 @@ EffectPresetModel::EffectPresetModel(std::string name, int id) : preset("empty",
     config.speed_factor = 4;
 }
 
-EffectPresetModel::EffectPresetModel(std::string name, int id, CONFIG_DATA config, TubePresetModel tubepreset) : preset(tubepreset) {
+EffectPresetModel::EffectPresetModel(std::string name, int id, CONFIG_DATA config, QColor color, TubePresetModel tubepreset) : preset(tubepreset) {
     this->name = name;
     this->id = id;
     this->config = config;
-
+    this->color = color;
 }
 
 TubePresetModel* EffectPresetModel::getPresets()
@@ -52,6 +52,9 @@ QJsonObject EffectPresetModel::toJson() const {
     obj["parameter2"] = config.parameter2;
     obj["parameter3"] = config.parameter3;
     obj["modifiers"] = config.modifiers;
+    QJsonArray array;
+    array << color.red() << color.green() << color.blue();
+    obj.insert("button_color", array);
     return obj;
 }
 
@@ -65,9 +68,11 @@ EffectPresetModel* EffectPresetModel::fromJson(const QJsonObject &obj) {
     config.parameter2 = obj["parameter2"].toInt();
     config.parameter3 = obj["parameter3"].toInt();
     config.modifiers = obj["modifiers"].toInt();
+    QJsonArray array = obj["button_color"].toArray();
+    QColor color = QColor(array[0].toInt(), array[1].toInt(), array[2].toInt());
 
     TubePresetModel *tubepreset = TubePresetModel::fromJson(obj["tubepresets"].toObject());
 
-    auto f = new EffectPresetModel(name, obj["id"].toInt(), config, *tubepreset);
+    auto f = new EffectPresetModel(name, obj["id"].toInt(), config, color, *tubepreset);
     return f;
 }

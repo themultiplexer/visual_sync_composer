@@ -38,7 +38,7 @@ bool FrequencyRegion::processData(std::array<float, 1024> &data)
         //level += data[i];
         level = data[i] > level ? data[i] : level;
     }
-    float beta = 0.0009;
+    float beta = 0.002;
     bool lowpeak = (level > getThresh());
     beatMillis = std::chrono::duration_cast<std::chrono::milliseconds>(now - lastBeat).count();
     bool debounce = (beatMillis > 100);
@@ -48,7 +48,7 @@ bool FrequencyRegion::processData(std::array<float, 1024> &data)
         peak = 1.0;
         thresh = std::max(level - 0.2f, thresh);
     } else {
-        thresh = std::max((beta * (level + 0.2 )) + (1.0 - beta) * thresh, 0.25);
+        thresh = std::max((beta * (level + 0.2)) + (1.0 - beta) * thresh, 0.25);
         if (peak > 0) {
             peak -= 0.05;
         }

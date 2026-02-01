@@ -19,6 +19,15 @@ public:
     bool getActive() const;
     void setActive(bool newActive);
 
+    void setColor(QColor color, bool border) {
+        bool light = (color.red() + color.green() + color.blue()) > 300;
+        QString style("background-color: rgb(%1,%2,%3); border: %4; color: %5;");
+        style = style.arg(color.red()).arg(color.green()).arg(color.blue()).arg(border ? "5px solid white" : "5px solid black", light ? "black" : "white");
+        this->setStyleSheet(style);
+        this->color = color;
+
+    }
+
 signals:
     void releasedInstantly();
     void leftLongPressed();
@@ -35,6 +44,7 @@ private slots:
 
 private:
     QString title;
+    QColor color;
     PresetModel *model;
     QTimer *leftTimer, *rightTimer;
     bool active;

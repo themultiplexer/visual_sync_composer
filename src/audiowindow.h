@@ -11,6 +11,7 @@
 #include <QSlider>
 #include <QInputDialog>
 #include <QLineEdit>
+#include <QColorDialog>
 #include <QGroupBox>
 #include "audiofilter.h"
 #include "knobwidget.h"
@@ -74,7 +75,8 @@ enum class ColorControl {
     RandomHue,
     RandomColor,
     Palette,
-    Manual
+    Manual,
+    Frequency
 };
 
 enum class ColorSelectionMode {
@@ -157,7 +159,7 @@ private:
 
     std::random_device dev;
     std::mt19937 *rng;
-    std::uniform_int_distribution<std::mt19937::result_type> *hueRandom, *satRandom;
+    std::uniform_int_distribution<std::mt19937::result_type> *hueRandom, *byteRandom;
     std::uniform_int_distribution<std::mt19937::result_type> *effectRandom;
     std::uniform_int_distribution<std::mt19937::result_type> *presetRandom;
     std::uniform_int_distribution<std::mt19937::result_type> *paletteRandom;
@@ -178,6 +180,8 @@ private:
     int lastButton;
     MidiReceiver *receiver;
 
+    std::array<std::array<std::array<float, 2>, 4>, 4> buttonColors;
+
     QTimer *timer;
     int tubeFrames;
 
@@ -186,7 +190,7 @@ private:
     void sendTubeSyncData();
     void applyTubePreset(const TubePresetModel *model);
     CONFIG_DATA slidersToConfig(CONFIG_DATA d);
-    void peakEvent(int group = 0, int index = -1);
+    void peakEvent(int group = 0, int index = -1, bool pickColor = true);
     bool knobChanged;
     bool shiftPressed;
 
@@ -200,5 +204,6 @@ private:
     void sendWheelChanged(int page) override;
     void sendMatrixButtonPress(int, int) override;
     void sendMatrixButtonRelease(int, int) override;
+    void changeCoordination(int index);
 };
 #endif // AUDIOWINDOW_H

@@ -10,7 +10,7 @@
 OGLWidget::OGLWidget(int step, QWidget *parent)
     : QOpenGLWidget(parent), step(step), decay(0.02), regions(), currentRegionIndex(0)
 {
-    regions.push_back(new FrequencyRegion(1, 1, 8, NUM_POINTS, "low"));
+    regions.push_back(new FrequencyRegion(1, 1, 10, NUM_POINTS, "low"));
     regions.push_back(new FrequencyRegion(2, 60, 80, NUM_POINTS, "high"));
     regions.push_back(new FrequencyRegion(3, 250, 300, NUM_POINTS, "melody"));
 

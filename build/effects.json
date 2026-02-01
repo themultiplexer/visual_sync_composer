@@ -1,6 +1,11 @@
 [
     {
         "brightness": 210,
+        "button_color": [
+            191,
+            0,
+            255
+        ],
         "id": 0,
         "led_mode": 6,
         "modifiers": 0,
@@ -10,6 +15,11 @@
         "parameter3": 0,
         "speed_factor": 10,
         "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
             "id": 0,
             "index": 0,
             "name": "Synced, No Groups",
@@ -63,6 +73,11 @@
     },
     {
         "brightness": 255,
+        "button_color": [
+            242,
+            255,
+            0
+        ],
         "id": 1,
         "led_mode": 6,
         "modifiers": 128,
@@ -72,6 +87,11 @@
         "parameter3": 206,
         "speed_factor": 11,
         "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
             "id": 0,
             "index": 0,
             "name": "Same",
@@ -133,6 +153,11 @@
     },
     {
         "brightness": 255,
+        "button_color": [
+            19,
+            19,
+            255
+        ],
         "id": 2,
         "led_mode": 6,
         "modifiers": 128,
@@ -142,6 +167,11 @@
         "parameter3": 212,
         "speed_factor": 1,
         "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
             "id": 1,
             "index": 1,
             "name": "Accelerate",
@@ -195,24 +225,83 @@
     },
     {
         "brightness": 255,
+        "button_color": [
+            255,
+            252,
+            211
+        ],
         "id": 3,
         "led_mode": 12,
         "modifiers": 0,
         "name": "Glitter",
         "parameter1": 20,
         "parameter2": 10,
-        "parameter3": 0,
-        "speed_factor": 19,
+        "parameter3": 1,
+        "speed_factor": 9,
         "tubepresets": {
+            "button_color": [
+                0,
+                255,
+                38
+            ],
             "id": 0,
             "index": 0,
-            "name": "",
+            "name": "Short Delays",
             "tubes": {
+                "24a1603a2be9": {
+                    "delay": 40,
+                    "group": 0
+                },
+                "24a1603aa2dc": {
+                    "delay": 120,
+                    "group": 0
+                },
+                "24a1603acf56": {
+                    "delay": 40,
+                    "group": 0
+                },
+                "24a1603d4856": {
+                    "delay": 80,
+                    "group": 0
+                },
+                "24a1603d864a": {
+                    "delay": 0,
+                    "group": 0
+                },
+                "24a1603d872f": {
+                    "delay": 0,
+                    "group": 0
+                },
+                "24a1603d8b0a": {
+                    "delay": 120,
+                    "group": 0
+                },
+                "60019496c44a": {
+                    "delay": 0,
+                    "group": 0
+                },
+                "8cce4edeb3c7": {
+                    "delay": 80,
+                    "group": 0
+                },
+                "8cce4ee1df2e": {
+                    "delay": 0,
+                    "group": 0
+                },
+                "8cce4ee36bed": {
+                    "delay": 0,
+                    "group": 0
+                }
             }
         }
     },
     {
         "brightness": 210,
+        "button_color": [
+            255,
+            0,
+            0
+        ],
         "id": 4,
         "led_mode": 7,
         "modifiers": 0,
@@ -222,6 +311,11 @@
         "parameter3": 1,
         "speed_factor": 12,
         "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
             "id": 0,
             "index": 0,
             "name": "Short Delays",
@@ -275,6 +369,11 @@
     },
     {
         "brightness": 128,
+        "button_color": [
+            150,
+            0,
+            0
+        ],
         "id": 5,
         "led_mode": 7,
         "modifiers": 8,
@@ -284,6 +383,11 @@
         "parameter3": 1,
         "speed_factor": 15,
         "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
             "id": 0,
             "index": 0,
             "name": "Short Delays",
@@ -337,6 +441,11 @@
     },
     {
         "brightness": 210,
+        "button_color": [
+            255,
+            85,
+            0
+        ],
         "id": 6,
         "led_mode": 7,
         "modifiers": 32,
@@ -346,6 +455,11 @@
         "parameter3": 0,
         "speed_factor": 15,
         "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
             "id": 0,
             "index": 0,
             "name": "Short Delays",
@@ -399,6 +513,11 @@
     },
     {
         "brightness": 210,
+        "button_color": [
+            170,
+            0,
+            0
+        ],
         "id": 7,
         "led_mode": 7,
         "modifiers": 128,
@@ -408,166 +527,11 @@
         "parameter3": 223,
         "speed_factor": 1,
         "tubepresets": {
-            "id": 0,
-            "index": 0,
-            "name": "Short Delays",
-            "tubes": {
-                "24a1603a2be9": {
-                    "delay": 40,
-                    "group": 0
-                },
-                "24a1603aa2dc": {
-                    "delay": 120,
-                    "group": 0
-                },
-                "24a1603acf56": {
-                    "delay": 40,
-                    "group": 0
-                },
-                "24a1603d4856": {
-                    "delay": 80,
-                    "group": 0
-                },
-                "24a1603d864a": {
-                    "delay": 0,
-                    "group": 0
-                },
-                "24a1603d872f": {
-                    "delay": 0,
-                    "group": 0
-                },
-                "24a1603d8b0a": {
-                    "delay": 120,
-                    "group": 0
-                },
-                "60019496c44a": {
-                    "delay": 0,
-                    "group": 0
-                },
-                "8cce4edeb3c7": {
-                    "delay": 80,
-                    "group": 0
-                },
-                "8cce4ee1df2e": {
-                    "delay": 0,
-                    "group": 0
-                },
-                "8cce4ee36bed": {
-                    "delay": 0,
-                    "group": 0
-                }
-            }
-        }
-    },
-    {
-        "brightness": 194,
-        "id": 8,
-        "led_mode": 15,
-        "modifiers": 0,
-        "name": "Crush",
-        "parameter1": 20,
-        "parameter2": 10,
-        "parameter3": 194,
-        "speed_factor": 3,
-        "tubepresets": {
-            "id": 0,
-            "index": 0,
-            "name": "Short Delays",
-            "tubes": {
-                "24a1603a2be9": {
-                    "delay": 40,
-                    "group": 0
-                },
-                "24a1603aa2dc": {
-                    "delay": 120,
-                    "group": 0
-                },
-                "24a1603acf56": {
-                    "delay": 40,
-                    "group": 0
-                },
-                "24a1603d4856": {
-                    "delay": 80,
-                    "group": 0
-                },
-                "24a1603d864a": {
-                    "delay": 0,
-                    "group": 0
-                },
-                "24a1603d872f": {
-                    "delay": 0,
-                    "group": 0
-                },
-                "24a1603d8b0a": {
-                    "delay": 120,
-                    "group": 0
-                },
-                "60019496c44a": {
-                    "delay": 0,
-                    "group": 0
-                },
-                "8cce4edeb3c7": {
-                    "delay": 80,
-                    "group": 0
-                },
-                "8cce4ee1df2e": {
-                    "delay": 0,
-                    "group": 0
-                },
-                "8cce4ee36bed": {
-                    "delay": 0,
-                    "group": 0
-                }
-            }
-        }
-    },
-    {
-        "brightness": 255,
-        "id": 9,
-        "led_mode": 13,
-        "modifiers": 0,
-        "name": "Slow Tunnel",
-        "parameter1": 175,
-        "parameter2": 52,
-        "parameter3": 0,
-        "speed_factor": 6,
-        "tubepresets": {
-            "id": 0,
-            "index": 0,
-            "name": "",
-            "tubes": {
-            }
-        }
-    },
-    {
-        "brightness": 255,
-        "id": 10,
-        "led_mode": 13,
-        "modifiers": 0,
-        "name": "Short Tunnel",
-        "parameter1": 81,
-        "parameter2": 8,
-        "parameter3": 0,
-        "speed_factor": 6,
-        "tubepresets": {
-            "id": 0,
-            "index": 0,
-            "name": "",
-            "tubes": {
-            }
-        }
-    },
-    {
-        "brightness": 210,
-        "id": 11,
-        "led_mode": 10,
-        "modifiers": 0,
-        "name": "Strobe",
-        "parameter1": 46,
-        "parameter2": 40,
-        "parameter3": 1,
-        "speed_factor": 169,
-        "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
             "id": 0,
             "index": 0,
             "name": "Short Delays",
@@ -621,7 +585,12 @@
     },
     {
         "brightness": 218,
-        "id": 12,
+        "button_color": [
+            255,
+            217,
+            0
+        ],
+        "id": 8,
         "led_mode": 19,
         "modifiers": 0,
         "name": "Juggle",
@@ -630,6 +599,11 @@
         "parameter3": 164,
         "speed_factor": 217,
         "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
             "id": 0,
             "index": 0,
             "name": "Short Delays",
@@ -683,7 +657,12 @@
     },
     {
         "brightness": 255,
-        "id": 13,
+        "button_color": [
+            183,
+            255,
+            74
+        ],
+        "id": 9,
         "led_mode": 8,
         "modifiers": 0,
         "name": "Sine Bounce",
@@ -692,6 +671,11 @@
         "parameter3": 0,
         "speed_factor": 181,
         "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
             "id": 0,
             "index": 0,
             "name": "Long delays",
@@ -745,7 +729,12 @@
     },
     {
         "brightness": 144,
-        "id": 14,
+        "button_color": [
+            0,
+            255,
+            0
+        ],
+        "id": 10,
         "led_mode": 15,
         "modifiers": 0,
         "name": "Double Bounce",
@@ -754,24 +743,211 @@
         "parameter3": 164,
         "speed_factor": 217,
         "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
             "id": 0,
             "index": 0,
             "name": "",
             "tubes": {
+            }
+        }
+    },
+    {
+        "brightness": 210,
+        "button_color": [
+            0,
+            0,
+            0
+        ],
+        "id": 11,
+        "led_mode": 8,
+        "modifiers": 128,
+        "name": "[AR] Faded Bounce",
+        "parameter1": 20,
+        "parameter2": 10,
+        "parameter3": 243,
+        "speed_factor": 19,
+        "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
+            "id": 0,
+            "index": 0,
+            "name": "",
+            "tubes": {
+            }
+        }
+    },
+    {
+        "brightness": 194,
+        "button_color": [
+            0,
+            255,
+            162
+        ],
+        "id": 12,
+        "led_mode": 15,
+        "modifiers": 0,
+        "name": "Crush",
+        "parameter1": 20,
+        "parameter2": 10,
+        "parameter3": 194,
+        "speed_factor": 3,
+        "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
+            "id": 0,
+            "index": 0,
+            "name": "Short Delays",
+            "tubes": {
+                "24a1603a2be9": {
+                    "delay": 40,
+                    "group": 0
+                },
+                "24a1603aa2dc": {
+                    "delay": 120,
+                    "group": 0
+                },
+                "24a1603acf56": {
+                    "delay": 40,
+                    "group": 0
+                },
+                "24a1603d4856": {
+                    "delay": 80,
+                    "group": 0
+                },
+                "24a1603d864a": {
+                    "delay": 0,
+                    "group": 0
+                },
+                "24a1603d872f": {
+                    "delay": 0,
+                    "group": 0
+                },
+                "24a1603d8b0a": {
+                    "delay": 120,
+                    "group": 0
+                },
+                "60019496c44a": {
+                    "delay": 0,
+                    "group": 0
+                },
+                "8cce4edeb3c7": {
+                    "delay": 80,
+                    "group": 0
+                },
+                "8cce4ee1df2e": {
+                    "delay": 0,
+                    "group": 0
+                },
+                "8cce4ee36bed": {
+                    "delay": 0,
+                    "group": 0
+                }
+            }
+        }
+    },
+    {
+        "brightness": 144,
+        "button_color": [
+            227,
+            11,
+            255
+        ],
+        "id": 13,
+        "led_mode": 19,
+        "modifiers": 128,
+        "name": "[AR] Trippy Flash",
+        "parameter1": 20,
+        "parameter2": 10,
+        "parameter3": 164,
+        "speed_factor": 217,
+        "tubepresets": {
+            "button_color": [
+                0,
+                255,
+                38
+            ],
+            "id": 0,
+            "index": 0,
+            "name": "Short Delays",
+            "tubes": {
+                "24a1603a2be9": {
+                    "delay": 40,
+                    "group": 0
+                },
+                "24a1603aa2dc": {
+                    "delay": 120,
+                    "group": 0
+                },
+                "24a1603acf56": {
+                    "delay": 40,
+                    "group": 0
+                },
+                "24a1603d4856": {
+                    "delay": 80,
+                    "group": 0
+                },
+                "24a1603d864a": {
+                    "delay": 0,
+                    "group": 0
+                },
+                "24a1603d872f": {
+                    "delay": 0,
+                    "group": 0
+                },
+                "24a1603d8b0a": {
+                    "delay": 120,
+                    "group": 0
+                },
+                "60019496c44a": {
+                    "delay": 0,
+                    "group": 0
+                },
+                "8cce4edeb3c7": {
+                    "delay": 80,
+                    "group": 0
+                },
+                "8cce4ee1df2e": {
+                    "delay": 0,
+                    "group": 0
+                },
+                "8cce4ee36bed": {
+                    "delay": 0,
+                    "group": 0
+                }
             }
         }
     },
     {
         "brightness": 255,
-        "id": 15,
-        "led_mode": 6,
-        "modifiers": 128,
-        "name": "[AR] Sparkle",
-        "parameter1": 20,
-        "parameter2": 10,
-        "parameter3": 255,
-        "speed_factor": 1,
+        "button_color": [
+            184,
+            188,
+            255
+        ],
+        "id": 14,
+        "led_mode": 13,
+        "modifiers": 0,
+        "name": "Short Tunnel",
+        "parameter1": 81,
+        "parameter2": 8,
+        "parameter3": 0,
+        "speed_factor": 6,
         "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
             "id": 0,
             "index": 0,
             "name": "",
@@ -780,7 +956,84 @@
         }
     },
     {
+        "brightness": 210,
+        "button_color": [
+            255,
+            255,
+            255
+        ],
+        "id": 15,
+        "led_mode": 10,
+        "modifiers": 0,
+        "name": "Strobe",
+        "parameter1": 46,
+        "parameter2": 40,
+        "parameter3": 1,
+        "speed_factor": 169,
+        "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
+            "id": 0,
+            "index": 0,
+            "name": "Short Delays",
+            "tubes": {
+                "24a1603a2be9": {
+                    "delay": 40,
+                    "group": 0
+                },
+                "24a1603aa2dc": {
+                    "delay": 120,
+                    "group": 0
+                },
+                "24a1603acf56": {
+                    "delay": 40,
+                    "group": 0
+                },
+                "24a1603d4856": {
+                    "delay": 80,
+                    "group": 0
+                },
+                "24a1603d864a": {
+                    "delay": 0,
+                    "group": 0
+                },
+                "24a1603d872f": {
+                    "delay": 0,
+                    "group": 0
+                },
+                "24a1603d8b0a": {
+                    "delay": 120,
+                    "group": 0
+                },
+                "60019496c44a": {
+                    "delay": 0,
+                    "group": 0
+                },
+                "8cce4edeb3c7": {
+                    "delay": 80,
+                    "group": 0
+                },
+                "8cce4ee1df2e": {
+                    "delay": 0,
+                    "group": 0
+                },
+                "8cce4ee36bed": {
+                    "delay": 0,
+                    "group": 0
+                }
+            }
+        }
+    },
+    {
         "brightness": 248,
+        "button_color": [
+            255,
+            212,
+            213
+        ],
         "id": 16,
         "led_mode": 0,
         "modifiers": 128,
@@ -790,6 +1043,11 @@
         "parameter3": 255,
         "speed_factor": 10,
         "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
             "id": 0,
             "index": 0,
             "name": "",
@@ -798,96 +1056,116 @@
         }
     },
     {
-        "brightness": 138,
+        "brightness": 208,
+        "button_color": [
+            0,
+            0,
+            0
+        ],
         "id": 17,
-        "led_mode": 8,
-        "modifiers": 16,
-        "name": "Bounce creative",
-        "parameter1": 20,
-        "parameter2": 10,
-        "parameter3": 1,
-        "speed_factor": 234,
-        "tubepresets": {
-            "id": 0,
-            "index": 0,
-            "name": "Short Delays",
-            "tubes": {
-                "24a1603a2be9": {
-                    "delay": 40,
-                    "group": 0
-                },
-                "24a1603aa2dc": {
-                    "delay": 120,
-                    "group": 0
-                },
-                "24a1603acf56": {
-                    "delay": 40,
-                    "group": 0
-                },
-                "24a1603d4856": {
-                    "delay": 80,
-                    "group": 0
-                },
-                "24a1603d864a": {
-                    "delay": 0,
-                    "group": 0
-                },
-                "24a1603d872f": {
-                    "delay": 0,
-                    "group": 0
-                },
-                "24a1603d8b0a": {
-                    "delay": 120,
-                    "group": 0
-                },
-                "60019496c44a": {
-                    "delay": 0,
-                    "group": 0
-                },
-                "8cce4edeb3c7": {
-                    "delay": 80,
-                    "group": 0
-                },
-                "8cce4ee1df2e": {
-                    "delay": 0,
-                    "group": 0
-                },
-                "8cce4ee36bed": {
-                    "delay": 0,
-                    "group": 0
-                }
-            }
-        }
-    },
-    {
-        "brightness": 255,
-        "id": 18,
-        "led_mode": 6,
+        "led_mode": 0,
         "modifiers": 128,
-        "name": "[AR] Sparkle+",
-        "parameter1": 20,
-        "parameter2": 10,
-        "parameter3": 206,
+        "name": "[AR] Sync Flash",
+        "parameter1": 10,
+        "parameter2": 1,
+        "parameter3": 213,
         "speed_factor": 5,
         "tubepresets": {
-            "id": 0,
-            "index": 0,
-            "name": "Short Delays",
+            "button_color": [
+                0,
+                0,
+                0
+            ],
+            "id": 8,
+            "index": 8,
+            "name": "Left right",
             "tubes": {
                 "24a1603a2be9": {
-                    "delay": 40,
+                    "delay": 0,
+                    "group": 2
+                },
+                "24a1603aa2dc": {
+                    "delay": 0,
+                    "group": 2
+                },
+                "24a1603acf56": {
+                    "delay": 0,
+                    "group": 1
+                },
+                "24a1603d4856": {
+                    "delay": 0,
+                    "group": 1
+                },
+                "24a1603d864a": {
+                    "delay": 0,
+                    "group": 0
+                },
+                "24a1603d872f": {
+                    "delay": 0,
+                    "group": 1
+                },
+                "24a1603d8b0a": {
+                    "delay": 0,
+                    "group": 1
+                },
+                "60019496c44a": {
+                    "delay": 0,
+                    "group": 0
+                },
+                "8cce4edeb3c7": {
+                    "delay": 0,
+                    "group": 2
+                },
+                "8cce4ee1df2e": {
+                    "delay": 0,
+                    "group": 2
+                },
+                "8cce4ee36bed": {
+                    "delay": 0,
+                    "group": 0
+                }
+            }
+        }
+    },
+    {
+        "brightness": 210,
+        "button_color": [
+            255,
+            0,
+            4
+        ],
+        "id": 18,
+        "led_mode": 7,
+        "modifiers": 128,
+        "name": "[AR] Fire",
+        "parameter1": 76,
+        "parameter2": 82,
+        "parameter3": 250,
+        "speed_factor": 10,
+        "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
+            "id": 0,
+            "index": 0,
+            "name": "Synced, No Groups",
+            "tubes": {
+                "24a1603a2be9": {
+                    "delay": 0,
                     "group": 0
                 },
                 "24a1603aa2dc": {
-                    "delay": 120,
+                    "delay": 0,
                     "group": 0
                 },
                 "24a1603acf56": {
-                    "delay": 40,
+                    "delay": 0,
                     "group": 0
                 },
                 "24a1603d4856": {
-                    "delay": 80,
+                    "delay": 0,
                     "group": 0
                 },
                 "24a1603d864a": {
@@ -899,7 +1177,7 @@
                     "group": 0
                 },
                 "24a1603d8b0a": {
-                    "delay": 120,
+                    "delay": 0,
                     "group": 0
                 },
                 "60019496c44a": {
@@ -907,7 +1185,7 @@
                     "group": 0
                 },
                 "8cce4edeb3c7": {
-                    "delay": 80,
+                    "delay": 0,
                     "group": 0
                 },
                 "8cce4ee1df2e": {
@@ -923,6 +1201,11 @@
     },
     {
         "brightness": 255,
+        "button_color": [
+            0,
+            0,
+            0
+        ],
         "id": 19,
         "led_mode": 12,
         "modifiers": 128,
@@ -932,6 +1215,11 @@
         "parameter3": 2,
         "speed_factor": 8,
         "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
             "id": 0,
             "index": 0,
             "name": "",
@@ -941,6 +1229,11 @@
     },
     {
         "brightness": 82,
+        "button_color": [
+            0,
+            242,
+            255
+        ],
         "id": 20,
         "led_mode": 6,
         "modifiers": 144,
@@ -950,6 +1243,11 @@
         "parameter3": 164,
         "speed_factor": 66,
         "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
             "id": 2,
             "index": 2,
             "name": "Front Back",
@@ -1003,6 +1301,11 @@
     },
     {
         "brightness": 255,
+        "button_color": [
+            200,
+            0,
+            255
+        ],
         "id": 21,
         "led_mode": 12,
         "modifiers": 0,
@@ -1012,6 +1315,11 @@
         "parameter3": 16,
         "speed_factor": 8,
         "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
             "id": 0,
             "index": 0,
             "name": "",
@@ -1021,6 +1329,11 @@
     },
     {
         "brightness": 50,
+        "button_color": [
+            0,
+            0,
+            0
+        ],
         "id": 22,
         "led_mode": 8,
         "modifiers": 0,
@@ -1030,6 +1343,11 @@
         "parameter3": 1,
         "speed_factor": 77,
         "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
             "id": 7,
             "index": 7,
             "name": "Curve delay",
@@ -1083,6 +1401,11 @@
     },
     {
         "brightness": 255,
+        "button_color": [
+            0,
+            0,
+            0
+        ],
         "id": 23,
         "led_mode": 8,
         "modifiers": 0,
@@ -1092,6 +1415,11 @@
         "parameter3": 0,
         "speed_factor": 234,
         "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
             "id": 0,
             "index": 0,
             "name": "",
@@ -1100,16 +1428,454 @@
         }
     },
     {
-        "brightness": 144,
+        "brightness": 255,
+        "button_color": [
+            0,
+            0,
+            0
+        ],
         "id": 24,
-        "led_mode": 19,
+        "led_mode": 13,
+        "modifiers": 0,
+        "name": "Slow Tunnel",
+        "parameter1": 175,
+        "parameter2": 52,
+        "parameter3": 0,
+        "speed_factor": 6,
+        "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
+            "id": 0,
+            "index": 0,
+            "name": "",
+            "tubes": {
+            }
+        }
+    },
+    {
+        "brightness": 255,
+        "button_color": [
+            0,
+            0,
+            0
+        ],
+        "id": 25,
+        "led_mode": 6,
         "modifiers": 128,
-        "name": "[AR] Flicker",
+        "name": "[AR] Sparkle",
+        "parameter1": 20,
+        "parameter2": 10,
+        "parameter3": 255,
+        "speed_factor": 1,
+        "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
+            "id": 0,
+            "index": 0,
+            "name": "",
+            "tubes": {
+            }
+        }
+    },
+    {
+        "brightness": 255,
+        "button_color": [
+            0,
+            0,
+            0
+        ],
+        "id": 26,
+        "led_mode": 6,
+        "modifiers": 0,
+        "name": "Slow Sparkle",
         "parameter1": 20,
         "parameter2": 10,
         "parameter3": 164,
-        "speed_factor": 217,
+        "speed_factor": 66,
         "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
+            "id": 0,
+            "index": 0,
+            "name": "",
+            "tubes": {
+            }
+        }
+    },
+    {
+        "brightness": 80,
+        "button_color": [
+            0,
+            0,
+            0
+        ],
+        "id": 27,
+        "led_mode": 13,
+        "modifiers": 0,
+        "name": "Test",
+        "parameter1": 81,
+        "parameter2": 8,
+        "parameter3": 1,
+        "speed_factor": 6,
+        "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
+            "id": 0,
+            "index": 0,
+            "name": "Short Delays",
+            "tubes": {
+                "24a1603a2be9": {
+                    "delay": 40,
+                    "group": 0
+                },
+                "24a1603aa2dc": {
+                    "delay": 120,
+                    "group": 0
+                },
+                "24a1603acf56": {
+                    "delay": 40,
+                    "group": 0
+                },
+                "24a1603d4856": {
+                    "delay": 80,
+                    "group": 0
+                },
+                "24a1603d864a": {
+                    "delay": 0,
+                    "group": 0
+                },
+                "24a1603d872f": {
+                    "delay": 0,
+                    "group": 0
+                },
+                "24a1603d8b0a": {
+                    "delay": 120,
+                    "group": 0
+                },
+                "60019496c44a": {
+                    "delay": 0,
+                    "group": 0
+                },
+                "8cce4edeb3c7": {
+                    "delay": 80,
+                    "group": 0
+                },
+                "8cce4ee1df2e": {
+                    "delay": 0,
+                    "group": 0
+                },
+                "8cce4ee36bed": {
+                    "delay": 0,
+                    "group": 0
+                }
+            }
+        }
+    },
+    {
+        "brightness": 255,
+        "button_color": [
+            0,
+            0,
+            0
+        ],
+        "id": 28,
+        "led_mode": 12,
+        "modifiers": 8,
+        "name": "Pseudo",
+        "parameter1": 20,
+        "parameter2": 10,
+        "parameter3": 1,
+        "speed_factor": 19,
+        "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
+            "id": 0,
+            "index": 0,
+            "name": "Short Delays",
+            "tubes": {
+                "24a1603a2be9": {
+                    "delay": 40,
+                    "group": 0
+                },
+                "24a1603aa2dc": {
+                    "delay": 120,
+                    "group": 0
+                },
+                "24a1603acf56": {
+                    "delay": 40,
+                    "group": 0
+                },
+                "24a1603d4856": {
+                    "delay": 80,
+                    "group": 0
+                },
+                "24a1603d864a": {
+                    "delay": 0,
+                    "group": 0
+                },
+                "24a1603d872f": {
+                    "delay": 0,
+                    "group": 0
+                },
+                "24a1603d8b0a": {
+                    "delay": 120,
+                    "group": 0
+                },
+                "60019496c44a": {
+                    "delay": 0,
+                    "group": 0
+                },
+                "8cce4edeb3c7": {
+                    "delay": 80,
+                    "group": 0
+                },
+                "8cce4ee1df2e": {
+                    "delay": 0,
+                    "group": 0
+                },
+                "8cce4ee36bed": {
+                    "delay": 0,
+                    "group": 0
+                }
+            }
+        }
+    },
+    {
+        "brightness": 210,
+        "button_color": [
+            255,
+            255,
+            255
+        ],
+        "id": 29,
+        "led_mode": 11,
+        "modifiers": 0,
+        "name": "Bright color strobe",
+        "parameter1": 20,
+        "parameter2": 10,
+        "parameter3": 0,
+        "speed_factor": 16,
+        "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
+            "id": 0,
+            "index": 0,
+            "name": "",
+            "tubes": {
+            }
+        }
+    },
+    {
+        "brightness": 184,
+        "button_color": [
+            0,
+            0,
+            0
+        ],
+        "id": 30,
+        "led_mode": 6,
+        "modifiers": 128,
+        "name": "[AR] Fading Groups",
+        "parameter1": 20,
+        "parameter2": 10,
+        "parameter3": 55,
+        "speed_factor": 10,
+        "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
+            "id": 0,
+            "index": 0,
+            "name": "",
+            "tubes": {
+            }
+        }
+    },
+    {
+        "brightness": 255,
+        "button_color": [
+            0,
+            0,
+            0
+        ],
+        "id": 31,
+        "led_mode": 16,
+        "modifiers": 0,
+        "name": "Fast Glitter",
+        "parameter1": 20,
+        "parameter2": 10,
+        "parameter3": 164,
+        "speed_factor": 66,
+        "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
+            "id": 0,
+            "index": 0,
+            "name": "Short Delays",
+            "tubes": {
+                "24a1603a2be9": {
+                    "delay": 40,
+                    "group": 0
+                },
+                "24a1603aa2dc": {
+                    "delay": 120,
+                    "group": 0
+                },
+                "24a1603acf56": {
+                    "delay": 40,
+                    "group": 0
+                },
+                "24a1603d4856": {
+                    "delay": 80,
+                    "group": 0
+                },
+                "24a1603d864a": {
+                    "delay": 0,
+                    "group": 0
+                },
+                "24a1603d872f": {
+                    "delay": 0,
+                    "group": 0
+                },
+                "24a1603d8b0a": {
+                    "delay": 120,
+                    "group": 0
+                },
+                "60019496c44a": {
+                    "delay": 0,
+                    "group": 0
+                },
+                "8cce4edeb3c7": {
+                    "delay": 80,
+                    "group": 0
+                },
+                "8cce4ee1df2e": {
+                    "delay": 0,
+                    "group": 0
+                },
+                "8cce4ee36bed": {
+                    "delay": 0,
+                    "group": 0
+                }
+            }
+        }
+    },
+    {
+        "brightness": 210,
+        "button_color": [
+            0,
+            0,
+            0
+        ],
+        "id": 32,
+        "led_mode": 6,
+        "modifiers": 0,
+        "name": "123",
+        "parameter1": 20,
+        "parameter2": 10,
+        "parameter3": 1,
+        "speed_factor": 10,
+        "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
+            "id": 0,
+            "index": 0,
+            "name": "Short Delays",
+            "tubes": {
+                "24a1603a2be9": {
+                    "delay": 40,
+                    "group": 0
+                },
+                "24a1603aa2dc": {
+                    "delay": 120,
+                    "group": 0
+                },
+                "24a1603acf56": {
+                    "delay": 40,
+                    "group": 0
+                },
+                "24a1603d4856": {
+                    "delay": 80,
+                    "group": 0
+                },
+                "24a1603d864a": {
+                    "delay": 0,
+                    "group": 0
+                },
+                "24a1603d872f": {
+                    "delay": 0,
+                    "group": 0
+                },
+                "24a1603d8b0a": {
+                    "delay": 120,
+                    "group": 0
+                },
+                "60019496c44a": {
+                    "delay": 0,
+                    "group": 0
+                },
+                "8cce4edeb3c7": {
+                    "delay": 80,
+                    "group": 0
+                },
+                "8cce4ee1df2e": {
+                    "delay": 0,
+                    "group": 0
+                },
+                "8cce4ee36bed": {
+                    "delay": 0,
+                    "group": 0
+                }
+            }
+        }
+    },
+    {
+        "brightness": 144,
+        "button_color": [
+            0,
+            0,
+            0
+        ],
+        "id": 33,
+        "led_mode": 3,
+        "modifiers": 0,
+        "name": "Limiter",
+        "parameter1": 20,
+        "parameter2": 10,
+        "parameter3": 164,
+        "speed_factor": 6,
+        "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
             "id": 5,
             "index": 5,
             "name": "Same",
@@ -1170,114 +1936,48 @@
         }
     },
     {
-        "brightness": 255,
-        "id": 25,
-        "led_mode": 8,
+        "brightness": 44,
+        "button_color": [
+            0,
+            0,
+            0
+        ],
+        "id": 34,
+        "led_mode": 18,
         "modifiers": 0,
-        "name": "asd",
-        "parameter1": 20,
-        "parameter2": 10,
-        "parameter3": 1,
-        "speed_factor": 234,
-        "tubepresets": {
-            "id": 0,
-            "index": 0,
-            "name": "Short Delays",
-            "tubes": {
-                "24a1603a2be9": {
-                    "delay": 40,
-                    "group": 0
-                },
-                "24a1603aa2dc": {
-                    "delay": 120,
-                    "group": 0
-                },
-                "24a1603acf56": {
-                    "delay": 40,
-                    "group": 0
-                },
-                "24a1603d4856": {
-                    "delay": 80,
-                    "group": 0
-                },
-                "24a1603d864a": {
-                    "delay": 0,
-                    "group": 0
-                },
-                "24a1603d872f": {
-                    "delay": 0,
-                    "group": 0
-                },
-                "24a1603d8b0a": {
-                    "delay": 120,
-                    "group": 0
-                },
-                "60019496c44a": {
-                    "delay": 0,
-                    "group": 0
-                },
-                "8cce4edeb3c7": {
-                    "delay": 80,
-                    "group": 0
-                },
-                "8cce4ee1df2e": {
-                    "delay": 0,
-                    "group": 0
-                },
-                "8cce4ee36bed": {
-                    "delay": 0,
-                    "group": 0
-                }
-            }
-        }
-    },
-    {
-        "brightness": 255,
-        "id": 26,
-        "led_mode": 6,
-        "modifiers": 0,
-        "name": "Slow Sparkle",
-        "parameter1": 20,
-        "parameter2": 10,
+        "name": "Yag",
+        "parameter1": 152,
+        "parameter2": 226,
         "parameter3": 164,
-        "speed_factor": 66,
+        "speed_factor": 241,
         "tubepresets": {
-            "id": 0,
-            "index": 0,
-            "name": "",
-            "tubes": {
-            }
-        }
-    },
-    {
-        "brightness": 80,
-        "id": 27,
-        "led_mode": 13,
-        "modifiers": 0,
-        "name": "Test",
-        "parameter1": 81,
-        "parameter2": 8,
-        "parameter3": 1,
-        "speed_factor": 6,
-        "tubepresets": {
-            "id": 0,
-            "index": 0,
-            "name": "Short Delays",
+            "button_color": [
+                0,
+                0,
+                0
+            ],
+            "id": 5,
+            "index": 5,
+            "name": "Same",
             "tubes": {
                 "24a1603a2be9": {
-                    "delay": 40,
+                    "delay": 0,
                     "group": 0
                 },
                 "24a1603aa2dc": {
-                    "delay": 120,
+                    "delay": 0,
                     "group": 0
                 },
                 "24a1603acf56": {
-                    "delay": 40,
+                    "delay": 0,
+                    "group": 0
+                },
+                "24a1603b87a7": {
+                    "delay": 0,
                     "group": 0
                 },
                 "24a1603d4856": {
-                    "delay": 80,
+                    "delay": 0,
                     "group": 0
                 },
                 "24a1603d864a": {
@@ -1289,7 +1989,11 @@
                     "group": 0
                 },
                 "24a1603d8b0a": {
-                    "delay": 120,
+                    "delay": 0,
+                    "group": 0
+                },
+                "3c610514165c": {
+                    "delay": 0,
                     "group": 0
                 },
                 "60019496c44a": {
@@ -1297,69 +2001,7 @@
                     "group": 0
                 },
                 "8cce4edeb3c7": {
-                    "delay": 80,
-                    "group": 0
-                },
-                "8cce4ee1df2e": {
                     "delay": 0,
-                    "group": 0
-                },
-                "8cce4ee36bed": {
-                    "delay": 0,
-                    "group": 0
-                }
-            }
-        }
-    },
-    {
-        "brightness": 255,
-        "id": 28,
-        "led_mode": 12,
-        "modifiers": 8,
-        "name": "Pseudo",
-        "parameter1": 20,
-        "parameter2": 10,
-        "parameter3": 1,
-        "speed_factor": 19,
-        "tubepresets": {
-            "id": 0,
-            "index": 0,
-            "name": "Short Delays",
-            "tubes": {
-                "24a1603a2be9": {
-                    "delay": 40,
-                    "group": 0
-                },
-                "24a1603aa2dc": {
-                    "delay": 120,
-                    "group": 0
-                },
-                "24a1603acf56": {
-                    "delay": 40,
-                    "group": 0
-                },
-                "24a1603d4856": {
-                    "delay": 80,
-                    "group": 0
-                },
-                "24a1603d864a": {
-                    "delay": 0,
-                    "group": 0
-                },
-                "24a1603d872f": {
-                    "delay": 0,
-                    "group": 0
-                },
-                "24a1603d8b0a": {
-                    "delay": 120,
-                    "group": 0
-                },
-                "60019496c44a": {
-                    "delay": 0,
-                    "group": 0
-                },
-                "8cce4edeb3c7": {
-                    "delay": 80,
                     "group": 0
                 },
                 "8cce4ee1df2e": {
@@ -1375,69 +2017,47 @@
     },
     {
         "brightness": 210,
-        "id": 29,
-        "led_mode": 11,
-        "modifiers": 0,
-        "name": "Bright color strobe",
-        "parameter1": 20,
-        "parameter2": 10,
-        "parameter3": 0,
-        "speed_factor": 16,
-        "tubepresets": {
-            "id": 0,
-            "index": 0,
-            "name": "",
-            "tubes": {
-            }
-        }
-    },
-    {
-        "brightness": 184,
-        "id": 30,
-        "led_mode": 6,
+        "button_color": [
+            0,
+            0,
+            0
+        ],
+        "id": 35,
+        "led_mode": 13,
         "modifiers": 128,
-        "name": "[AR] Fading Groups",
+        "name": "Trippy",
         "parameter1": 20,
         "parameter2": 10,
-        "parameter3": 55,
+        "parameter3": 255,
         "speed_factor": 10,
         "tubepresets": {
-            "id": 0,
-            "index": 0,
-            "name": "",
-            "tubes": {
-            }
-        }
-    },
-    {
-        "brightness": 255,
-        "id": 31,
-        "led_mode": 16,
-        "modifiers": 0,
-        "name": "Fast Glitter",
-        "parameter1": 20,
-        "parameter2": 10,
-        "parameter3": 164,
-        "speed_factor": 66,
-        "tubepresets": {
-            "id": 0,
-            "index": 0,
-            "name": "Short Delays",
+            "button_color": [
+                0,
+                0,
+                0
+            ],
+            "id": 5,
+            "index": 5,
+            "name": "Same",
             "tubes": {
                 "24a1603a2be9": {
-                    "delay": 40,
+                    "delay": 0,
                     "group": 0
                 },
                 "24a1603aa2dc": {
-                    "delay": 120,
+                    "delay": 0,
                     "group": 0
                 },
                 "24a1603acf56": {
-                    "delay": 40,
+                    "delay": 0,
+                    "group": 0
+                },
+                "24a1603b87a7": {
+                    "delay": 0,
                     "group": 0
                 },
                 "24a1603d4856": {
-                    "delay": 80,
+                    "delay": 0,
                     "group": 0
                 },
                 "24a1603d864a": {
@@ -1449,7 +2069,11 @@
                     "group": 0
                 },
                 "24a1603d8b0a": {
-                    "delay": 120,
+                    "delay": 0,
+                    "group": 0
+                },
+                "3c610514165c": {
+                    "delay": 0,
                     "group": 0
                 },
                 "60019496c44a": {
@@ -1457,7 +2081,7 @@
                     "group": 0
                 },
                 "8cce4edeb3c7": {
-                    "delay": 80,
+                    "delay": 0,
                     "group": 0
                 },
                 "8cce4ee1df2e": {
@@ -1473,87 +2097,25 @@
     },
     {
         "brightness": 10,
-        "id": 32,
-        "led_mode": 1,
-        "modifiers": 0,
-        "name": "-",
-        "parameter1": 7,
-        "parameter2": 6,
-        "parameter3": 6,
-        "speed_factor": 4,
-        "tubepresets": {
-            "id": 0,
-            "index": 0,
-            "name": "",
-            "tubes": {
-            }
-        }
-    },
-    {
-        "brightness": 10,
-        "id": 33,
-        "led_mode": 1,
-        "modifiers": 0,
-        "name": "-",
-        "parameter1": 7,
-        "parameter2": 6,
-        "parameter3": 6,
-        "speed_factor": 4,
-        "tubepresets": {
-            "id": 0,
-            "index": 0,
-            "name": "",
-            "tubes": {
-            }
-        }
-    },
-    {
-        "brightness": 10,
-        "id": 34,
-        "led_mode": 1,
-        "modifiers": 0,
-        "name": "-",
-        "parameter1": 7,
-        "parameter2": 6,
-        "parameter3": 6,
-        "speed_factor": 4,
-        "tubepresets": {
-            "id": 0,
-            "index": 0,
-            "name": "",
-            "tubes": {
-            }
-        }
-    },
-    {
-        "brightness": 10,
-        "id": 35,
-        "led_mode": 1,
-        "modifiers": 0,
-        "name": "-",
-        "parameter1": 7,
-        "parameter2": 6,
-        "parameter3": 6,
-        "speed_factor": 4,
-        "tubepresets": {
-            "id": 0,
-            "index": 0,
-            "name": "",
-            "tubes": {
-            }
-        }
-    },
-    {
-        "brightness": 10,
+        "button_color": [
+            0,
+            0,
+            0
+        ],
         "id": 36,
         "led_mode": 1,
         "modifiers": 0,
-        "name": "-",
+        "name": "<none>",
         "parameter1": 7,
         "parameter2": 6,
         "parameter3": 6,
         "speed_factor": 4,
         "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
             "id": 0,
             "index": 0,
             "name": "",
@@ -1563,6 +2125,11 @@
     },
     {
         "brightness": 255,
+        "button_color": [
+            0,
+            0,
+            0
+        ],
         "id": 37,
         "led_mode": 8,
         "modifiers": 0,
@@ -1572,6 +2139,11 @@
         "parameter3": 0,
         "speed_factor": 10,
         "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
             "id": 0,
             "index": 0,
             "name": "",
@@ -1581,6 +2153,11 @@
     },
     {
         "brightness": 210,
+        "button_color": [
+            0,
+            0,
+            0
+        ],
         "id": 38,
         "led_mode": 13,
         "modifiers": 0,
@@ -1590,6 +2167,11 @@
         "parameter3": 0,
         "speed_factor": 10,
         "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
             "id": 0,
             "index": 0,
             "name": "",
@@ -1598,366 +2180,26 @@
         }
     },
     {
-        "brightness": 210,
+        "brightness": 255,
+        "button_color": [
+            255,
+            0,
+            0
+        ],
         "id": 39,
-        "led_mode": 7,
-        "modifiers": 128,
-        "name": "[AR] Fire",
-        "parameter1": 76,
-        "parameter2": 82,
-        "parameter3": 250,
-        "speed_factor": 10,
-        "tubepresets": {
-            "id": 0,
-            "index": 0,
-            "name": "Synced, No Groups",
-            "tubes": {
-                "24a1603a2be9": {
-                    "delay": 0,
-                    "group": 0
-                },
-                "24a1603aa2dc": {
-                    "delay": 0,
-                    "group": 0
-                },
-                "24a1603acf56": {
-                    "delay": 0,
-                    "group": 0
-                },
-                "24a1603d4856": {
-                    "delay": 0,
-                    "group": 0
-                },
-                "24a1603d864a": {
-                    "delay": 0,
-                    "group": 0
-                },
-                "24a1603d872f": {
-                    "delay": 0,
-                    "group": 0
-                },
-                "24a1603d8b0a": {
-                    "delay": 0,
-                    "group": 0
-                },
-                "60019496c44a": {
-                    "delay": 0,
-                    "group": 0
-                },
-                "8cce4edeb3c7": {
-                    "delay": 0,
-                    "group": 0
-                },
-                "8cce4ee1df2e": {
-                    "delay": 0,
-                    "group": 0
-                },
-                "8cce4ee36bed": {
-                    "delay": 0,
-                    "group": 0
-                }
-            }
-        }
-    },
-    {
-        "brightness": 10,
-        "id": 40,
-        "led_mode": 1,
-        "modifiers": 0,
-        "name": "-",
-        "parameter1": 7,
-        "parameter2": 6,
-        "parameter3": 6,
-        "speed_factor": 4,
-        "tubepresets": {
-            "id": 0,
-            "index": 0,
-            "name": "",
-            "tubes": {
-            }
-        }
-    },
-    {
-        "brightness": 10,
-        "id": 41,
-        "led_mode": 1,
-        "modifiers": 0,
-        "name": "-",
-        "parameter1": 7,
-        "parameter2": 6,
-        "parameter3": 6,
-        "speed_factor": 4,
-        "tubepresets": {
-            "id": 0,
-            "index": 0,
-            "name": "",
-            "tubes": {
-            }
-        }
-    },
-    {
-        "brightness": 10,
-        "id": 42,
-        "led_mode": 1,
-        "modifiers": 0,
-        "name": "-",
-        "parameter1": 7,
-        "parameter2": 6,
-        "parameter3": 6,
-        "speed_factor": 4,
-        "tubepresets": {
-            "id": 0,
-            "index": 0,
-            "name": "",
-            "tubes": {
-            }
-        }
-    },
-    {
-        "brightness": 10,
-        "id": 43,
-        "led_mode": 1,
-        "modifiers": 0,
-        "name": "-",
-        "parameter1": 7,
-        "parameter2": 6,
-        "parameter3": 6,
-        "speed_factor": 4,
-        "tubepresets": {
-            "id": 0,
-            "index": 0,
-            "name": "",
-            "tubes": {
-            }
-        }
-    },
-    {
-        "brightness": 10,
-        "id": 44,
-        "led_mode": 1,
-        "modifiers": 0,
-        "name": "-",
-        "parameter1": 7,
-        "parameter2": 6,
-        "parameter3": 6,
-        "speed_factor": 4,
-        "tubepresets": {
-            "id": 0,
-            "index": 0,
-            "name": "",
-            "tubes": {
-            }
-        }
-    },
-    {
-        "brightness": 10,
-        "id": 45,
-        "led_mode": 1,
-        "modifiers": 0,
-        "name": "-",
-        "parameter1": 7,
-        "parameter2": 6,
-        "parameter3": 6,
-        "speed_factor": 4,
-        "tubepresets": {
-            "id": 0,
-            "index": 0,
-            "name": "",
-            "tubes": {
-            }
-        }
-    },
-    {
-        "brightness": 210,
-        "id": 46,
-        "led_mode": 8,
-        "modifiers": 128,
-        "name": "[AR] Faded Bounce",
-        "parameter1": 20,
-        "parameter2": 10,
-        "parameter3": 243,
-        "speed_factor": 19,
-        "tubepresets": {
-            "id": 0,
-            "index": 0,
-            "name": "",
-            "tubes": {
-            }
-        }
-    },
-    {
-        "brightness": 210,
-        "id": 47,
-        "led_mode": 13,
-        "modifiers": 128,
-        "name": "[AR] Fast Color Tunnel",
-        "parameter1": 20,
-        "parameter2": 10,
-        "parameter3": 255,
-        "speed_factor": 10,
-        "tubepresets": {
-            "id": 0,
-            "index": 0,
-            "name": "",
-            "tubes": {
-            }
-        }
-    },
-    {
-        "brightness": 255,
-        "id": 48,
         "led_mode": 6,
         "modifiers": 128,
-        "name": "test1",
+        "name": "[AR] Sparkle+",
         "parameter1": 20,
         "parameter2": 10,
-        "parameter3": 255,
-        "speed_factor": 10,
+        "parameter3": 206,
+        "speed_factor": 5,
         "tubepresets": {
-            "id": 0,
-            "index": 0,
-            "name": "",
-            "tubes": {
-            }
-        }
-    },
-    {
-        "brightness": 10,
-        "id": 49,
-        "led_mode": 1,
-        "modifiers": 0,
-        "name": "-",
-        "parameter1": 7,
-        "parameter2": 6,
-        "parameter3": 6,
-        "speed_factor": 4,
-        "tubepresets": {
-            "id": 0,
-            "index": 0,
-            "name": "",
-            "tubes": {
-            }
-        }
-    },
-    {
-        "brightness": 10,
-        "id": 50,
-        "led_mode": 1,
-        "modifiers": 0,
-        "name": "-",
-        "parameter1": 7,
-        "parameter2": 6,
-        "parameter3": 6,
-        "speed_factor": 4,
-        "tubepresets": {
-            "id": 0,
-            "index": 0,
-            "name": "",
-            "tubes": {
-            }
-        }
-    },
-    {
-        "brightness": 10,
-        "id": 51,
-        "led_mode": 1,
-        "modifiers": 0,
-        "name": "-",
-        "parameter1": 7,
-        "parameter2": 6,
-        "parameter3": 6,
-        "speed_factor": 4,
-        "tubepresets": {
-            "id": 0,
-            "index": 0,
-            "name": "",
-            "tubes": {
-            }
-        }
-    },
-    {
-        "brightness": 10,
-        "id": 52,
-        "led_mode": 1,
-        "modifiers": 0,
-        "name": "-",
-        "parameter1": 7,
-        "parameter2": 6,
-        "parameter3": 6,
-        "speed_factor": 4,
-        "tubepresets": {
-            "id": 0,
-            "index": 0,
-            "name": "",
-            "tubes": {
-            }
-        }
-    },
-    {
-        "brightness": 10,
-        "id": 53,
-        "led_mode": 1,
-        "modifiers": 0,
-        "name": "-",
-        "parameter1": 7,
-        "parameter2": 6,
-        "parameter3": 6,
-        "speed_factor": 4,
-        "tubepresets": {
-            "id": 0,
-            "index": 0,
-            "name": "",
-            "tubes": {
-            }
-        }
-    },
-    {
-        "brightness": 10,
-        "id": 54,
-        "led_mode": 1,
-        "modifiers": 0,
-        "name": "-",
-        "parameter1": 7,
-        "parameter2": 6,
-        "parameter3": 6,
-        "speed_factor": 4,
-        "tubepresets": {
-            "id": 0,
-            "index": 0,
-            "name": "",
-            "tubes": {
-            }
-        }
-    },
-    {
-        "brightness": 10,
-        "id": 55,
-        "led_mode": 1,
-        "modifiers": 0,
-        "name": "-",
-        "parameter1": 7,
-        "parameter2": 6,
-        "parameter3": 6,
-        "speed_factor": 4,
-        "tubepresets": {
-            "id": 0,
-            "index": 0,
-            "name": "",
-            "tubes": {
-            }
-        }
-    },
-    {
-        "brightness": 255,
-        "id": 56,
-        "led_mode": 6,
-        "modifiers": 128,
-        "name": "delays",
-        "parameter1": 20,
-        "parameter2": 10,
-        "parameter3": 255,
-        "speed_factor": 10,
-        "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
             "id": 0,
             "index": 0,
             "name": "Short Delays",
@@ -2011,15 +2253,589 @@
     },
     {
         "brightness": 10,
+        "button_color": [
+            0,
+            0,
+            0
+        ],
+        "id": 40,
+        "led_mode": 1,
+        "modifiers": 0,
+        "name": "<none>",
+        "parameter1": 7,
+        "parameter2": 6,
+        "parameter3": 6,
+        "speed_factor": 4,
+        "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
+            "id": 0,
+            "index": 0,
+            "name": "",
+            "tubes": {
+            }
+        }
+    },
+    {
+        "brightness": 10,
+        "button_color": [
+            0,
+            0,
+            0
+        ],
+        "id": 41,
+        "led_mode": 1,
+        "modifiers": 0,
+        "name": "<none>",
+        "parameter1": 7,
+        "parameter2": 6,
+        "parameter3": 6,
+        "speed_factor": 4,
+        "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
+            "id": 0,
+            "index": 0,
+            "name": "",
+            "tubes": {
+            }
+        }
+    },
+    {
+        "brightness": 10,
+        "button_color": [
+            0,
+            0,
+            0
+        ],
+        "id": 42,
+        "led_mode": 1,
+        "modifiers": 0,
+        "name": "<none>",
+        "parameter1": 7,
+        "parameter2": 6,
+        "parameter3": 6,
+        "speed_factor": 4,
+        "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
+            "id": 0,
+            "index": 0,
+            "name": "",
+            "tubes": {
+            }
+        }
+    },
+    {
+        "brightness": 10,
+        "button_color": [
+            0,
+            0,
+            0
+        ],
+        "id": 43,
+        "led_mode": 1,
+        "modifiers": 0,
+        "name": "<none>",
+        "parameter1": 7,
+        "parameter2": 6,
+        "parameter3": 6,
+        "speed_factor": 4,
+        "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
+            "id": 0,
+            "index": 0,
+            "name": "",
+            "tubes": {
+            }
+        }
+    },
+    {
+        "brightness": 10,
+        "button_color": [
+            0,
+            0,
+            0
+        ],
+        "id": 44,
+        "led_mode": 1,
+        "modifiers": 0,
+        "name": "<none>",
+        "parameter1": 7,
+        "parameter2": 6,
+        "parameter3": 6,
+        "speed_factor": 4,
+        "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
+            "id": 0,
+            "index": 0,
+            "name": "",
+            "tubes": {
+            }
+        }
+    },
+    {
+        "brightness": 10,
+        "button_color": [
+            0,
+            0,
+            0
+        ],
+        "id": 45,
+        "led_mode": 1,
+        "modifiers": 0,
+        "name": "<none>",
+        "parameter1": 7,
+        "parameter2": 6,
+        "parameter3": 6,
+        "speed_factor": 4,
+        "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
+            "id": 0,
+            "index": 0,
+            "name": "",
+            "tubes": {
+            }
+        }
+    },
+    {
+        "brightness": 138,
+        "button_color": [
+            0,
+            0,
+            0
+        ],
+        "id": 46,
+        "led_mode": 8,
+        "modifiers": 16,
+        "name": "Bounce creative",
+        "parameter1": 20,
+        "parameter2": 10,
+        "parameter3": 1,
+        "speed_factor": 234,
+        "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
+            "id": 0,
+            "index": 0,
+            "name": "Short Delays",
+            "tubes": {
+                "24a1603a2be9": {
+                    "delay": 40,
+                    "group": 0
+                },
+                "24a1603aa2dc": {
+                    "delay": 120,
+                    "group": 0
+                },
+                "24a1603acf56": {
+                    "delay": 40,
+                    "group": 0
+                },
+                "24a1603d4856": {
+                    "delay": 80,
+                    "group": 0
+                },
+                "24a1603d864a": {
+                    "delay": 0,
+                    "group": 0
+                },
+                "24a1603d872f": {
+                    "delay": 0,
+                    "group": 0
+                },
+                "24a1603d8b0a": {
+                    "delay": 120,
+                    "group": 0
+                },
+                "60019496c44a": {
+                    "delay": 0,
+                    "group": 0
+                },
+                "8cce4edeb3c7": {
+                    "delay": 80,
+                    "group": 0
+                },
+                "8cce4ee1df2e": {
+                    "delay": 0,
+                    "group": 0
+                },
+                "8cce4ee36bed": {
+                    "delay": 0,
+                    "group": 0
+                }
+            }
+        }
+    },
+    {
+        "brightness": 210,
+        "button_color": [
+            0,
+            0,
+            0
+        ],
+        "id": 47,
+        "led_mode": 13,
+        "modifiers": 128,
+        "name": "[AR] Fast Color Tunnel",
+        "parameter1": 20,
+        "parameter2": 10,
+        "parameter3": 255,
+        "speed_factor": 10,
+        "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
+            "id": 0,
+            "index": 0,
+            "name": "",
+            "tubes": {
+            }
+        }
+    },
+    {
+        "brightness": 255,
+        "button_color": [
+            0,
+            0,
+            0
+        ],
+        "id": 48,
+        "led_mode": 6,
+        "modifiers": 128,
+        "name": "test1",
+        "parameter1": 20,
+        "parameter2": 10,
+        "parameter3": 255,
+        "speed_factor": 10,
+        "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
+            "id": 0,
+            "index": 0,
+            "name": "",
+            "tubes": {
+            }
+        }
+    },
+    {
+        "brightness": 10,
+        "button_color": [
+            0,
+            0,
+            0
+        ],
+        "id": 49,
+        "led_mode": 1,
+        "modifiers": 0,
+        "name": "<none>",
+        "parameter1": 7,
+        "parameter2": 6,
+        "parameter3": 6,
+        "speed_factor": 4,
+        "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
+            "id": 0,
+            "index": 0,
+            "name": "",
+            "tubes": {
+            }
+        }
+    },
+    {
+        "brightness": 10,
+        "button_color": [
+            0,
+            0,
+            0
+        ],
+        "id": 50,
+        "led_mode": 1,
+        "modifiers": 0,
+        "name": "<none>",
+        "parameter1": 7,
+        "parameter2": 6,
+        "parameter3": 6,
+        "speed_factor": 4,
+        "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
+            "id": 0,
+            "index": 0,
+            "name": "",
+            "tubes": {
+            }
+        }
+    },
+    {
+        "brightness": 10,
+        "button_color": [
+            0,
+            0,
+            0
+        ],
+        "id": 51,
+        "led_mode": 1,
+        "modifiers": 0,
+        "name": "<none>",
+        "parameter1": 7,
+        "parameter2": 6,
+        "parameter3": 6,
+        "speed_factor": 4,
+        "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
+            "id": 0,
+            "index": 0,
+            "name": "",
+            "tubes": {
+            }
+        }
+    },
+    {
+        "brightness": 10,
+        "button_color": [
+            0,
+            0,
+            0
+        ],
+        "id": 52,
+        "led_mode": 1,
+        "modifiers": 0,
+        "name": "<none>",
+        "parameter1": 7,
+        "parameter2": 6,
+        "parameter3": 6,
+        "speed_factor": 4,
+        "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
+            "id": 0,
+            "index": 0,
+            "name": "",
+            "tubes": {
+            }
+        }
+    },
+    {
+        "brightness": 10,
+        "button_color": [
+            0,
+            0,
+            0
+        ],
+        "id": 53,
+        "led_mode": 1,
+        "modifiers": 0,
+        "name": "<none>",
+        "parameter1": 7,
+        "parameter2": 6,
+        "parameter3": 6,
+        "speed_factor": 4,
+        "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
+            "id": 0,
+            "index": 0,
+            "name": "",
+            "tubes": {
+            }
+        }
+    },
+    {
+        "brightness": 10,
+        "button_color": [
+            0,
+            0,
+            0
+        ],
+        "id": 54,
+        "led_mode": 1,
+        "modifiers": 0,
+        "name": "<none>",
+        "parameter1": 7,
+        "parameter2": 6,
+        "parameter3": 6,
+        "speed_factor": 4,
+        "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
+            "id": 0,
+            "index": 0,
+            "name": "",
+            "tubes": {
+            }
+        }
+    },
+    {
+        "brightness": 10,
+        "button_color": [
+            0,
+            0,
+            0
+        ],
+        "id": 55,
+        "led_mode": 1,
+        "modifiers": 0,
+        "name": "<none>",
+        "parameter1": 7,
+        "parameter2": 6,
+        "parameter3": 6,
+        "speed_factor": 4,
+        "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
+            "id": 0,
+            "index": 0,
+            "name": "",
+            "tubes": {
+            }
+        }
+    },
+    {
+        "brightness": 255,
+        "button_color": [
+            0,
+            0,
+            0
+        ],
+        "id": 56,
+        "led_mode": 6,
+        "modifiers": 128,
+        "name": "delays",
+        "parameter1": 20,
+        "parameter2": 10,
+        "parameter3": 255,
+        "speed_factor": 10,
+        "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
+            "id": 0,
+            "index": 0,
+            "name": "Short Delays",
+            "tubes": {
+                "24a1603a2be9": {
+                    "delay": 40,
+                    "group": 0
+                },
+                "24a1603aa2dc": {
+                    "delay": 120,
+                    "group": 0
+                },
+                "24a1603acf56": {
+                    "delay": 40,
+                    "group": 0
+                },
+                "24a1603d4856": {
+                    "delay": 80,
+                    "group": 0
+                },
+                "24a1603d864a": {
+                    "delay": 0,
+                    "group": 0
+                },
+                "24a1603d872f": {
+                    "delay": 0,
+                    "group": 0
+                },
+                "24a1603d8b0a": {
+                    "delay": 120,
+                    "group": 0
+                },
+                "60019496c44a": {
+                    "delay": 0,
+                    "group": 0
+                },
+                "8cce4edeb3c7": {
+                    "delay": 80,
+                    "group": 0
+                },
+                "8cce4ee1df2e": {
+                    "delay": 0,
+                    "group": 0
+                },
+                "8cce4ee36bed": {
+                    "delay": 0,
+                    "group": 0
+                }
+            }
+        }
+    },
+    {
+        "brightness": 10,
+        "button_color": [
+            0,
+            0,
+            0
+        ],
         "id": 57,
         "led_mode": 1,
         "modifiers": 0,
-        "name": "-",
+        "name": "<none>",
         "parameter1": 7,
         "parameter2": 6,
         "parameter3": 6,
         "speed_factor": 4,
         "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
             "id": 0,
             "index": 0,
             "name": "",
@@ -2029,15 +2845,25 @@
     },
     {
         "brightness": 10,
+        "button_color": [
+            0,
+            0,
+            0
+        ],
         "id": 58,
         "led_mode": 1,
         "modifiers": 0,
-        "name": "-",
+        "name": "<none>",
         "parameter1": 7,
         "parameter2": 6,
         "parameter3": 6,
         "speed_factor": 4,
         "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
             "id": 0,
             "index": 0,
             "name": "",
@@ -2047,15 +2873,25 @@
     },
     {
         "brightness": 10,
+        "button_color": [
+            0,
+            0,
+            0
+        ],
         "id": 59,
         "led_mode": 1,
         "modifiers": 0,
-        "name": "-",
+        "name": "<none>",
         "parameter1": 7,
         "parameter2": 6,
         "parameter3": 6,
         "speed_factor": 4,
         "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
             "id": 0,
             "index": 0,
             "name": "",
@@ -2065,15 +2901,25 @@
     },
     {
         "brightness": 10,
+        "button_color": [
+            0,
+            0,
+            0
+        ],
         "id": 60,
         "led_mode": 1,
         "modifiers": 0,
-        "name": "-",
+        "name": "<none>",
         "parameter1": 7,
         "parameter2": 6,
         "parameter3": 6,
         "speed_factor": 4,
         "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
             "id": 0,
             "index": 0,
             "name": "",
@@ -2083,15 +2929,25 @@
     },
     {
         "brightness": 10,
+        "button_color": [
+            0,
+            0,
+            0
+        ],
         "id": 61,
         "led_mode": 1,
         "modifiers": 0,
-        "name": "-",
+        "name": "<none>",
         "parameter1": 7,
         "parameter2": 6,
         "parameter3": 6,
         "speed_factor": 4,
         "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
             "id": 0,
             "index": 0,
             "name": "",
@@ -2101,15 +2957,25 @@
     },
     {
         "brightness": 10,
+        "button_color": [
+            0,
+            0,
+            0
+        ],
         "id": 62,
         "led_mode": 1,
         "modifiers": 0,
-        "name": "-",
+        "name": "<none>",
         "parameter1": 7,
         "parameter2": 6,
         "parameter3": 6,
         "speed_factor": 4,
         "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
             "id": 0,
             "index": 0,
             "name": "",
@@ -2118,34 +2984,98 @@
         }
     },
     {
-        "brightness": 20,
+        "brightness": 255,
+        "button_color": [
+            0,
+            0,
+            0
+        ],
         "id": 63,
-        "led_mode": 0,
+        "led_mode": 8,
         "modifiers": 0,
-        "name": "123123",
-        "parameter1": 10,
-        "parameter2": 0,
-        "parameter3": 0,
-        "speed_factor": 5,
+        "name": "asd",
+        "parameter1": 20,
+        "parameter2": 10,
+        "parameter3": 1,
+        "speed_factor": 234,
         "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
             "id": 0,
             "index": 0,
-            "name": "",
+            "name": "Short Delays",
             "tubes": {
+                "24a1603a2be9": {
+                    "delay": 40,
+                    "group": 0
+                },
+                "24a1603aa2dc": {
+                    "delay": 120,
+                    "group": 0
+                },
+                "24a1603acf56": {
+                    "delay": 40,
+                    "group": 0
+                },
+                "24a1603d4856": {
+                    "delay": 80,
+                    "group": 0
+                },
+                "24a1603d864a": {
+                    "delay": 0,
+                    "group": 0
+                },
+                "24a1603d872f": {
+                    "delay": 0,
+                    "group": 0
+                },
+                "24a1603d8b0a": {
+                    "delay": 120,
+                    "group": 0
+                },
+                "60019496c44a": {
+                    "delay": 0,
+                    "group": 0
+                },
+                "8cce4edeb3c7": {
+                    "delay": 80,
+                    "group": 0
+                },
+                "8cce4ee1df2e": {
+                    "delay": 0,
+                    "group": 0
+                },
+                "8cce4ee36bed": {
+                    "delay": 0,
+                    "group": 0
+                }
             }
         }
     },
     {
         "brightness": 10,
+        "button_color": [
+            0,
+            0,
+            0
+        ],
         "id": 64,
         "led_mode": 1,
         "modifiers": 0,
-        "name": "-",
+        "name": "<none>",
         "parameter1": 7,
         "parameter2": 6,
         "parameter3": 6,
         "speed_factor": 4,
         "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
             "id": 0,
             "index": 0,
             "name": "",
@@ -2155,15 +3085,25 @@
     },
     {
         "brightness": 10,
+        "button_color": [
+            0,
+            0,
+            0
+        ],
         "id": 65,
         "led_mode": 1,
         "modifiers": 0,
-        "name": "-",
+        "name": "<none>",
         "parameter1": 7,
         "parameter2": 6,
         "parameter3": 6,
         "speed_factor": 4,
         "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
             "id": 0,
             "index": 0,
             "name": "",
@@ -2173,15 +3113,25 @@
     },
     {
         "brightness": 10,
+        "button_color": [
+            0,
+            0,
+            0
+        ],
         "id": 66,
         "led_mode": 1,
         "modifiers": 0,
-        "name": "-",
+        "name": "<none>",
         "parameter1": 7,
         "parameter2": 6,
         "parameter3": 6,
         "speed_factor": 4,
         "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
             "id": 0,
             "index": 0,
             "name": "",
@@ -2191,15 +3141,25 @@
     },
     {
         "brightness": 10,
+        "button_color": [
+            0,
+            0,
+            0
+        ],
         "id": 67,
         "led_mode": 1,
         "modifiers": 0,
-        "name": "-",
+        "name": "<none>",
         "parameter1": 7,
         "parameter2": 6,
         "parameter3": 6,
         "speed_factor": 4,
         "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
             "id": 0,
             "index": 0,
             "name": "",
@@ -2209,15 +3169,25 @@
     },
     {
         "brightness": 10,
+        "button_color": [
+            0,
+            0,
+            0
+        ],
         "id": 68,
         "led_mode": 1,
         "modifiers": 0,
-        "name": "-",
+        "name": "<none>",
         "parameter1": 7,
         "parameter2": 6,
         "parameter3": 6,
         "speed_factor": 4,
         "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
             "id": 0,
             "index": 0,
             "name": "",
@@ -2227,15 +3197,25 @@
     },
     {
         "brightness": 10,
+        "button_color": [
+            0,
+            0,
+            0
+        ],
         "id": 69,
         "led_mode": 1,
         "modifiers": 0,
-        "name": "-",
+        "name": "<none>",
         "parameter1": 7,
         "parameter2": 6,
         "parameter3": 6,
         "speed_factor": 4,
         "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
             "id": 0,
             "index": 0,
             "name": "",
@@ -2245,15 +3225,25 @@
     },
     {
         "brightness": 10,
+        "button_color": [
+            0,
+            0,
+            0
+        ],
         "id": 70,
         "led_mode": 1,
         "modifiers": 0,
-        "name": "-",
+        "name": "<none>",
         "parameter1": 7,
         "parameter2": 6,
         "parameter3": 6,
         "speed_factor": 4,
         "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
             "id": 0,
             "index": 0,
             "name": "",
@@ -2263,15 +3253,25 @@
     },
     {
         "brightness": 10,
+        "button_color": [
+            0,
+            0,
+            0
+        ],
         "id": 71,
         "led_mode": 1,
         "modifiers": 0,
-        "name": "-",
+        "name": "<none>",
         "parameter1": 7,
         "parameter2": 6,
         "parameter3": 6,
         "speed_factor": 4,
         "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
             "id": 0,
             "index": 0,
             "name": "",
@@ -2281,15 +3281,25 @@
     },
     {
         "brightness": 10,
+        "button_color": [
+            0,
+            0,
+            0
+        ],
         "id": 72,
         "led_mode": 1,
         "modifiers": 0,
-        "name": "-",
+        "name": "<none>",
         "parameter1": 7,
         "parameter2": 6,
         "parameter3": 6,
         "speed_factor": 4,
         "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
             "id": 0,
             "index": 0,
             "name": "",
@@ -2299,15 +3309,25 @@
     },
     {
         "brightness": 10,
+        "button_color": [
+            0,
+            0,
+            0
+        ],
         "id": 73,
         "led_mode": 1,
         "modifiers": 0,
-        "name": "-",
+        "name": "<none>",
         "parameter1": 7,
         "parameter2": 6,
         "parameter3": 6,
         "speed_factor": 4,
         "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
             "id": 0,
             "index": 0,
             "name": "",
@@ -2317,15 +3337,25 @@
     },
     {
         "brightness": 10,
+        "button_color": [
+            0,
+            0,
+            0
+        ],
         "id": 74,
         "led_mode": 1,
         "modifiers": 0,
-        "name": "-",
+        "name": "<none>",
         "parameter1": 7,
         "parameter2": 6,
         "parameter3": 6,
         "speed_factor": 4,
         "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
             "id": 0,
             "index": 0,
             "name": "",
@@ -2335,15 +3365,25 @@
     },
     {
         "brightness": 10,
+        "button_color": [
+            0,
+            0,
+            0
+        ],
         "id": 75,
         "led_mode": 1,
         "modifiers": 0,
-        "name": "-",
+        "name": "<none>",
         "parameter1": 7,
         "parameter2": 6,
         "parameter3": 6,
         "speed_factor": 4,
         "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
             "id": 0,
             "index": 0,
             "name": "",
@@ -2353,15 +3393,25 @@
     },
     {
         "brightness": 10,
+        "button_color": [
+            0,
+            0,
+            0
+        ],
         "id": 76,
         "led_mode": 1,
         "modifiers": 0,
-        "name": "-",
+        "name": "<none>",
         "parameter1": 7,
         "parameter2": 6,
         "parameter3": 6,
         "speed_factor": 4,
         "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
             "id": 0,
             "index": 0,
             "name": "",
@@ -2371,15 +3421,25 @@
     },
     {
         "brightness": 10,
+        "button_color": [
+            0,
+            0,
+            0
+        ],
         "id": 77,
         "led_mode": 1,
         "modifiers": 0,
-        "name": "-",
+        "name": "<none>",
         "parameter1": 7,
         "parameter2": 6,
         "parameter3": 6,
         "speed_factor": 4,
         "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
             "id": 0,
             "index": 0,
             "name": "",
@@ -2389,15 +3449,25 @@
     },
     {
         "brightness": 10,
+        "button_color": [
+            0,
+            0,
+            0
+        ],
         "id": 78,
         "led_mode": 1,
         "modifiers": 0,
-        "name": "-",
+        "name": "<none>",
         "parameter1": 7,
         "parameter2": 6,
         "parameter3": 6,
         "speed_factor": 4,
         "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
             "id": 0,
             "index": 0,
             "name": "",
@@ -2407,15 +3477,25 @@
     },
     {
         "brightness": 10,
+        "button_color": [
+            0,
+            0,
+            0
+        ],
         "id": 79,
         "led_mode": 1,
         "modifiers": 0,
-        "name": "-",
+        "name": "<none>",
         "parameter1": 7,
         "parameter2": 6,
         "parameter3": 6,
         "speed_factor": 4,
         "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
             "id": 0,
             "index": 0,
             "name": "",
@@ -2425,15 +3505,25 @@
     },
     {
         "brightness": 10,
+        "button_color": [
+            0,
+            0,
+            0
+        ],
         "id": 80,
         "led_mode": 1,
         "modifiers": 0,
-        "name": "-",
+        "name": "<none>",
         "parameter1": 7,
         "parameter2": 6,
         "parameter3": 6,
         "speed_factor": 4,
         "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
             "id": 0,
             "index": 0,
             "name": "",
@@ -2443,15 +3533,25 @@
     },
     {
         "brightness": 10,
+        "button_color": [
+            0,
+            0,
+            0
+        ],
         "id": 81,
         "led_mode": 1,
         "modifiers": 0,
-        "name": "-",
+        "name": "<none>",
         "parameter1": 7,
         "parameter2": 6,
         "parameter3": 6,
         "speed_factor": 4,
         "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
             "id": 0,
             "index": 0,
             "name": "",
@@ -2461,15 +3561,25 @@
     },
     {
         "brightness": 10,
+        "button_color": [
+            0,
+            0,
+            0
+        ],
         "id": 82,
         "led_mode": 1,
         "modifiers": 0,
-        "name": "-",
+        "name": "<none>",
         "parameter1": 7,
         "parameter2": 6,
         "parameter3": 6,
         "speed_factor": 4,
         "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
             "id": 0,
             "index": 0,
             "name": "",
@@ -2479,15 +3589,25 @@
     },
     {
         "brightness": 10,
+        "button_color": [
+            0,
+            0,
+            0
+        ],
         "id": 83,
         "led_mode": 1,
         "modifiers": 0,
-        "name": "-",
+        "name": "<none>",
         "parameter1": 7,
         "parameter2": 6,
         "parameter3": 6,
         "speed_factor": 4,
         "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
             "id": 0,
             "index": 0,
             "name": "",
@@ -2497,15 +3617,25 @@
     },
     {
         "brightness": 10,
+        "button_color": [
+            0,
+            0,
+            0
+        ],
         "id": 84,
         "led_mode": 1,
         "modifiers": 0,
-        "name": "-",
+        "name": "<none>",
         "parameter1": 7,
         "parameter2": 6,
         "parameter3": 6,
         "speed_factor": 4,
         "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
             "id": 0,
             "index": 0,
             "name": "",
@@ -2515,15 +3645,25 @@
     },
     {
         "brightness": 10,
+        "button_color": [
+            0,
+            0,
+            0
+        ],
         "id": 85,
         "led_mode": 1,
         "modifiers": 0,
-        "name": "-",
+        "name": "<none>",
         "parameter1": 7,
         "parameter2": 6,
         "parameter3": 6,
         "speed_factor": 4,
         "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
             "id": 0,
             "index": 0,
             "name": "",
@@ -2533,15 +3673,25 @@
     },
     {
         "brightness": 10,
+        "button_color": [
+            0,
+            0,
+            0
+        ],
         "id": 86,
         "led_mode": 1,
         "modifiers": 0,
-        "name": "-",
+        "name": "<none>",
         "parameter1": 7,
         "parameter2": 6,
         "parameter3": 6,
         "speed_factor": 4,
         "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
             "id": 0,
             "index": 0,
             "name": "",
@@ -2551,15 +3701,25 @@
     },
     {
         "brightness": 10,
+        "button_color": [
+            0,
+            0,
+            0
+        ],
         "id": 87,
         "led_mode": 1,
         "modifiers": 0,
-        "name": "-",
+        "name": "<none>",
         "parameter1": 7,
         "parameter2": 6,
         "parameter3": 6,
         "speed_factor": 4,
         "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
             "id": 0,
             "index": 0,
             "name": "",
@@ -2569,15 +3729,25 @@
     },
     {
         "brightness": 10,
+        "button_color": [
+            0,
+            0,
+            0
+        ],
         "id": 88,
         "led_mode": 1,
         "modifiers": 0,
-        "name": "-",
+        "name": "<none>",
         "parameter1": 7,
         "parameter2": 6,
         "parameter3": 6,
         "speed_factor": 4,
         "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
             "id": 0,
             "index": 0,
             "name": "",
@@ -2587,15 +3757,25 @@
     },
     {
         "brightness": 10,
+        "button_color": [
+            0,
+            0,
+            0
+        ],
         "id": 89,
         "led_mode": 1,
         "modifiers": 0,
-        "name": "-",
+        "name": "<none>",
         "parameter1": 7,
         "parameter2": 6,
         "parameter3": 6,
         "speed_factor": 4,
         "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
             "id": 0,
             "index": 0,
             "name": "",
@@ -2605,15 +3785,25 @@
     },
     {
         "brightness": 10,
+        "button_color": [
+            0,
+            0,
+            0
+        ],
         "id": 90,
         "led_mode": 1,
         "modifiers": 0,
-        "name": "-",
+        "name": "<none>",
         "parameter1": 7,
         "parameter2": 6,
         "parameter3": 6,
         "speed_factor": 4,
         "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
             "id": 0,
             "index": 0,
             "name": "",
@@ -2623,15 +3813,25 @@
     },
     {
         "brightness": 10,
+        "button_color": [
+            0,
+            0,
+            0
+        ],
         "id": 91,
         "led_mode": 1,
         "modifiers": 0,
-        "name": "-",
+        "name": "<none>",
         "parameter1": 7,
         "parameter2": 6,
         "parameter3": 6,
         "speed_factor": 4,
         "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
             "id": 0,
             "index": 0,
             "name": "",
@@ -2641,15 +3841,25 @@
     },
     {
         "brightness": 10,
+        "button_color": [
+            0,
+            0,
+            0
+        ],
         "id": 92,
         "led_mode": 1,
         "modifiers": 0,
-        "name": "-",
+        "name": "<none>",
         "parameter1": 7,
         "parameter2": 6,
         "parameter3": 6,
         "speed_factor": 4,
         "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
             "id": 0,
             "index": 0,
             "name": "",
@@ -2659,15 +3869,25 @@
     },
     {
         "brightness": 10,
+        "button_color": [
+            0,
+            0,
+            0
+        ],
         "id": 93,
         "led_mode": 1,
         "modifiers": 0,
-        "name": "-",
+        "name": "<none>",
         "parameter1": 7,
         "parameter2": 6,
         "parameter3": 6,
         "speed_factor": 4,
         "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
             "id": 0,
             "index": 0,
             "name": "",
@@ -2677,15 +3897,25 @@
     },
     {
         "brightness": 10,
+        "button_color": [
+            0,
+            0,
+            0
+        ],
         "id": 94,
         "led_mode": 1,
         "modifiers": 0,
-        "name": "-",
+        "name": "<none>",
         "parameter1": 7,
         "parameter2": 6,
         "parameter3": 6,
         "speed_factor": 4,
         "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
             "id": 0,
             "index": 0,
             "name": "",
@@ -2695,15 +3925,25 @@
     },
     {
         "brightness": 10,
+        "button_color": [
+            0,
+            0,
+            0
+        ],
         "id": 95,
         "led_mode": 1,
         "modifiers": 0,
-        "name": "-",
+        "name": "<none>",
         "parameter1": 7,
         "parameter2": 6,
         "parameter3": 6,
         "speed_factor": 4,
         "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
             "id": 0,
             "index": 0,
             "name": "",
@@ -2713,15 +3953,25 @@
     },
     {
         "brightness": 10,
+        "button_color": [
+            0,
+            0,
+            0
+        ],
         "id": 96,
         "led_mode": 1,
         "modifiers": 0,
-        "name": "-",
+        "name": "<none>",
         "parameter1": 7,
         "parameter2": 6,
         "parameter3": 6,
         "speed_factor": 4,
         "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
             "id": 0,
             "index": 0,
             "name": "",
@@ -2731,15 +3981,25 @@
     },
     {
         "brightness": 10,
+        "button_color": [
+            0,
+            0,
+            0
+        ],
         "id": 97,
         "led_mode": 1,
         "modifiers": 0,
-        "name": "-",
+        "name": "<none>",
         "parameter1": 7,
         "parameter2": 6,
         "parameter3": 6,
         "speed_factor": 4,
         "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
             "id": 0,
             "index": 0,
             "name": "",
@@ -2749,15 +4009,25 @@
     },
     {
         "brightness": 10,
+        "button_color": [
+            0,
+            0,
+            0
+        ],
         "id": 98,
         "led_mode": 1,
         "modifiers": 0,
-        "name": "-",
+        "name": "<none>",
         "parameter1": 7,
         "parameter2": 6,
         "parameter3": 6,
         "speed_factor": 4,
         "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
             "id": 0,
             "index": 0,
             "name": "",
@@ -2767,15 +4037,25 @@
     },
     {
         "brightness": 10,
+        "button_color": [
+            0,
+            0,
+            0
+        ],
         "id": 99,
         "led_mode": 1,
         "modifiers": 0,
-        "name": "-",
+        "name": "<none>",
         "parameter1": 7,
         "parameter2": 6,
         "parameter3": 6,
         "speed_factor": 4,
         "tubepresets": {
+            "button_color": [
+                0,
+                0,
+                0
+            ],
             "id": 0,
             "index": 0,
             "name": "",

@@ -11,7 +11,7 @@ class EffectPresetModel : public PresetModel
 {
 public:
     EffectPresetModel(std::string name, int id);
-    EffectPresetModel(std::string name, int id, CONFIG_DATA data, TubePresetModel presets);
+    EffectPresetModel(std::string name, int id, CONFIG_DATA data, QColor color, TubePresetModel presets);
 
     int id;
     struct CONFIG_DATA config;

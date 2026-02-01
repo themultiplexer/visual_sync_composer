@@ -12,9 +12,8 @@
 #define USE_DOCK 0
 
 bool shift_mode = false;
-BRGColor color[32] = {{150,20,30},{200,20,30},{225,20,30},{255,20,30},{10,100,30},{10,150,30},{10,200,30},{10,255,30},{100,200,0},{200,100,0},{80,150,50},{50,150,0},{0,255,200},{200,200,50},{50,50,200},{10,20,30},
-                      {100,100,30},{150,20,30},{200,20,30},{255,20,30},{10,100,30},{10,150,30},{10,200,30},{10,255,30},{10,20,30},{10,20,30},{10,20,30},{10,20,30},{10,20,30},{10,20,30},{10,20,30},{10,20,30}};
-
+bool color_mode = false;
+bool sync_mode = false;
 
 
 void AudioWindow::sendWheelChanged(int page) {
@@ -59,14 +58,44 @@ void AudioWindow::sendButtonPress(int index) {
             }
             controller->setButton(LEDButton::SHIFT, 1.0);
             shift_mode = true;
-
         } else if (specialIndex == 1)  {
-            std::cout << "Button Reversed" << std::endl;
             controller->setButton(LEDButton::REVERSE, 1.0);
             ledModifierCheckboxes[2]->setChecked(true);
+        } else if (specialIndex == 2)  {
+            controller->setButton(LEDButton::TYPE, 1.0);
+            color_mode = true;
+            for (int i = 0; i < 4; ++i) {
+                for (int j = 0; j < 4; ++j) {
+                    std::array<float, 2> col = {((i * 4 + j) / 16.0f), 1.0};
+                    buttonColors[i][j] = col;
+                    hsv in = hsv { col[0] * 360.0, col[1] * 1.0, 1.0 };
+                    rgb a = hsv2rgb(in);
+                    controller->setMatrixButton(i, j, BRGColor {(uint8_t)(a.b * 255.0), (uint8_t)(a.r * 255.0), (uint8_t)(a.g * 255.)}, 0.8);
+                }
+            }
+        } else if (specialIndex == 4)  {
+            std::cout << "Button Browse" << std::endl;
+            controller->setButton(LEDButton::BROWSE, 1.0);
+            std::vector<VSCSlider *> sliders = { speedSlider, effect1Slider, effect2Slider, effect3Slider, effect4Slider };
+            for (VSCSlider* slider: sliders) {
+                slider->setValue((*byteRandom)(*rng));
+            }
+
+            CONFIG_DATA d = slidersToConfig(ep->getMasterconfig());
+            ep->setMasterconfig(d);
+            ep->sendConfig();
         } else if (specialIndex == 6)  {
-            std::cout << "Button Sync" << std::endl;
             controller->setButton(LEDButton::SYNC, 1.0);
+            sync_mode = true;
+            for (int i = 0; i < 4; ++i) {
+                for (int j = 0; j < 4; ++j) {
+                    LEDColor col = (j>=2) == 0 ? LEDColor::blue : LEDColor::white;
+                    controller->setMatrixButton(i, j, col, 0.8);
+                }
+            }
+        } else if (specialIndex == 7)  {
+            std::cout << "Button Quant" << std::endl;
+            controller->setButton(LEDButton::QUANT, 1.0);
             ledModifierCheckboxes[4]->setChecked(true);
         } else if (specialIndex == 8)  {
             std::cout << "Button Capture" << std::endl;
@@ -91,14 +120,21 @@ void AudioWindow::sendButtonRelease(int index) {
             shift_mode = false;
         } else if (specialIndex == 1)  {
             controller->setButton(LEDButton::REVERSE, 0.0);
-            std::cout << "Button Reversed" << std::endl;
             ledModifierCheckboxes[2]->setChecked(false);
+        } else if (specialIndex == 2)  {
+            controller->setButton(LEDButton::TYPE, 0.0);
+            drawMatrixOnController();
+            color_mode = false;
+        }  else if (specialIndex == 4)  {
+            controller->setButton(LEDButton::BROWSE, 0.5);
         } else if (specialIndex == 6)  {
-            std::cout << "Button Sync" << std::endl;
             controller->setButton(LEDButton::SYNC, 0.0);
+            sync_mode = false;
+            drawMatrixOnController();
+        } else if (specialIndex == 7)  {
+            controller->setButton(LEDButton::QUANT, 0.0);
             ledModifierCheckboxes[4]->setChecked(false);
         }
-
     }
 }
 
@@ -108,8 +144,12 @@ void AudioWindow::sendMatrixButtonPress(int col, int row) {
     if (button < 16) {
         if (shift_mode) {
             int index = (col + (row/3*4) );
-            std::cout << "INDEX" << index << std::endl;
             peakEvent(0, index + 3); // TODO device handling
+        } else if (color_mode) {
+            currentColor = buttonColors[col][row];
+            peakEvent(0, -1, false);
+        } else if (sync_mode) {
+            changeCoordination(button);
         } else {
             setNewEffect(currentTab * 16 + button);
         }
@@ -124,9 +164,13 @@ void AudioWindow::sendMatrixButtonRelease(int col, int row) {
     if (button < 16) {
         if (shift_mode) {
             controller->setMatrixButton(col, row, LEDColor::red, 1.0);
+        } else if (color_mode || sync_mode) {
+
         } else {
             drawMatrixOnController();
-            controller->setMatrixButton(col, row, color[currentTab * 16 + button], 0.8);
+            QColor color = effectPresets[currentTab * 16 + button]->getColor();
+            BRGColor rcol = BRGColor {(uint8_t)color.blue(), (uint8_t)color.red(), (uint8_t)color.green()};
+            controller->setMatrixButton(col, row, rcol, 1.0);
         }
     } else {
         
@@ -136,8 +180,30 @@ void AudioWindow::sendMatrixButtonRelease(int col, int row) {
 void AudioWindow::drawMatrixOnController(){
     for (int i = 0; i < 4; ++i) {
         for (int j = 0; j < 4; ++j) {
-            controller->setMatrixButton(i, j, color[currentTab * 16 + (i*4+j)], 0.5);
+            QColor color = effectPresets[currentTab * 16 + (i*4+j)]->getColor();
+            BRGColor rcol = BRGColor {(uint8_t)color.blue(), (uint8_t)color.red(), (uint8_t)color.green()};
+            controller->setMatrixButton(i, j, rcol, 0.4);
         }
+    }
+}
+
+void AudioWindow::changeCoordination(int index) {
+    PresetButton *button = tubeButtons[index];
+    TubePresetModel *model = static_cast<TubePresetModel *>(button->getModel());
+    if (currentPreset != -1) {
+        tubeButtons[currentPreset]->setActive(false);
+    }
+    button->setActive(true);
+    std::cout << "WTF" << std::endl;
+    applyTubePreset(model);
+    currentPreset = (int)index;
+    activeTubePresetButton = button;
+    sendTubeSyncData();
+
+    autoCheckboxes[2]->setChecked(false);
+
+    for (auto t : tubes) {
+        t->sync();
     }
 }
 
@@ -152,6 +218,7 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
 
     controller = new ControllerHandler();
     controller->setDelegate(this);
+    controller->setButton(LEDButton::CAPTURE, 1.0);
 
     this->ep = ep;
     NetDevice h = NetDevice("wlxdc4ef40a3f9f");
@@ -170,7 +237,7 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
 
     rng = new std::mt19937(dev());
     hueRandom = new std::uniform_int_distribution<std::mt19937::result_type>(0, 360);
-    satRandom = new std::uniform_int_distribution<std::mt19937::result_type>(0, 255);
+    byteRandom = new std::uniform_int_distribution<std::mt19937::result_type>(0, 255);
     effectRandom = new std::uniform_int_distribution<std::mt19937::result_type>(0, 15);
     presetRandom = new std::uniform_int_distribution<std::mt19937::result_type>(0, 15);
     paletteRandom = new std::uniform_int_distribution<std::mt19937::result_type>(0, 6);
@@ -306,8 +373,6 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
         DmxWindow *dmxw = new DmxWindow(ep);
         dmxw->show();
     });
-
-
 
     statusLayout->addWidget(fwbutton);
     statusLayout->addWidget(flashbutton);
@@ -489,8 +554,8 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     for (int tab = 0; tab < 4; ++tab) {
         // Loop to create buttons and add them to the layout
         QWidget *gridWidget = new QWidget;
-        gridWidget->setMaximumWidth(300);
-        gridWidget->setMaximumHeight(300);
+        gridWidget->setMaximumWidth(600);
+        gridWidget->setMaximumHeight(600);
         QHBoxLayout *tabArea = new QHBoxLayout(gridWidget);
         QGridLayout *gridLayout = new QGridLayout;
         for (int row = 0; row < 4; ++row) {
@@ -500,10 +565,8 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
                 EffectPresetModel *model = effectPresets[index];
                 model->id = index;
                 PresetButton *button = new PresetButton(model, this);
-                button->setMinimumWidth(50);
-                button->setMaximumWidth(50);
-                button->setMinimumHeight(50);
-                button->setMaximumHeight(50);
+                button->setMaximumWidth(120);
+                button->setMaximumHeight(120);
                 gridLayout->addWidget(button, row, col);
                 connect(button, &PresetButton::releasedInstantly, [=, this](){
                     ptrdiff_t index = std::distance(tubeButtons.begin(), std::find(tubeButtons.begin(), tubeButtons.end(), button));
@@ -554,6 +617,11 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
 
                         EffectPresetModel::saveToJsonFile(effectPresets, "effects.json");
                     }
+                    QColor color = QColorDialog::getColor(Qt::white, this, "Button Color", QColorDialog::DontUseNativeDialog);
+                    button->setColor(color, false);
+                    model->color = color;
+                    EffectPresetModel::saveToJsonFile(effectPresets, "effects.json");
+                    drawMatrixOnController();
                 });
                 effectButtons.push_back(button);
             }
@@ -575,29 +643,12 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
             TubePresetModel *model = tubePresets[index];
             model->id = index;
             PresetButton *button = new PresetButton(model, this);
-            button->setMinimumWidth(50);
-            button->setMaximumWidth(50);
-            button->setMinimumHeight(50);
-            button->setMaximumHeight(50);
+            button->setMaximumWidth(120);
+            button->setMaximumHeight(120);
             presetsLayout->addWidget(button, row, col);
             connect(button, &PresetButton::releasedInstantly, [=, this](){
                 ptrdiff_t index = std::distance(tubeButtons.begin(), std::find(tubeButtons.begin(), tubeButtons.end(), button));
-                TubePresetModel *model = static_cast<TubePresetModel *>(button->getModel());
-                if (currentPreset != -1) {
-                    tubeButtons[currentPreset]->setActive(false);
-                }
-                button->setActive(true);
-                std::cout << "WTF" << std::endl;
-                applyTubePreset(model);
-                currentPreset = (int)index;
-                activeTubePresetButton = button;
-                sendTubeSyncData();
-
-                autoCheckboxes[2]->setChecked(false);
-
-                for (auto t : tubes) {
-                    t->sync();
-                }
+                changeCoordination(index);
             });
             connect(button, &PresetButton::leftLongPressed, [=, this](){
                 bool ok;
@@ -636,6 +687,11 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
 
                     TubePresetModel::saveToJsonFile(tubePresets, "tubes.json");
                 }
+
+                QColor color = QColorDialog::getColor(Qt::white, this, "Button Color", QColorDialog::DontUseNativeDialog);
+                button->setColor(color, false);
+                model->color = color;
+                EffectPresetModel::saveToJsonFile(tubePresets, "tubes.json");
             });
             tubeButtons.push_back(button);
         }
@@ -702,7 +758,7 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
 
     RadioSelection *groupSelection = new RadioSelection("Group Selection Mode:", {"Count Up", "Region", "Random"}, [=, this](int i){
         groupMode = (GroupSelection)i;
-    }, 0, this);
+    }, 1, this);
     topLayout->addWidget(groupSelection);
 
     RadioSelection *colorSelection = new RadioSelection("Color Selection Mode:", {"Count Up", "Region", "Random"}, [=, this](int i){
@@ -721,16 +777,18 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     palettes.push_back({{ {0.333f, 1.0f}, {0.0f, 0.0f}, {0.333f, 1.0f}, {0.0f, 0.0f}, {0.333f, 1.0f}, {0.0f, 0.0f} }});
     palettes.push_back({{ {0.8f, 1.0f}, {0.2f, 1.0f}, {0.8f, 1.0f}, {0.2f, 1.0f}, {0.8f, 1.0f}, {0.2f, 1.0f} }});
 
-    RadioSelection *paletteSelection = new RadioSelection("Color Palettes:", {"Manual", "Random Hue", "Random Hue&Sat", "Red|White", "Greenish",  "Custom"}, [=, this](int i){
+    RadioSelection *paletteSelection = new RadioSelection("Color Palettes:", {"Maximum Frequency", "Manual", "Random Hue", "Random Hue&Sat", "Red|White", "Greenish",  "Custom"}, [=, this](int i){
         if (i == 0) {
-            colorMode = ColorControl::Manual;
+            colorMode = ColorControl::Frequency;
         } else if (i == 1) {
-            colorMode = ColorControl::RandomHue;
+            colorMode = ColorControl::Manual;
         } else if (i == 2) {
+            colorMode = ColorControl::RandomHue;
+        } else if (i == 3) {
             colorMode = ColorControl::RandomColor;
         } else {
             colorMode = ColorControl::Palette;
-            currentPalette = palettes[i - 3];
+            currentPalette = palettes[i - 4];
             for (int i = 0; i < knobWidgets.size(); ++i) {
                 rgb color = hsv2rgb({currentPalette[i][0] * 360.0f, currentPalette[i][1], 1.0});
                 knobWidgets[i]->setOuterPercentage(currentPalette[i][0]);
@@ -738,7 +796,7 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
             }
         }
         peakEvent();
-    }, 3, this);
+    }, 4, this);
     topLayout->addWidget(paletteSelection);
 
 
@@ -938,7 +996,9 @@ void AudioWindow::setNewEffect(EffectPresetModel *model) {
     drawMatrixOnController();
     int col = activeEffect / 4;
     int row = activeEffect % 4;
-    //controller->setMatrixButton(col, row, color[activeEffect]);
+    QColor color = effectPresets[currentTab * 16 + activeEffect]->getColor();
+    BRGColor rcol = BRGColor {(uint8_t)color.blue(), (uint8_t)color.red(), (uint8_t)color.green()};
+    controller->setMatrixButton(col, row, rcol);
 
     this->brightnessSlider->setValue(model->config.brightness);
     this->speedSlider->setValue(model->config.speed_factor);
@@ -969,28 +1029,21 @@ void AudioWindow::setNewEffect(EffectPresetModel *model) {
     applyTubePreset(model->getPresets());
     sendTubeSyncData();
 
-    /*
-    ptrdiff_t pos = std::distance(tubePresets.begin(), std::find(tubePresets.begin(), tubePresets.end(), model->getPresets()));
-    if (pos < tubePresets.size()) {
-        currentPreset = (int)pos;
+    if (this->ledModifierCheckboxes[0]->isChecked()) {
+        peakEvent();
     }
-
-    if (currentPreset != -1) {
-        applyTubePreset(tubePresets[currentPreset]);
-        sendTubeSyncData();
-    }*/
 }
 
-float test;
-
-void AudioWindow::peakEvent(int group, int index) {
+void AudioWindow::peakEvent(int group, int index, bool pickColor) {
     int currentGroup = 0;
     if (groupMode == GroupSelection::CountUp) {
         if (numGroups > 1) {
             currentGroup = (numBeats  % numGroups) + 1;
         }
     } else if (groupMode == GroupSelection::Regions) {
-        currentGroup = group;
+        if (numGroups > 1) {
+            currentGroup = group;
+        }
     }
 
     int button = 15 + group;
@@ -1003,25 +1056,28 @@ void AudioWindow::peakEvent(int group, int index) {
     numBeatLabel->setText(QString::number(currentGroup));
 
     // TODO Generating a random palette would be cooler.
-    std::array<float, 2> color;
-    if (colorMode == ColorControl::Manual) {
-        currentColor = currentPalette[0];
-        qDebug() << currentColor[0] << " " << currentColor[1];
-    } else if (colorMode == ColorControl::RandomHue) {
-        currentColor = {(float)(*hueRandom)(*rng) / (float) 360, saturationSlider->pct()};
-    } else if (colorMode == ColorControl::RandomColor) {
-        currentColor = {(float)(*hueRandom)(*rng) / (float) 360, (float)(*satRandom)(*rng) / (float) 255};
-    } else if (colorMode == ColorControl::Palette) {
-        if (colorSelectionMode == ColorSelectionMode::CountUp) {
-            currentColor = currentPalette[currentPaletteIndex];
-            currentPaletteIndex++;
-            currentPaletteIndex %= 6;
-        } else if (colorSelectionMode == ColorSelectionMode::Random) {
-            currentColor = currentPalette[(*paletteRandom)(*rng)];
-        } else if (colorSelectionMode == ColorSelectionMode::Regions) {
-            currentColor = currentPalette[group > 0 ? group - 1 : 0];
+    if (pickColor) {
+        std::array<float, 2> color;
+        if (colorMode == ColorControl::Manual) {
+            currentColor = currentPalette[0];
+            qDebug() << currentColor[0] << " " << currentColor[1];
+        } else if (colorMode == ColorControl::RandomHue) {
+            currentColor = {(float)(*hueRandom)(*rng) / (float) 360, saturationSlider->pct()};
+        } else if (colorMode == ColorControl::RandomColor) {
+            currentColor = {(float)(*hueRandom)(*rng) / (float) 360, (float)(*byteRandom)(*rng) / (float) 255};
+        } else if (colorMode == ColorControl::Palette) {
+            if (colorSelectionMode == ColorSelectionMode::CountUp) {
+                currentColor = currentPalette[currentPaletteIndex];
+                currentPaletteIndex++;
+                currentPaletteIndex %= 4;
+            } else if (colorSelectionMode == ColorSelectionMode::Random) {
+                currentColor = currentPalette[(*paletteRandom)(*rng)];
+            } else if (colorSelectionMode == ColorSelectionMode::Regions) {
+                currentColor = currentPalette[group > 0 ? group - 1 : 0];
+            }
         }
     }
+
     int hue = currentColor[0] * 255.0;
     int sat = currentColor[1] * 255.0;
 
@@ -1038,8 +1094,6 @@ void AudioWindow::peakEvent(int group, int index) {
 
     rgb c = hsv2rgb({(hue/255.0) * 360.0, sat/255.0, 1.0});
     ep->sendDmx({c.r, c.g, c.b, 0.0, 1.0});
-
-
 }
 
 void AudioWindow::checkTime(){
@@ -1064,25 +1118,29 @@ void AudioWindow::checkTime(){
         fr[i] = log10(fr[i] * 2.0 + 1.01);
     }
 
-    int freq_index = std::distance(std::begin(fl), std::max_element(std::begin(fl), std::end(fl)));
-    float log_freq_index = ((float)freq_index / (float)1024);
-    currentPalette[0] = {log_freq_index * 3.5f, 1.0};
+    if(colorMode == ColorControl::Frequency) {
+        int freq_index = std::distance(std::begin(fl), std::max_element(std::begin(fl), std::end(fl)));
+        float log_freq_index = ((float)freq_index / (float)1024);
+        currentPalette[0] = {log_freq_index * 3.5f, 1.0};
 
-    if (knobChanged) {
-        auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - lastKnobChange).count();
-        if (diff >= 50) {
-            for (int i = 0; i < 4; ++i) {
-                currentPalette[i][0] = knobWidgets[i]->getOuterPercentage();
-                currentPalette[i][1] = knobWidgets[i]->getInnerPercentage();
+        if (knobChanged) {
+            auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - lastKnobChange).count();
+            if (diff >= 50) {
+                for (int i = 0; i < 4; ++i) {
+                    currentPalette[i][0] = knobWidgets[i]->getOuterPercentage();
+                    currentPalette[i][1] = knobWidgets[i]->getInnerPercentage();
+                }
+                peakEvent();
+                knobChanged = false;
+                lastKnobChange = std::chrono::system_clock::now();
             }
-            peakEvent();
-            knobChanged = false;
-            lastKnobChange = std::chrono::system_clock::now();
         }
+
     }
+
     if (sliderDidChanged) {
         auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - lastSliderChange).count();
-        if (diff >= 50) {
+        if (diff >= 25) {
             CONFIG_DATA d = slidersToConfig(ep->getMasterconfig());
             ep->setMasterconfig(d);
             ep->sendConfigTo({0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF});
