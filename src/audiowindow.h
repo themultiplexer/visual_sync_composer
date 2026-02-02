@@ -2,6 +2,7 @@
 #define AUDIOWINDOW_H
 
 #include <QMainWindow>
+#include <QComboBox>
 #include "qmainwindow.h"
 #include <QWidget>
 #include <QCloseEvent>
@@ -100,7 +101,7 @@ public:
     ~AudioWindow();
 
     void sliderChanged();
-    void effectChanged(bool state);
+    void effectChanged(int index);
     void setAlbumArtwork(QPixmap *);
     void bpmChanged(int bpm);
     void loadLyrics();
@@ -179,6 +180,7 @@ private:
     std::array<float,2> currentColor;
     int lastButton;
     MidiReceiver *receiver;
+    QComboBox* combo;
 
     std::array<std::array<std::array<float, 2>, 4>, 4> buttonColors;
 

@@ -383,18 +383,18 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     QVBoxLayout *effectSettingsLayout = new QVBoxLayout(effectSettingsWidget);
 
     QGroupBox *modesWidget = new QGroupBox(effectSettingsWidget);
-    modesWidget->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Minimum);
-    QHBoxLayout* modesLayout = new QHBoxLayout(modesWidget);
-
+    modesWidget->setMinimumWidth(500);
+    combo = new QComboBox(modesWidget);
+    combo->setMinimumWidth(500);
     for (std::string effect : values) {
-        QRadioButton *radio = new QRadioButton();
-        radio->setText(effect.c_str());
-        connect(radio, &QRadioButton::toggled, this, &AudioWindow::effectChanged);
-        ledModeRadioButtons.push_back(radio);
-        modesLayout->addWidget(radio);
+        combo->addItem(effect.c_str());
     }
+    for (int i = 0; i < 79; i++) {
+        const std::vector<std::string> effectNames = {"Static", "Blink", "Breath", "Color Wipe", "Color Wipe Inverse", "Color Wipe Reverse", "Color Wipe Reverse Inverse", "Color Wipe Random", "Random Color", "Single Dynamic", "Multi Dynamic", "Rainbow", "Rainbow Cycle", "Scan", "Dual Scan", "Fade", "Theater Chase", "Theater Chase Rainbow", "Running Lights", "Twinkle", "Twinkle Random", "Twinkle Fade", "Twinkle Fade Random", "Sparkle", "Flash Sparkle", "Hyper Sparkle", "Strobe", "Strobe Rainbow", "Multi Strobe", "Blink Rainbow", "Chase White", "Chase Color", "Chase Random", "Chase Rainbow", "Chase Flash", "Chase Flash Random", "Chase Rainbow White", "Chase Blackout", "Chase Blackout Rainbow", "Color Sweep Random", "Running Color", "Running Red Blue", "Running Random", "Larson Scanner", "Comet", "Fireworks", "Fireworks Random", "Merry Christmas", "Fire Flicker", "Fire Flicker (soft)", "Fire Flicker (intense)", "Circus Combustus", "Halloween", "Bicolor Chase", "Tricolor Chase", "TwinkleFOX", "Rain", "Block Dissolve", "ICU", "Dual Larson", "Running Random2", "Filler Up", "Rainbow Larson", "Rainbow Fireworks", "Trifade", "VU Meter", "Heartbeat", "Bits", "Multi Comet", "Flipbook", "Popcorn", "Oscillator", "Custom 0", "Custom 1", "Custom 2", "Custom 3", "Custom 4", "Custom 5", "Custom 6", "Custom 7"};
+        combo->addItem(QString::fromStdString(effectNames[i]));
+    }
+    QObject::connect(combo, static_cast<void(QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this, &AudioWindow::effectChanged);
     modesWidget->setMaximumHeight(75);
-    modesWidget->setLayout(modesLayout);
 
     QHBoxLayout* modifiersLayout = new QHBoxLayout(effectSettingsWidget);
     modifiersLayout->addWidget(new QLabel("Modifiers:"));
@@ -1010,9 +1010,9 @@ void AudioWindow::setNewEffect(EffectPresetModel *model) {
         this->ledModifierCheckboxes[i]->setChecked(((model->config.modifiers >> (7 - i)) & 0x01));
         this->ledModifierCheckboxes[i]->blockSignals(false);
     }
-    ledModeRadioButtons[model->config.led_mode]->blockSignals(true);
-    ledModeRadioButtons[model->config.led_mode]->setChecked(true);
-    ledModeRadioButtons[model->config.led_mode]->blockSignals(false);
+    combo->blockSignals(true);
+    combo->setCurrentIndex(model->config.led_mode);
+    combo->blockSignals(false);
 
     if (activeEffectPresetButton) {
         activeEffectPresetButton->setActive(false);
@@ -1236,20 +1236,16 @@ void AudioWindow::sliderChanged()
     }
 }
 
-void AudioWindow::effectChanged(bool state)
+void AudioWindow::effectChanged(int index)
 {
-    if(state) {
-        QRadioButton* button = qobject_cast<QRadioButton*>(sender());
-        auto it = std::find(std::begin(values), std::end(values), button->text().toStdString());
-        int index = it - std::begin(values);
-        CONFIG_DATA d = ep->getMasterconfig();
-        d.led_mode = index;
-        ep->setMasterconfig(d);
-        ep->sendConfig();
-        for (auto t : tubes) {
-            t->setEffect(d);
-            t->sync();
-        }
+    QRadioButton* button = qobject_cast<QRadioButton*>(sender());
+    CONFIG_DATA d = ep->getMasterconfig();
+    d.led_mode = index;
+    ep->setMasterconfig(d);
+    ep->sendConfig();
+    for (auto t : tubes) {
+        t->setEffect(d);
+        t->sync();
     }
 }
 
