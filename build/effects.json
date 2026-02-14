@@ -2916,30 +2916,74 @@
         }
     },
     {
-        "brightness": 10,
+        "brightness": 210,
         "button_color": [
             0,
             0,
             0
         ],
         "id": 50,
-        "led_mode": 1,
+        "led_mode": 10,
         "modifiers": 0,
-        "name": "<none>",
-        "parameter1": 7,
-        "parameter2": 6,
-        "parameter3": 6,
-        "speed_factor": 4,
+        "name": "SARLupe",
+        "parameter1": 194,
+        "parameter2": 194,
+        "parameter3": 1,
+        "speed_factor": 71,
         "tubepresets": {
             "button_color": [
                 0,
                 0,
                 0
             ],
-            "id": 0,
-            "index": 0,
-            "name": "",
+            "id": 1,
+            "index": 1,
+            "name": "Accelerate",
             "tubes": {
+                "24a1603a2be9": {
+                    "delay": 50,
+                    "group": 0
+                },
+                "24a1603aa2dc": {
+                    "delay": 255,
+                    "group": 0
+                },
+                "24a1603acf56": {
+                    "delay": 50,
+                    "group": 0
+                },
+                "24a1603d4856": {
+                    "delay": 100,
+                    "group": 0
+                },
+                "24a1603d864a": {
+                    "delay": 0,
+                    "group": 0
+                },
+                "24a1603d872f": {
+                    "delay": 0,
+                    "group": 0
+                },
+                "24a1603d8b0a": {
+                    "delay": 255,
+                    "group": 0
+                },
+                "60019496c44a": {
+                    "delay": 0,
+                    "group": 0
+                },
+                "8cce4edeb3c7": {
+                    "delay": 100,
+                    "group": 0
+                },
+                "8cce4ee1df2e": {
+                    "delay": 0,
+                    "group": 0
+                },
+                "8cce4ee36bed": {
+                    "delay": 0,
+                    "group": 0
+                }
             }
         }
     },

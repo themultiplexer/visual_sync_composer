@@ -79,7 +79,7 @@ void espnowsender::start() {
     s_dest_addr.sll_family = PF_PACKET;
     s_dest_addr.sll_protocol = htons(ETH_P_ALL);
     s_dest_addr.sll_ifindex = ifr.ifr_ifindex;
-    
+
     bind_errno = bind(fd, (struct sockaddr *)&s_dest_addr, sizeof(s_dest_addr));
     if (bind_errno < 0) {
         throw std::invalid_argument("received bind_errno value");
