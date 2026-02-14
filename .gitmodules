@@ -1,0 +1,3 @@
+[submodule "src/f1_driver"]
+    path = src/f1_driver
+    url = https://github.com/themultiplexer/f1_driver

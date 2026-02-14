@@ -2,14 +2,18 @@
 #define ESPRECEIVER_H
 #include <cstdint>
 #include <functional>
+
+#ifdef __APPLE__
+#else
 #include <linux/filter.h>
+#include <linux/if_arp.h>
+#endif
+
 #include <string>
 #include <sys/socket.h>
 #include <sys/ioctl.h>
-#include <linux/if_arp.h>
 #include <arpa/inet.h>
 #include <cstdint>
-#include <linux/if_ether.h>
 #include <netinet/in.h>
 #include <pthread.h>
 #include <sys/ioctl.h>
@@ -26,8 +30,12 @@ public:
     void unset_filter();
     void set_filter(std::array<uint8_t, 6> * dst_mac);
 
+
 private:
+#ifdef __APPLE__
+#else
     struct sock_fprog bpf;
+#endif
 
     std::string interface;
     int sock_fd;

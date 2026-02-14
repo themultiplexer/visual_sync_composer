@@ -97,7 +97,9 @@ public:
 private:
     void callback(std::array<uint8_t, 6> src_mac, std::span<uint8_t> data);
 
+
     espnowsender* handler;
+
     std::vector<WifiTextEventReceiver *> receivers;
     std::vector<int> getTubeOffsets() const;
     CONFIG_DATA masterconfig;

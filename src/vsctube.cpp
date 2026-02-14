@@ -132,14 +132,14 @@ void VSCTube::setEffect(CONFIG_DATA effect) {
 }
 
 void VSCTube::sync() {
-    QTimer::singleShot(delaySpinBox->value(), ftube, [=]() {
+    QTimer::singleShot(delaySpinBox->value(), ftube, [this]() {
         ftube->sync();
     });
 }
 
 void VSCTube::setPeaked(rgb color, int group) {
     if (group == groupSpinBox->value()) {
-        QTimer::singleShot(delaySpinBox->value(), ftube, [=]() {
+        QTimer::singleShot(delaySpinBox->value(), ftube, [this, color]() {
             ftube->setPeaked(QColor(color.r * 255, color.g * 255, color.b * 255));  // Request an update every 16ms (~60 FPS)
         });
     }

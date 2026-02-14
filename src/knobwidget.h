@@ -1,7 +1,12 @@
 #ifndef KNOBWIDGET_H
 #define KNOBWIDGET_H
 
+#ifdef __APPLE__
+#include <OpenGL/OpenGL.h>
+#else
 #include <GL/gl.h>
+#endif
+
 #include <QWidget>
 #include <QOpenGLWidget>
 #include <QMouseEvent>

@@ -17,10 +17,12 @@ set(CMAKE_USE_WIN32_THREADS_INIT 0)
 set(CMAKE_USE_PTHREADS_INIT 1)
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 
-find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
-find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets Network REQUIRED)
-find_package(sdbus-c++ REQUIRED)
-find_package(Boost 1.74 COMPONENTS serialization system beast)
+set(MACOSX_BUNDLE_ICON_FILE show.icns)
+set(app_icon_macos ${CMAKE_CURRENT_SOURCE_DIR}/show.icns)
+set_source_files_properties(${app_icon_macos} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
+
+
+find_package(Boost COMPONENTS serialization system beast)
 find_package(kissfft REQUIRED)
 find_package(RtAudio REQUIRED)
 find_package(OpenGL REQUIRED)
@@ -29,12 +31,30 @@ find_package(PkgConfig REQUIRED)
 find_package(OpenSSL REQUIRED)
 find_package(cpprestsdk REQUIRED)
 find_package(nlohmann_json REQUIRED)
+find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets OpenGLWidgets)
 
-pkg_check_modules(AVAHI REQUIRED avahi-client rtmidi)
+if(APPLE)
+  find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets OpenGLWidgets Network REQUIRED)
+else()
+  find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets Network REQUIRED)
+endif()
+
+#pkg_check_modules(AVAHI REQUIRED avahi-client rtmidi)
+pkg_check_modules(KISSFFT REQUIRED kissfft-float)
+
+
+file(GLOB PROJECT_SOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/*.h
+)
+
+
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(VisualSyncComposer
+        MACOSX_BUNDLE
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
+        ${app_icon_macos}
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET VisualSyncComposer APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
@@ -49,74 +69,23 @@ else()
 #    set(ANDROID_PACKAGE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/android")
     else()
         add_executable(VisualSyncComposer
-            src/main.cpp
-            src/eventprocessor.h
-            src/eventmodel.h
-            src/eventmodel.cpp
-            src/espnowsender.h
-            src/espnowsender.cpp
-            src/espnowtypes.cpp
-            src/espnowtypes.h
-            src/projectmodel.h
-            src/audioanalyzer.h
-            src/audioanalyzer.cpp
-            src/oglwidget.h
-            src/oglwidget.cpp
-            src/wifieventprocessor.h
-            src/wifieventprocessor.cpp
-            src/esphandler.h
-            src/esphandler.cpp
-            src/netdevice.h
-            src/netdevice.cpp
-            src/vscslider.h
-            src/vscslider.cpp
-            src/helper.h
-            src/helper.cpp
-            src/audiowindow.cpp
-            src/audiowindow.h
-            src/presetbutton.h
-            src/presetbutton.cpp
-            src/effectpresetmodel.h
-            src/effectpresetmodel.cpp
-            src/espreceiver.h
-            src/espreceiver.cpp
-            src/vsctube.cpp
-            src/vsctube.h
-            src/tubewidget.cpp
-            src/tubewidget.h
-            src/mdnsflasher.h
-            src/mdnsflasher.cpp
-            src/devicereqistry.h
-            src/devicereqistry.cpp
-            src/frequencyregion.h
-            src/frequencyregion.cpp
-            src/fullscreenwindow.h
-            src/fullscreenwindow.cpp
-            src/audiofilter.h
-            src/audiofilter.cpp
-            src/biquadbandpass.h
-            src/biquadbandpass.cpp
-            src/tubepresetmodel.h
-            src/tubepresetmodel.cpp
-            src/presetmodel.h
-            src/presetmodel.cpp
-            src/runningvariance.h
-            src/runningmean.h
-            src/radioselection.h
-            src/radioselection.cpp
-            src/midireceiver.h
-            src/midireceiver.cpp
-            src/knobwidget.h src/knobwidget.cpp
-            src/dmxwindow.h src/dmxwindow.cpp
-
+            ${PROJECT_SOURCES}
         )
     endif()
 endif()
 
 add_subdirectory(src/f1_driver)
 
+add_compile_definitions(GLM_ENABLE_EXPERIMENTAL)
+
 include_directories( ${FREETYPE_INCLUDE_DIRS} ${AVAHI_INCLUDE_DIRS})
-target_link_libraries(VisualSyncComposer PRIVATE f1_driver Qt${QT_VERSION_MAJOR}::Widgets ${OPENGL_LIBRARIES}  Qt${QT_VERSION_MAJOR}::Network ${FREETYPE_LIBRARIES} ${AVAHI_LIBRARIES} SDBusCpp::sdbus-c++ RtAudio::rtaudio nlohmann_json::nlohmann_json Boost::system Boost::serialization OpenSSL::SSL OpenSSL::Crypto "/usr/lib/x86_64-linux-gnu/libkissfft-float.so.131.1.0")
+
+if(APPLE)
+  target_link_libraries(VisualSyncComposer PRIVATE f1_driver Qt${QT_VERSION_MAJOR}::Widgets ${OPENGL_LIBRARIES} Qt${QT_VERSION_MAJOR}::Network ${FREETYPE_LIBRARIES} ${AVAHI_LIBRARIES} RtAudio::rtaudio nlohmann_json::nlohmann_json ${Boost_LIBRARIES} OpenSSL::SSL OpenSSL::Crypto Qt6::OpenGLWidgets ${KISSFFT_LIBRARIES} )
+else()
+  target_link_libraries(VisualSyncComposer PRIVATE f1_driver Qt${QT_VERSION_MAJOR}::Widgets ${OPENGL_LIBRARIES} Qt${QT_VERSION_MAJOR}::Network ${FREETYPE_LIBRARIES} ${AVAHI_LIBRARIES} RtAudio::rtaudio nlohmann_json::nlohmann_json ${Boost_LIBRARIES} OpenSSL::SSL OpenSSL::Crypto ${KISSFFT_LIBRARIES})
+endif()
+
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
 # If you are developing for iOS or macOS you should consider setting an
@@ -140,5 +109,5 @@ install(TARGETS VisualSyncComposer
 )
 
 if(QT_VERSION_MAJOR EQUAL 6)
-    qt_finalize_executable(VisualSyncComposer)
+    qt_finalize_executable(VisualSyncComposer src/main.cpp)
 endif()

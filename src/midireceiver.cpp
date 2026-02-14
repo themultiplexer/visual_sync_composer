@@ -1,3 +1,5 @@
+#if 0
+
 #include "midireceiver.h"
 #include <chrono>
 #include <iostream>
@@ -129,3 +131,5 @@ MidiReceiver::~MidiReceiver()
 {
     delete midiin;
 }
+
+#endif
