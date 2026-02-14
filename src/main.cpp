@@ -269,6 +269,14 @@ std::array<uint8_t, 6> my_mac = {0xDC, 0x4E, 0xF4, 0x0A, 0x3F, 0x9F};
 
 int main(int argc, char *argv[])
 {
+
+    QSurfaceFormat format;
+    format.setDepthBufferSize(24);
+    format.setStencilBufferSize(8);
+    format.setVersion(3, 2);
+    format.setProfile(QSurfaceFormat::CoreProfile);
+    QSurfaceFormat::setDefaultFormat(format);
+
     QApplication a(argc, argv);
     a.setStyle("fusion");
 
@@ -291,7 +299,7 @@ int main(int argc, char *argv[])
     WifiEventProcessor *ep = new WifiEventProcessor(my_mac, "wlxdc4ef40a3f9f");
 
     audioWindow = new AudioWindow(ep);
-    audioWindow->setWindowTitle("Hello World");
+    audioWindow->setWindowTitle("VisualSyncComposer");
     audioWindow->resize(1920, 1080);
     audioWindow->setWindowState(Qt::WindowMaximized);
     audioWindow->show();

@@ -209,7 +209,7 @@ void AudioWindow::changeCoordination(int index) {
 
 AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     : QMainWindow(parent)
-    , popoutGlv(nullptr), activeEffectPresetButton(nullptr), activeTubePresetButton(nullptr), fullScreenWindow(new FullscreenWindow()), wifiLabel(nullptr), currentEffect(0), currentPreset(0), currentTab(0), timer(nullptr), tubeFrames(0), tubePresets(16), currentPaletteIndex(0), receiver(nullptr)
+    , popoutGlv(nullptr), activeEffectPresetButton(nullptr), activeTubePresetButton(nullptr), fullScreenWindow(new FullscreenWindow()), wifiLabel(nullptr), currentEffect(0), currentPreset(0), currentTab(0), timer(nullptr), tubeFrames(0), tubePresets(16), currentPaletteIndex(0)
 {
     numBeats = 0;
     numGroups = 1;
@@ -221,6 +221,7 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     controller->setButton(LEDButton::CAPTURE, 1.0);
 
     this->ep = ep;
+    
     NetDevice h = NetDevice("wlxdc4ef40a3f9f");
     h.setInterface(false);
     h.enableMonitorMode();
@@ -1288,5 +1289,5 @@ void AudioWindow::closeEvent(QCloseEvent *event)
 
 AudioWindow::~AudioWindow()
 {
-    receiver->setDone(true);
+    //receiver->setDone(true);
 }

@@ -3,7 +3,10 @@
 
 #include <stdint.h>
 #include <array>
+#ifdef __APPLE__
+#else
 #include <linux/filter.h>
+#endif
 #include <span>
 #include <string.h>
 #include <sys/types.h>

@@ -49,7 +49,6 @@
 #include "oglwidget.h"
 #include "tubewidget.h"
 #include "wifieventprocessor.h"
-#include <sdbus-c++/sdbus-c++.h>
 #include <boost/archive/binary_oarchive.hpp>
 #include <boost/archive/binary_iarchive.hpp>
 #include <boost/serialization/vector.hpp>
@@ -179,7 +178,7 @@ private:
     VSCSlider *otherSlider;
     std::array<float,2> currentColor;
     int lastButton;
-    MidiReceiver *receiver;
+    //MidiReceiver *receiver;
     QComboBox* combo;
 
     std::array<std::array<std::array<float, 2>, 4>, 4> buttonColors;

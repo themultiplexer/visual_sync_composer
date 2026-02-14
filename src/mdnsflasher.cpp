@@ -1,14 +1,20 @@
 #include "mdnsflasher.h"
 
-
-#include <avahi-client/client.h>
-#include <avahi-client/lookup.h>
-#include <avahi-common/simple-watch.h>
-#include <avahi-common/error.h>
 #include <iostream>
 #include <string>
 #include <vector>
 #include <cstdlib>
+
+
+
+#ifdef __APPLE__
+
+int mdnsflasher::flash(std::string firmware)
+{
+
+}
+
+#else
 
 std::vector<std::string> found_hosts;
 AvahiSimplePoll *simple_poll = nullptr;
@@ -138,3 +144,4 @@ int mdnsflasher::flash(std::string firmware)
 
     return 0;
 }
+#endif

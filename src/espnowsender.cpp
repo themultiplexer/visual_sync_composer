@@ -11,7 +11,12 @@
 
 #include <sys/socket.h>
 #include <sys/ioctl.h>
+
+#ifdef __APPLE__
+#else
 #include <linux/if_arp.h>
+#endif
+
 #include <arpa/inet.h>
 #include <assert.h>
 #include <iostream>
@@ -23,6 +28,29 @@ void espnowsender::set_interface(char* interface) {
     this->interface = (char*) malloc(strlen(interface)*sizeof(char));
     strcpy(this->interface, interface);
 }
+
+
+#ifdef __APPLE__
+void espnowsender::start() {
+
+}
+
+void espnowsender::stop() {
+
+}
+
+void espnowsender::end() {
+
+}
+
+int espnowsender::send(uint8_t *payload, int len, std::array<uint8_t,6> dst_mac) {
+    return len;
+}
+
+int espnowsender::send() {
+    return 0;
+}
+#else
 
 void espnowsender::start() {
     struct sockaddr_ll s_dest_addr;
@@ -99,3 +127,4 @@ int espnowsender::send() {
     return sendto(this->sock_fd, raw_bytes, raw_len, 0, NULL, 0);
 }
 
+#endif

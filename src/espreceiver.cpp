@@ -7,6 +7,26 @@ void espreceiver::set_recv_callback(std::function<void (std::array<uint8_t, 6>, 
     callback = recv_callback;
 }
 
+
+
+#ifdef __APPLE__
+espreceiver::espreceiver(std::string interface) {
+    this->interface = interface;
+}
+
+void espreceiver::unset_filter() {
+
+}
+
+void espreceiver::set_filter(std::array<uint8_t, 6> *dst_mac) {
+
+}
+
+void espreceiver::start() {
+
+}
+#else
+
 espreceiver::espreceiver(std::string interface) {
     this->interface = interface;
     this->bpf.len = 0;
@@ -161,6 +181,4 @@ void espreceiver::start() {
     });
 
 }
-
-
-
+#endif

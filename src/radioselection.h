@@ -6,7 +6,6 @@
 #include <QCloseEvent>
 #include <QSplitter>
 #include <QRadioButton>
-#include <QOpenGLWidget>
 #include <QMessageBox>
 #include <QLabel>
 #include <QSlider>

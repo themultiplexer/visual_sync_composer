@@ -1,3 +1,9 @@
+#ifdef __APPLE__
+#else
+#include <net/if.h>
+#include <linux/wireless.h>
+#endif
+
 #include "netdevice.h"
 #include <iostream>
 #include <stdio.h>
@@ -5,13 +11,28 @@
 #include <string.h>
 #include <sys/ioctl.h>
 #include <unistd.h>
-#include <net/if.h>
-#include <linux/wireless.h>
+
 #include <fcntl.h>
 
 NetDevice::NetDevice(const char *interface) {
     this->interface = interface;
 }
+
+
+#ifdef __APPLE__
+bool NetDevice::setInterface(bool up) {
+    return true;
+}
+
+bool NetDevice::enableMonitorMode() {
+    return true;
+}
+
+bool NetDevice::checkInterface() {
+    return true;
+}
+
+#else
 
 bool NetDevice::setInterface(bool up) {
     struct ifreq ifr;
@@ -132,3 +153,4 @@ bool NetDevice::checkInterface() {
     close(sockfd);
     return true;
 }
+#endif

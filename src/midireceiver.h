@@ -1,7 +1,7 @@
+#if 0
 #ifndef MIDIRECEIVER_H
 #define MIDIRECEIVER_H
 
-#include "RtMidi.h"
 #include <qobject.h>
 #include <qwindowdefs.h>
 
@@ -35,3 +35,4 @@ private:
 };
 
 #endif // MIDIRECEIVER_H
+#endif

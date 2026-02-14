@@ -2,7 +2,13 @@
 #define TUBEWIDGET_H
 
 #include "wifieventprocessor.h"
+
+#ifdef __APPLE__
+#include <OpenGL/OpenGL.h>
+#else
 #include <GL/gl.h>
+#endif
+
 #include <QWidget>
 #include <QOpenGLWidget>
 #include <QMouseEvent>
