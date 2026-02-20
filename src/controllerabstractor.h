@@ -46,6 +46,8 @@ private:
     bool shiftMode, colorMode, syncMode;
     float brightness;
     void drawColors();
+    void drawGroups();
+    void drawSyncModes();
 };
 
 #endif // CONTROLLERABSTRACTOR_H

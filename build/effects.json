@@ -758,8 +758,8 @@
     {
         "brightness": 210,
         "button_color": [
-            0,
-            0,
+            195,
+            255,
             0
         ],
         "id": 11,
@@ -1058,9 +1058,9 @@
     {
         "brightness": 208,
         "button_color": [
-            0,
-            0,
-            0
+            250,
+            255,
+            148
         ],
         "id": 17,
         "led_mode": 0,

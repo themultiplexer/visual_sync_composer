@@ -11,8 +11,8 @@ OGLWidget::OGLWidget(int step, QWidget *parent)
     : QOpenGLWidget(parent), step(step), decay(0.02), regions(), currentRegionIndex(0)
 {
     regions.push_back(new FrequencyRegion(1, 1, 10, NUM_POINTS, "low"));
-    regions.push_back(new FrequencyRegion(2, 60, 80, NUM_POINTS, "high"));
-    regions.push_back(new FrequencyRegion(3, 250, 300, NUM_POINTS, "melody"));
+    regions.push_back(new FrequencyRegion(2, 250, 325, NUM_POINTS, "high"));
+    regions.push_back(new FrequencyRegion(3, 50, 150, NUM_POINTS, "melody"));
 
 
     setMouseTracking(true);

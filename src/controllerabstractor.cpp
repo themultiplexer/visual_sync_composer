@@ -105,15 +105,7 @@ void ControllerAbstractor::onButtonPress(int index) {
     } else {
         int specialIndex = index - 4;
         if (specialIndex == 0) {
-            for (int i = 0; i < 4; ++i) {
-                for (int j = 0; j < 4; ++j) {
-                    if (j == 0 || j == 3) {
-                        controller->setMatrixButton(i, j, LEDColor::red, brightness);
-                    } else {
-                        controller->setMatrixButton(i, j, LEDColor::black, brightness);
-                    }
-                }
-            }
+            drawGroups();
             controller->setButton(LEDButton::SHIFT, brightness);
             shiftMode = true;
         } else if (specialIndex == 1)  {
@@ -141,12 +133,7 @@ void ControllerAbstractor::onButtonPress(int index) {
         } else if (specialIndex == 6)  {
             controller->setButton(LEDButton::SYNC, brightness);
             syncMode = true;
-            for (int i = 0; i < 4; ++i) {
-                for (int j = 0; j < 4; ++j) {
-                    LEDColor col = (j>=2) == 0 ? LEDColor::blue : LEDColor::white;
-                    controller->setMatrixButton(i, j, col, brightness);
-                }
-            }
+            drawSyncModes();
         } else if (specialIndex == 7)  {
             std::cout << "Button Quant" << std::endl;
             controller->setButton(LEDButton::QUANT, brightness);
@@ -203,6 +190,7 @@ void ControllerAbstractor::onMatrixButtonPress(int col, int row) {
             audiowindow->currentColor = audiowindow->buttonColors[col][row];
             audiowindow->peakEvent(0, -1, false);
         } else if (syncMode) {
+            drawSyncModes();
             audiowindow->changeCoordination(button);
         } else {
             audiowindow->setNewEffect(audiowindow->currentTab * 16 + button);
@@ -218,7 +206,9 @@ void ControllerAbstractor::onMatrixButtonRelease(int col, int row) {
     if (button < 16) {
         if (shiftMode) {
             controller->setMatrixButton(col, row, LEDColor::red);
-        } else if (colorMode || syncMode) {
+        } else if (syncMode) {
+
+        } else if (colorMode) {
 
         } else {
             drawMatrixOnController();
@@ -246,6 +236,29 @@ void ControllerAbstractor::drawColors()
             std::array<float, 2> col = {((i*4 + j) / 15.0f), (i*4 + j) == 15 ? 0.0 : 1.0};
             audiowindow->buttonColors[i][j] = col;
             setMatrixButton(i, j, col, brightness);
+        }
+    }
+}
+
+void ControllerAbstractor::drawGroups()
+{
+    for (int i = 0; i < 4; ++i) {
+        for (int j = 0; j < 4; ++j) {
+            if (j == 0 || j == 3) {
+                controller->setMatrixButton(i, j, LEDColor::red, brightness);
+            } else {
+                controller->setMatrixButton(i, j, LEDColor::black, brightness);
+            }
+        }
+    }
+}
+
+void ControllerAbstractor::drawSyncModes()
+{
+    for (int i = 0; i < 4; ++i) {
+        for (int j = 0; j < 4; ++j) {
+            LEDColor col = (j>=2) == 0 ? LEDColor::blue : LEDColor::white;
+            controller->setMatrixButton(i, j, col, brightness);
         }
     }
 }
