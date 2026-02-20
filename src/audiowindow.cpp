@@ -11,182 +11,6 @@
 
 #define USE_DOCK 0
 
-bool shift_mode = false;
-bool color_mode = false;
-bool sync_mode = false;
-
-
-void AudioWindow::sendWheelChanged(int page) {
-    tabWidget->setCurrentIndex((page - 1) % 4);
-}
-
-void AudioWindow::sendSliderChanged(int index, int value) {
-    std::vector<VSCSlider *> sliders = { brightnessSlider, speedSlider, effect1Slider, effect2Slider};
-
-    if (sliders[index]->getIsInverted()) {
-        sliders[index]->setValue(255 - value);
-    } else {
-        sliders[index]->setValue(value);
-    }
-
-    sliderDidChanged = true;
-
-}
-
-void AudioWindow::sendKnobChanged(int index, int value) {
-    knobWidgets[index]->setOuterPercentage((float)value/225.0f);
-    knobChanged = true;
-}
-
-bool captureToggle = true;
-
-void AudioWindow::sendButtonPress(int index) {
-    if (index < 4) {
-        peakEvent(index % 2 + 1);
-        buttonAfterglow[index]= 1.0;
-    } else {
-        int specialIndex = index - 4;
-        if (specialIndex == 0) {
-            for (int i = 0; i < 4; ++i) {
-                for (int j = 0; j < 4; ++j) {
-                    if (j == 0 || j == 3) {
-                        controller->setMatrixButton(i, j, LEDColor::red, 0.8);
-                    } else {
-                        controller->setMatrixButton(i, j, LEDColor::black, 0.8);
-                    }
-                }
-            }
-            controller->setButton(LEDButton::SHIFT, 1.0);
-            shift_mode = true;
-        } else if (specialIndex == 1)  {
-            controller->setButton(LEDButton::REVERSE, 1.0);
-            ledModifierCheckboxes[2]->setChecked(true);
-        } else if (specialIndex == 2)  {
-            controller->setButton(LEDButton::TYPE, 1.0);
-            color_mode = true;
-            for (int i = 0; i < 4; ++i) {
-                for (int j = 0; j < 4; ++j) {
-                    std::array<float, 2> col = {((i * 4 + j) / 16.0f), 1.0};
-                    buttonColors[i][j] = col;
-                    hsv in = hsv { col[0] * 360.0, col[1] * 1.0, 1.0 };
-                    rgb a = hsv2rgb(in);
-                    controller->setMatrixButton(i, j, BRGColor {(uint8_t)(a.b * 255.0), (uint8_t)(a.r * 255.0), (uint8_t)(a.g * 255.)}, 0.8);
-                }
-            }
-        } else if (specialIndex == 4)  {
-            std::cout << "Button Browse" << std::endl;
-            controller->setButton(LEDButton::BROWSE, 1.0);
-            std::vector<VSCSlider *> sliders = { speedSlider, effect1Slider, effect2Slider, effect3Slider, effect4Slider };
-            for (VSCSlider* slider: sliders) {
-                slider->setValue((*byteRandom)(*rng));
-            }
-
-            CONFIG_DATA d = slidersToConfig(ep->getMasterconfig());
-            ep->setMasterconfig(d);
-            ep->sendConfig();
-        } else if (specialIndex == 6)  {
-            controller->setButton(LEDButton::SYNC, 1.0);
-            sync_mode = true;
-            for (int i = 0; i < 4; ++i) {
-                for (int j = 0; j < 4; ++j) {
-                    LEDColor col = (j>=2) == 0 ? LEDColor::blue : LEDColor::white;
-                    controller->setMatrixButton(i, j, col, 0.8);
-                }
-            }
-        } else if (specialIndex == 7)  {
-            std::cout << "Button Quant" << std::endl;
-            controller->setButton(LEDButton::QUANT, 1.0);
-            ledModifierCheckboxes[4]->setChecked(true);
-        } else if (specialIndex == 8)  {
-            std::cout << "Button Capture" << std::endl;
-            captureToggle = !captureToggle;
-            if (captureToggle) {
-                controller->setButton(LEDButton::CAPTURE, 1.0);
-            } else {
-                controller->setButton(LEDButton::CAPTURE, 0.0);
-            }
-        }
-    }
-}
-
-void AudioWindow::sendButtonRelease(int index) {
-    if (index < 4) {
-
-    } else {
-        int specialIndex = index - 4;
-        if (specialIndex == 0) {
-            controller->setButton(LEDButton::SHIFT, 0.0);
-            drawMatrixOnController();
-            shift_mode = false;
-        } else if (specialIndex == 1)  {
-            controller->setButton(LEDButton::REVERSE, 0.0);
-            ledModifierCheckboxes[2]->setChecked(false);
-        } else if (specialIndex == 2)  {
-            controller->setButton(LEDButton::TYPE, 0.0);
-            drawMatrixOnController();
-            color_mode = false;
-        }  else if (specialIndex == 4)  {
-            controller->setButton(LEDButton::BROWSE, 0.5);
-        } else if (specialIndex == 6)  {
-            controller->setButton(LEDButton::SYNC, 0.0);
-            sync_mode = false;
-            drawMatrixOnController();
-        } else if (specialIndex == 7)  {
-            controller->setButton(LEDButton::QUANT, 0.0);
-            ledModifierCheckboxes[4]->setChecked(false);
-        }
-    }
-}
-
-void AudioWindow::sendMatrixButtonPress(int col, int row) {
-    int button = (col * 4) + row;
-    std::cout << "Button Pressed" << button << std::endl;
-    if (button < 16) {
-        if (shift_mode) {
-            int index = (col + (row/3*4) );
-            peakEvent(0, index + 3); // TODO device handling
-        } else if (color_mode) {
-            currentColor = buttonColors[col][row];
-            peakEvent(0, -1, false);
-        } else if (sync_mode) {
-            changeCoordination(button);
-        } else {
-            setNewEffect(currentTab * 16 + button);
-        }
-        controller->setMatrixButton(col, row, LEDColor::white, 1.0);
-    } else {
-
-    }
-}
-void AudioWindow::sendMatrixButtonRelease(int col, int row) {
-    int button = (col * 4) + row;
-    std::cout << "Button Released" << button << std::endl;
-    if (button < 16) {
-        if (shift_mode) {
-            controller->setMatrixButton(col, row, LEDColor::red, 1.0);
-        } else if (color_mode || sync_mode) {
-
-        } else {
-            drawMatrixOnController();
-            QColor color = effectPresets[currentTab * 16 + button]->getColor();
-            BRGColor rcol = BRGColor {(uint8_t)color.blue(), (uint8_t)color.red(), (uint8_t)color.green()};
-            controller->setMatrixButton(col, row, rcol, 1.0);
-        }
-    } else {
-        
-    }
-}
-
-void AudioWindow::drawMatrixOnController(){
-    for (int i = 0; i < 4; ++i) {
-        for (int j = 0; j < 4; ++j) {
-            QColor color = effectPresets[currentTab * 16 + (i*4+j)]->getColor();
-            BRGColor rcol = BRGColor {(uint8_t)color.blue(), (uint8_t)color.red(), (uint8_t)color.green()};
-            controller->setMatrixButton(i, j, rcol, 0.4);
-        }
-    }
-}
-
 void AudioWindow::changeCoordination(int index) {
     PresetButton *button = tubeButtons[index];
     TubePresetModel *model = static_cast<TubePresetModel *>(button->getModel());
@@ -215,10 +39,7 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     numGroups = 1;
 
     groupMode = GroupSelection::CountUp;
-
-    controller = new ControllerHandler();
-    controller->setDelegate(this);
-    controller->setButton(LEDButton::CAPTURE, 1.0);
+    controller = new ControllerAbstractor(this);
 
     this->ep = ep;
     
@@ -408,7 +229,6 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     }
     modifiersLayout->addStretch();
 
-
     QWidget *autoSelectorWidget = new QWidget;
     QHBoxLayout *autoSelectorLayout = new QHBoxLayout(autoSelectorWidget);
     autoSelectorLayout->addWidget(new QLabel("Auto Mode:"));
@@ -548,7 +368,7 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     connect(tabWidget, &QTabWidget::currentChanged, [=, this](int index){
         std::cout << index << std::endl;
         currentTab = index;
-        drawMatrixOnController();
+        controller->updateMatrix();
         controller->setPage(index + 1);
     });
 
@@ -622,7 +442,7 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
                     button->setColor(color, false);
                     model->color = color;
                     EffectPresetModel::saveToJsonFile(effectPresets, "effects.json");
-                    drawMatrixOnController();
+                    controller->updateMatrix();
                 });
                 effectButtons.push_back(button);
             }
@@ -887,7 +707,6 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     connect(qtimer, &QTimer::timeout, this, &AudioWindow::checkStatus);
     qtimer->start(500);
 
-
     superWidget->setMaximumHeight(2400);
     mainLayout->resize(mainLayout->minimumSizeHint());
     superWidget->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
@@ -895,14 +714,9 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     this->installEventFilter(this);
     setFocusPolicy(Qt::StrongFocus);
 
-    //t1.join();
+    std::cout << "Sending Hello to Tubes" << std::endl;
     ep->sendHelloToAll();
-
-    std::cout << "WTF" << std::endl;
-
-
-
-    drawMatrixOnController();
+    controller->updateMatrix();
 }
 
 
@@ -994,12 +808,11 @@ void AudioWindow::setNewEffect(int index) {
 void AudioWindow::setNewEffect(EffectPresetModel *model) {
     activeEffect = model->id % 16;
 
-    drawMatrixOnController();
+    controller->updateMatrix();
     int col = activeEffect / 4;
     int row = activeEffect % 4;
     QColor color = effectPresets[currentTab * 16 + activeEffect]->getColor();
-    BRGColor rcol = BRGColor {(uint8_t)color.blue(), (uint8_t)color.red(), (uint8_t)color.green()};
-    controller->setMatrixButton(col, row, rcol);
+    controller->setMatrixButton(col, row, color);
 
     this->brightnessSlider->setValue(model->config.brightness);
     this->speedSlider->setValue(model->config.speed_factor);
@@ -1050,7 +863,7 @@ void AudioWindow::peakEvent(int group, int index, bool pickColor) {
     int button = 15 + group;
 
     if (group < 4) {
-        buttonAfterglow[group] = 1.0;
+        controller->flashStopButton(group);
     }
 
     numBeats++;
@@ -1098,15 +911,7 @@ void AudioWindow::peakEvent(int group, int index, bool pickColor) {
 }
 
 void AudioWindow::checkTime(){
-    controller->run();
-
-    for (int i = 0; i < 4; i++) {
-        if (buttonAfterglow[i] > 0.0) {
-            buttonAfterglow[i] -= 0.05;
-            
-            controller->setStopButton(i, buttonAfterglow[i]);
-        }
-    }
+    controller->processEvents();
 
     auto fl = a->getLeftFrequencies();
     auto fr = a->getRightFrequencies();
@@ -1189,7 +994,7 @@ void AudioWindow::checkTime(){
             return;
         }
 
-        if (captureToggle) {
+        if (controller->isCaptureToggled()) {
             peakEvent(i);
             beats.push(region.getBeatMillis());
         }

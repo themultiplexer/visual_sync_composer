@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include <QComboBox>
+#include "controllerabstractor.h"
 #include "qmainwindow.h"
 #include <QWidget>
 #include <QCloseEvent>
@@ -91,9 +92,10 @@ enum class GroupSelection {
     Random
 };
 
-class AudioWindow : public QMainWindow, ControllerDelegate
+class AudioWindow : public QMainWindow
 {
     Q_OBJECT
+    friend class ControllerAbstractor;
 
 public:
     AudioWindow(WifiEventProcessor *ep, QWidget *parent = nullptr);
@@ -134,8 +136,6 @@ private:
     PresetButton *activeTubePresetButton;
     std::chrono::time_point<std::chrono::system_clock> lastEffectChange, lastPresetChange, lastDmxSent, lastSliderChange, lastKnobChange;
 
-    ControllerHandler *controller;
-
     std::string values[20] = {"Hue", "Pump", "Tube", "Pump Limiter","Duck","FadeToColor","Sparkle","Fire","Bounce", "Colorcycle", "11", "Strobe", "Random Flicker", "Tunnel", "Tunnel2", "Placeholder","confetti", "sinelon", "bpm", "juggle"};
 
     std::vector<QCheckBox*> ledModifierCheckboxes;
@@ -149,23 +149,17 @@ private:
 
     bool sliderDidChanged;
 
+    ControllerAbstractor *controller;
 
     FixedQueue<uint64_t, 10> beats;
     FixedQueue<std::array<float, 2>, 1> colors;
 
     std::array<float, 2> colorPalette;
 
-    std::array<float, 4> buttonAfterglow;
-
     std::random_device dev;
     std::mt19937 *rng;
-    std::uniform_int_distribution<std::mt19937::result_type> *hueRandom, *byteRandom;
-    std::uniform_int_distribution<std::mt19937::result_type> *effectRandom;
-    std::uniform_int_distribution<std::mt19937::result_type> *presetRandom;
-    std::uniform_int_distribution<std::mt19937::result_type> *paletteRandom;
-
+    std::uniform_int_distribution<std::mt19937::result_type> *hueRandom, *byteRandom, *effectRandom, *presetRandom, *paletteRandom;
     std::array<std::array<float, 2>, 6> currentPalette;
-
     CONFIG_DATA currentEffectConfig;
 
     void closeEvent(QCloseEvent *event) override;
@@ -195,16 +189,6 @@ private:
     bool knobChanged;
     bool shiftPressed;
 
-    void sendToMidiController(int index);
-    void drawMatrixOnController();
-    
-    void sendSliderChanged(int index, int value) override;
-    void sendKnobChanged(int index, int value) override;
-    void sendButtonPress(int index) override;
-    void sendButtonRelease(int index) override;
-    void sendWheelChanged(int page) override;
-    void sendMatrixButtonPress(int, int) override;
-    void sendMatrixButtonRelease(int, int) override;
     void changeCoordination(int index);
 };
 #endif // AUDIOWINDOW_H

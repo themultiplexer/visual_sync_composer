@@ -1,8 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
 
-set(CMAKE_C_COMPILER "clang")
-set(CMAKE_CXX_COMPILER "clang++")
-
 project(VisualSyncComposer VERSION 0.1 LANGUAGES CXX)
 
 set(CMAKE_AUTOUIC ON)
@@ -39,8 +36,13 @@ else()
   find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets Network REQUIRED)
 endif()
 
-#pkg_check_modules(AVAHI REQUIRED avahi-client rtmidi)
-pkg_check_modules(KISSFFT REQUIRED kissfft-float)
+if(APPLE)
+  pkg_check_modules(KISSFFT REQUIRED kissfft-float)
+else()
+  pkg_check_modules(KISSFFT REQUIRED kissfft-float)
+  pkg_check_modules(AVAHI REQUIRED avahi-client)
+endif()
+
 
 
 file(GLOB PROJECT_SOURCES

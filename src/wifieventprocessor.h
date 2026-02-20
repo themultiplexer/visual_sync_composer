@@ -29,7 +29,6 @@ struct PALETTE_DATA {
     uint8_t palette[8];
 };
 
-
 struct CONFIG_DATA {
     uint8_t led_mode;
     uint8_t speed_factor;
@@ -70,7 +69,6 @@ public:
     virtual void textEvent(const char *text) = 0;
 };
 
-
 class WifiEventProcessor : public EventProcessor
 {
 public:
@@ -96,7 +94,6 @@ public:
     void sendHelloToAll();
 private:
     void callback(std::array<uint8_t, 6> src_mac, std::span<uint8_t> data);
-
 
     espnowsender* handler;
 
