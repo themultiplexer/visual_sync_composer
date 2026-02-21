@@ -28,13 +28,11 @@ find_package(PkgConfig REQUIRED)
 find_package(OpenSSL REQUIRED)
 find_package(cpprestsdk REQUIRED)
 find_package(nlohmann_json REQUIRED)
-find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets OpenGLWidgets)
-
-if(APPLE)
-  find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets OpenGLWidgets Network REQUIRED)
-else()
-  find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets Network REQUIRED)
-endif()
+find_package(Qt6 REQUIRED COMPONENTS
+    Widgets
+    OpenGLWidgets
+    Network
+)
 
 if(APPLE)
   pkg_check_modules(KISSFFT REQUIRED kissfft-float)
@@ -51,30 +49,12 @@ file(GLOB PROJECT_SOURCES
 )
 
 
-if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
-    qt_add_executable(VisualSyncComposer
-        MACOSX_BUNDLE
-        MANUAL_FINALIZATION
-        ${PROJECT_SOURCES}
-        ${app_icon_macos}
-    )
-# Define target properties for Android with Qt 6 as:
-#    set_property(TARGET VisualSyncComposer APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
-#                 ${CMAKE_CURRENT_SOURCE_DIR}/android)
-# For more information, see https://doc.qt.io/qt-6/qt-add-executable.html#target-creation
-else()
-    if(ANDROID)
-        add_library(VisualSyncComposer SHARED
-            ${PROJECT_SOURCES}
-        )
-# Define properties for Android with Qt 5 after find_package() calls as:
-#    set(ANDROID_PACKAGE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/android")
-    else()
-        add_executable(VisualSyncComposer
-            ${PROJECT_SOURCES}
-        )
-    endif()
-endif()
+qt_add_executable(VisualSyncComposer
+    MACOSX_BUNDLE
+    MANUAL_FINALIZATION
+    ${PROJECT_SOURCES}
+    ${app_icon_macos}
+)
 
 add_subdirectory(src/f1_driver)
 
@@ -82,19 +62,23 @@ add_compile_definitions(GLM_ENABLE_EXPERIMENTAL)
 
 include_directories( ${FREETYPE_INCLUDE_DIRS} ${AVAHI_INCLUDE_DIRS})
 
-if(APPLE)
-  target_link_libraries(VisualSyncComposer PRIVATE f1_driver Qt${QT_VERSION_MAJOR}::Widgets ${OPENGL_LIBRARIES} Qt${QT_VERSION_MAJOR}::Network ${FREETYPE_LIBRARIES} ${AVAHI_LIBRARIES} RtAudio::rtaudio nlohmann_json::nlohmann_json ${Boost_LIBRARIES} OpenSSL::SSL OpenSSL::Crypto Qt6::OpenGLWidgets ${KISSFFT_LIBRARIES} )
-else()
-  target_link_libraries(VisualSyncComposer PRIVATE f1_driver Qt${QT_VERSION_MAJOR}::Widgets ${OPENGL_LIBRARIES} Qt${QT_VERSION_MAJOR}::Network ${FREETYPE_LIBRARIES} ${AVAHI_LIBRARIES} RtAudio::rtaudio nlohmann_json::nlohmann_json ${Boost_LIBRARIES} OpenSSL::SSL OpenSSL::Crypto ${KISSFFT_LIBRARIES})
-endif()
+target_link_libraries(VisualSyncComposer PRIVATE
+    f1_driver
+    Qt6::Widgets
+    Qt6::OpenGL
+    Qt6::OpenGLWidgets
+    Qt6::Network
+    ${OPENGL_LIBRARIES}
+    ${FREETYPE_LIBRARIES}
+    ${AVAHI_LIBRARIES}
+    ${Boost_LIBRARIES}
+    ${KISSFFT_LIBRARIES}
+    RtAudio::rtaudio
+    nlohmann_json::nlohmann_json
+    OpenSSL::SSL
+    OpenSSL::Crypto
+)
 
-
-# Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
-# If you are developing for iOS or macOS you should consider setting an
-# explicit, fixed bundle identifier manually though.
-if(${QT_VERSION} VERSION_LESS 6.1.0)
-  set(BUNDLE_ID_OPTION MACOSX_BUNDLE_GUI_IDENTIFIER com.example.VisualSyncComposer)
-endif()
 set_target_properties(VisualSyncComposer PROPERTIES
     ${BUNDLE_ID_OPTION}
     MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}

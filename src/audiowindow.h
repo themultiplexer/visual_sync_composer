@@ -54,7 +54,6 @@
 #include <boost/archive/binary_iarchive.hpp>
 #include <boost/serialization/vector.hpp>
 
-#include "projectmodel.h"
 #include "effectpresetmodel.h"
 #include "wifieventprocessor.h"
 #include <boost/circular_buffer.hpp>
@@ -63,7 +62,6 @@
 #include "vsctube.h"
 #include "netdevice.h"
 #include "tubepresetmodel.h"
-#include "f1_driver/include/controller_handler.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {

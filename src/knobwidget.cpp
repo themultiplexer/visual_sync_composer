@@ -28,7 +28,6 @@ void KnobWidget::initializeGL()
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    setUpdateBehavior(NoPartialUpdate);
     glClearColor(0,0,0,0);
 
     // Create and compile the vertex shader using a raw string literal.
@@ -213,6 +212,7 @@ void KnobWidget::setInnerPercentage(float newPercentage)
 
 void KnobWidget::paintGL()
 {
+    glClear(GL_COLOR_BUFFER_BIT); 
     auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - timeZero).count();
     program->bind();
     program->setUniformValue("iTime", ((float)ms / 1000.0f));
