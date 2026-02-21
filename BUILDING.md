@@ -7,7 +7,7 @@ pushd VSC
 
 git clone --recursive https://github.com/themultiplexer/visual_sync_composer
 
-brew install cmake qt6 libomp gcc libpng pkgconfig fftw cpprestsdk nlohmann-json hidapi boost glew glfw3
+brew install cmake qt6 libomp gcc libpng pkgconfig fftw cpprestsdk nlohmann-json hidapi boost glew glm glfw3
 
 git clone https://github.com/mborgerding/kissfft.git
 pushd kissfft

@@ -37,6 +37,7 @@ struct CONFIG_DATA {
     uint8_t parameter2;
     uint8_t parameter3;
     uint8_t modifiers;
+    uint8_t group;
 
     std::string toString()
     {

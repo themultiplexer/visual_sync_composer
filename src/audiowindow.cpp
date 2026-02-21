@@ -917,10 +917,10 @@ void AudioWindow::checkTime(){
     auto fr = a->getRightFrequencies();
 
     for (int i = 0; i < FRAMES/2; i++) {
-        fl[i] *= log10(((float)i/(FRAMES/2)) * 5 + 1.01);
+        fl[i] *= log10(((float)i/(FRAMES/2.0)) * 5 + 1.01);
         fl[i] = log10(fl[i] * 2.0 + 1.01);
 
-        fr[i] *= log10(((float)i/(FRAMES/2)) * 5 + 1.01);
+        fr[i] *= log10(((float)i/(FRAMES/2.0)) * 5 + 1.01);
         fr[i] = log10(fr[i] * 2.0 + 1.01);
     }
 

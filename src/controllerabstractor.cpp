@@ -233,7 +233,7 @@ void ControllerAbstractor::drawColors()
 {
     for (int i = 0; i < 4; ++i) {
         for (int j = 0; j < 4; ++j) {
-            std::array<float, 2> col = {((i*4 + j) / 15.0f), (i*4 + j) == 15 ? 0.0 : 1.0};
+            std::array<float, 2> col = {((i*4 + j) / 15.0f), (i*4 + j) == 15 ? 0.0f : 1.0f};
             audiowindow->buttonColors[i][j] = col;
             setMatrixButton(i, j, col, brightness);
         }

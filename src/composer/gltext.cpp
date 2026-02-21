@@ -69,7 +69,6 @@ void GLText::textEvent(const char *text){
 
 void GLText::initializeGL()
 {
-    setUpdateBehavior(NoPartialUpdate);
     glClearColor(0,0,0,1);
 
     LoadFontRendering("/home/josh/VisualSyncComposer/fonts/arial.ttf", context());
