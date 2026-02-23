@@ -19,6 +19,7 @@ public:
     audiofilter *getFilter() const;
 
     void setFilter(audiofilter *newFilter);
+    void setInputVolume(int percent);
 
     bool getUseFilterOutput() const;
     void setUseFilterOutput(bool newUseFilterOutput);

@@ -1,24 +1,17 @@
-#include <GL/glew.h>
 #include "audiowindow.h"
 #include <QGuiApplication>
 #include <QApplication>
-#include <QtNetwork/QNetworkReply>
 #include <QThread>
-#include <QGraphicsScene>
-#include <QGraphicsView>
 #include <QGuiApplication>
 #include <QApplication>
 #include <QMainWindow>
 #include <QMenuBar>
-#include <QImage>
-#include <QGraphicsPixmapItem>
 #include <QMenu>
 #include <QAction>
 #include <QGridLayout>
 #include <QLabel>
 #include <QPushButton>
 #include <QSlider>
-#include <QImage>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 #include <QThread>
@@ -61,8 +54,6 @@ std::string string_vector_to_json_string(const std::vector<EffectPresetModel *>&
 
     return json_array.dump();  // serialize to string
 }
-
-
 
 namespace my_program_state
 {

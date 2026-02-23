@@ -6,6 +6,7 @@
 #include <QVBoxLayout>
 #include <QApplication>
 #include <QFontDatabase>
+#include <qnamespace.h>
 
 int VSCSlider::minimum() const
 {
@@ -76,7 +77,9 @@ VSCSlider::VSCSlider(QString name, Qt::Orientation orientation, QWidget *parent,
         leftLabel->setMinimumWidth(150);
     }
 
-    layout->addWidget(checkbox);
+    if (orientation == Qt::Horizontal) {
+        layout->addWidget(checkbox);
+    }
     layout->addWidget(leftLabel);
     layout->addWidget(leftButton);
     layout->addWidget(slider);

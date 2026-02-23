@@ -202,11 +202,9 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     statusLayout->addWidget(dmxbutton);
 
     QWidget *effectSettingsWidget = new QWidget;
-    QVBoxLayout *effectSettingsLayout = new QVBoxLayout(effectSettingsWidget);
+    QHBoxLayout *effectSettingsLayout = new QHBoxLayout(effectSettingsWidget);
 
-    QGroupBox *modesWidget = new QGroupBox(effectSettingsWidget);
-    modesWidget->setMinimumWidth(500);
-    combo = new QComboBox(modesWidget);
+    combo = new QComboBox(effectSettingsWidget);
     combo->setMinimumWidth(500);
     for (std::string effect : values) {
         combo->addItem(effect.c_str());
@@ -216,7 +214,7 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
         combo->addItem(QString::fromStdString(effectNames[i]));
     }
     QObject::connect(combo, static_cast<void(QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this, &AudioWindow::effectChanged);
-    modesWidget->setMaximumHeight(75);
+    combo->setMaximumHeight(50);
 
     QHBoxLayout* modifiersLayout = new QHBoxLayout(effectSettingsWidget);
     modifiersLayout->addWidget(new QLabel("Modifiers:"));
@@ -246,7 +244,7 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     //modifiersLayout->setContentsMargins(0,0,0,0);
     effectSettingsLayout->setContentsMargins(0,0,0,0);
     effectSettingsLayout->setSpacing(0);
-    effectSettingsLayout->addWidget(modesWidget);
+    effectSettingsLayout->addWidget(combo);
     effectSettingsLayout->addLayout(modifiersLayout);
 
     QWidget *tubesWidget = new QWidget;
@@ -386,8 +384,10 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
                 EffectPresetModel *model = effectPresets[index];
                 model->id = index;
                 PresetButton *button = new PresetButton(model, this);
-                button->setMaximumWidth(120);
-                button->setMaximumHeight(120);
+                button->setMaximumWidth(70);
+                button->setMinimumWidth(70);
+                button->setMaximumHeight(70);
+                button->setMinimumHeight(70);
                 gridLayout->addWidget(button, row, col);
                 connect(button, &PresetButton::releasedInstantly, [=, this](){
                     ptrdiff_t index = std::distance(tubeButtons.begin(), std::find(tubeButtons.begin(), tubeButtons.end(), button));
@@ -464,8 +464,10 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
             TubePresetModel *model = tubePresets[index];
             model->id = index;
             PresetButton *button = new PresetButton(model, this);
-            button->setMaximumWidth(120);
-            button->setMaximumHeight(120);
+            button->setMaximumWidth(70);
+            button->setMinimumWidth(70);
+            button->setMaximumHeight(70);
+            button->setMinimumHeight(70);
             presetsLayout->addWidget(button, row, col);
             connect(button, &PresetButton::releasedInstantly, [=, this](){
                 ptrdiff_t index = std::distance(tubeButtons.begin(), std::find(tubeButtons.begin(), tubeButtons.end(), button));
@@ -562,7 +564,8 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
 
 
     glv = new OGLWidget(1024);
-    glv->setMinimumHeight(100);
+    glv->setMinimumHeight(50);
+    glv->setMaximumHeight(120);
     connect(glv, &OGLWidget::threshChanged, this, &AudioWindow::sliderChanged);
     connect(glv, &OGLWidget::rangeChanged, this, [=, this](){
         a->setFilter(new audiofilter());
@@ -652,7 +655,7 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     timeSlider->setMaximum(100);
     connect(timeSlider, &VSCSlider::sliderReleased, this, &AudioWindow::sliderChanged);
 
-    otherSlider = new VSCSlider("Oth", Qt::Vertical, glvWidget);
+    otherSlider = new VSCSlider("Vol", Qt::Vertical, glvWidget);
     otherSlider->setMinimum(1);
     otherSlider->setValue(50);
     otherSlider->setMaximum(100);
@@ -666,16 +669,12 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     }
     frequencyLayout->addWidget(otherSlider);
 
-
-    // Add widgets to the layout
     mainLayout->addWidget(statusWidget);
     mainLayout->addWidget(tubesWidget);
     mainLayout->addWidget(topWidget);
     mainLayout->addWidget(glvWidget);
     mainLayout->addWidget(effectSettingsWidget);
     mainLayout->addWidget(bottomWidget);
-
-    //mainLayout->setStretchFactor(4, 1);
 
     if (getuid() == 0) {
         printf("Dropping privs\n");
@@ -685,6 +684,7 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
         if (setuid(1000) != 0)
             printf("setuid: Unable to drop user privileges: %s\n", strerror(errno));
     }
+
     setenv("HOME", "/home/josh/", 1);
     setenv("USER", "josh", 1);
     setenv("XDG_RUNTIME_DIR", "/run/user/1000", 1);
@@ -706,10 +706,6 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     QTimer *qtimer = new QTimer(this);
     connect(qtimer, &QTimer::timeout, this, &AudioWindow::checkStatus);
     qtimer->start(500);
-
-    superWidget->setMaximumHeight(2400);
-    mainLayout->resize(mainLayout->minimumSizeHint());
-    superWidget->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
 
     this->installEventFilter(this);
     setFocusPolicy(Qt::StrongFocus);
@@ -1035,6 +1031,8 @@ void AudioWindow::sliderChanged()
         sensitivitySlider->setValue(glv->getThresh() * 100);
     } else if (sender() == timeSlider) {
         glv->setDecay(timeSlider->pct() * 0.1);
+    } else if (sender() == otherSlider) {
+        a->setInputVolume(otherSlider->pct() * 100);
     } else if (sender() == sensitivitySlider) {
         glv->setThresh(sensitivitySlider->pct());
     } else {        

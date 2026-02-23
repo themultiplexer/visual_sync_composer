@@ -1,8 +1,16 @@
 #include "audioanalyzer.h"
+#include <pulse/pulseaudio.h>
+
 
 AudioAnalyzer::AudioAnalyzer(): stereo(true), useFilterOutput(false), filter(new audiofilter()) {
     cfg = kiss_fft_alloc(FRAMES, 0, NULL, NULL);
     adc = new RtAudio(RtAudio::Api::LINUX_PULSE);
+}
+
+void AudioAnalyzer::setInputVolume(int percent)
+{
+    std::string cmd = "pactl set-source-volume @DEFAULT_SOURCE@ " + std::to_string(percent) + "%";
+    system(cmd.c_str());
 }
 
 void AudioAnalyzer::applyHannWindow(float* data, int channel) {

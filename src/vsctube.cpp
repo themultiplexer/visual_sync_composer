@@ -80,7 +80,7 @@ VSCTube::VSCTube(std::string mac, QWidget *parent) : QWidget(parent) {
     ftube = new TubeWidget(this);
     ftube->setMinimumHeight(150);
     ftube->setMinimumWidth(25);
-    //ftube->setMaximumWidth(75);
+
     label = new QLabel(QString::fromStdString(mac));
 
     QHBoxLayout *buttonLayout = new QHBoxLayout;
@@ -89,12 +89,8 @@ VSCTube::VSCTube(std::string mac, QWidget *parent) : QWidget(parent) {
     buttonLayout->setAlignment(Qt::AlignHCenter);
 
     flashButton = new QPushButton("Flash");
-    flashButton->setMinimumWidth(100);
-    flashButton->setMaximumWidth(100);
 
-    // Create a layout for this widget
     QVBoxLayout *outerLayout = new QVBoxLayout;
-
     QHBoxLayout *layout = new QHBoxLayout;
 
     QWidget *controlsWidget = new QWidget;
@@ -149,7 +145,6 @@ void VSCTube::updateGL() {
     ftube->update();
 }
 
-std::string VSCTube::getMac() const
-{
+std::string VSCTube::getMac() const {
     return mac;
 }
