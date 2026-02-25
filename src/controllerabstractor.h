@@ -42,9 +42,11 @@ public:
     void updateMatrix();
 private:
     void drawMatrixOnController();
+    std::vector<int> getPressedButtons();
 
     bool shiftMode, colorMode, syncMode;
     float brightness;
+    std::vector<int> pressedButtons;
     void drawColors();
     void drawGroups();
     void drawSyncModes();

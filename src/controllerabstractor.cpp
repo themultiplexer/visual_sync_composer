@@ -165,6 +165,12 @@ void ControllerAbstractor::onButtonRelease(int index) {
         } else if (specialIndex == 2)  {
             controller->setButton(LEDButton::TYPE, 0.0);
             drawMatrixOnController();
+
+            for (int i = 0; i < pressedButtons.size(); i++) {
+                int button = pressedButtons[i];
+                audiowindow->currentPalette[i] = audiowindow->buttonColors[button / 4][button % 4];
+            }
+
             colorMode = false;
         }  else if (specialIndex == 4)  {
             controller->setButton(LEDButton::BROWSE, brightness / 2.0);
@@ -183,6 +189,7 @@ void ControllerAbstractor::onMatrixButtonPress(int col, int row) {
     int button = (col * 4) + row;
     std::cout << "Button Pressed" << button << std::endl;
     if (button < 16) {
+        pressedButtons.push_back(button);
         if (shiftMode) {
             int index = (col + (row/3*4) );
             audiowindow->peakEvent(0, index + 3); // TODO device handling
@@ -200,16 +207,22 @@ void ControllerAbstractor::onMatrixButtonPress(int col, int row) {
 
     }
 }
+
+std::vector<int> ControllerAbstractor::getPressedButtons() {
+    return pressedButtons;
+}
+
 void ControllerAbstractor::onMatrixButtonRelease(int col, int row) {
     int button = (col * 4) + row;
     std::cout << "Button Released" << button << std::endl;
     if (button < 16) {
+        pressedButtons.erase(std::remove(pressedButtons.begin(), pressedButtons.end(), button), pressedButtons.end());
         if (shiftMode) {
             controller->setMatrixButton(col, row, LEDColor::red);
         } else if (syncMode) {
 
         } else if (colorMode) {
-
+            setMatrixButton(col, row, audiowindow->buttonColors[col][row], brightness);
         } else {
             drawMatrixOnController();
             QColor color = audiowindow->effectPresets[audiowindow->currentTab * 16 + button]->getColor();
