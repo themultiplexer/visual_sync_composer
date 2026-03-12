@@ -143,6 +143,7 @@ private:
     std::vector<TubePresetModel *> tubePresets;
     std::vector<PresetButton *> effectButtons{};
     std::vector<PresetButton *> tubeButtons{};
+    std::vector<PresetButton *> fixtureButtons{};
     std::vector<KnobWidget *> knobWidgets;
 
     bool sliderDidChanged;

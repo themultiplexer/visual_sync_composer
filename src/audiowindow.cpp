@@ -6,8 +6,11 @@
 #include "mdnsflasher.h"
 #include "devicereqistry.h"
 #include "radioselection.h"
+#include "tubepresetmodel.h"
 
 #include <QDockWidget>
+#include <iostream>
+#include <string>
 
 #define USE_DOCK 0
 
@@ -344,7 +347,9 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     effect4Slider->setMaximum(255);
     connect(effect4Slider, &VSCSlider::valueChanged, this, &AudioWindow::sliderChanged);
 
-    QVBoxLayout* slidersLayout = new QVBoxLayout();
+    QWidget *slidersWidget = new QWidget;
+    QVBoxLayout* slidersLayout = new QVBoxLayout(slidersWidget);
+    slidersWidget->setMinimumWidth(600);
     slidersLayout->addStretch();
     slidersLayout->addWidget(sensitivitySlider);
     slidersLayout->addWidget(brightnessSlider);
@@ -356,13 +361,14 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     slidersLayout->addWidget(effect4Slider);
     slidersLayout->addStretch();
     slidersLayout->setSpacing(0);
+    slidersWidget->setLayout(slidersLayout);
 
     QWidget *bottomWidget = new QWidget;
     QHBoxLayout *bottomLayout = new QHBoxLayout(bottomWidget);
 
     tabWidget = new QTabWidget(bottomWidget);
 
-    tabWidget->setMinimumWidth(600);
+    tabWidget->setMaximumWidth(350);
     connect(tabWidget, &QTabWidget::currentChanged, [=, this](int index){
         std::cout << index << std::endl;
         currentTab = index;
@@ -452,6 +458,36 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
         tabArea->addStretch();
 
         tabWidget->addTab(gridWidget, tr(("Bank " + std::to_string(tab)).c_str()));
+    }
+
+    std::vector<TubePresetModel *> fixtures;
+
+    for (int i = 0; i < 16; i++) {
+        fixtures.push_back(new TubePresetModel(std::to_string(i), i));
+    }
+
+    QWidget *fixturesWidget = new QWidget;
+    QGridLayout* fixturesLayout = new QGridLayout(fixturesWidget);
+    fixturesWidget->setMaximumWidth(550);
+    fixturesWidget->setMaximumHeight(350);
+    for (int row = 0; row < 4; ++row) {
+        for (int col = 0; col < 4; ++col) {
+            int index = row * 4 + col;
+            TubePresetModel *model = fixtures[index];
+            model->id = index;
+            PresetButton *button = new PresetButton(model, this);
+            button->setMaximumWidth(70);
+            button->setMinimumWidth(70);
+            button->setMaximumHeight(70);
+            button->setMinimumHeight(70);
+            fixturesLayout->addWidget(button, row, col);
+            connect(button, &PresetButton::releasedInstantly, [=, this](){
+                ptrdiff_t index = std::distance(fixtureButtons.begin(), std::find(fixtureButtons.begin(), fixtureButtons.end(), button));
+                button->setActive(!button->getActive());
+                std::cout << index << std::endl;
+            });
+            fixtureButtons.push_back(button);
+        }
     }
 
     QWidget *presetsWidget = new QWidget;
@@ -556,8 +592,9 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     layout->addWidget(presetsWidget);
     knobLayout->setSpacing(10);
 
-    bottomLayout->addLayout(slidersLayout);
+    bottomLayout->addWidget(slidersWidget);
     bottomLayout->addWidget(tabWidget);
+    bottomLayout->addWidget(fixturesWidget);
     bottomLayout->addLayout(layout);
     bottomLayout->addWidget(button);
     bottomLayout->setStretchFactor(slidersLayout, 1);
