@@ -107,7 +107,10 @@ void espreceiver::start() {
     bzero(&ifr, sizeof(ifr));
 
     fd = socket(PF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
-    assert(fd != -1);
+    if (fd == -1) {
+        printf("Could not get adapter into RAW mode\n");
+        return;
+    }
 
     std::cout << this->interface.c_str() << std::endl;
     strncpy((char *)ifr.ifr_name, this->interface.c_str(), IFNAMSIZ); //interface
@@ -154,12 +157,12 @@ void espreceiver::start() {
 
             if( -1 == raw_bytes_len )
             {
-                perror ("Socket receive failed");
+                perror("Socket receive failed");
                 break;
             }
             else if( raw_bytes_len < 0 )
             {
-                perror ("Socket receive, error ");
+                perror("Socket receive, error ");
             }
             else
             {
@@ -176,7 +179,7 @@ void espreceiver::start() {
             }
         }
 
-        printf ("Receive thread exited \n");
+        printf("Receive thread exited \n");
         return EXIT_SUCCESS;
     });
 

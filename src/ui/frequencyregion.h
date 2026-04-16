@@ -1,7 +1,7 @@
 #ifndef FREQUENCYREGION_H
 #define FREQUENCYREGION_H
 
-#include "helper.h"
+#include "core/helper.h"
 #include "qobject.h"
 #include "qobjectdefs.h"
 

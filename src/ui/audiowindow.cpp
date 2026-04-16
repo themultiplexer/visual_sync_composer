@@ -1,12 +1,12 @@
-#include "audiowindow.h"
-#include "audiofilter.h"
-#include "dmxwindow.h"
-#include "fullscreenwindow.h"
-#include "knobwidget.h"
-#include "mdnsflasher.h"
-#include "devicereqistry.h"
-#include "radioselection.h"
-#include "tubepresetmodel.h"
+#include "ui/audiowindow.h"
+#include "core/audiofilter.h"
+#include "ui/dmxwindow.h"
+#include "ui/fullscreenwindow.h"
+#include "ui/knobwidget.h"
+#include "core/mdnsflasher.h"
+#include "core/devicereqistry.h"
+#include "ui/radioselection.h"
+#include "core/tubepresetmodel.h"
 
 #include <QDockWidget>
 #include <iostream>
@@ -36,7 +36,7 @@ void AudioWindow::changeCoordination(int index) {
 
 AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     : QMainWindow(parent)
-    , popoutGlv(nullptr), activeEffectPresetButton(nullptr), activeTubePresetButton(nullptr), fullScreenWindow(new FullscreenWindow()), wifiLabel(nullptr), currentEffect(0), currentPreset(0), currentTab(0), timer(nullptr), tubeFrames(0), tubePresets(16), currentPaletteIndex(0)
+    , popoutGlv(nullptr), activeEffectPresetButton(nullptr), activeTubePresetButton(nullptr), fullScreenWindow(new FullscreenWindow()), wifiLabel(nullptr), currentEffect(0), currentPreset(0), currentTab(0), timer(nullptr), tubeFrames(0), tubePresets(16), currentPaletteIndex(0), wifiAdapter("wlxdc4ef40a3f9f")
 {
     numBeats = 0;
     numGroups = 1;
@@ -45,11 +45,10 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     controller = new ControllerAbstractor(this);
 
     this->ep = ep;
-    
-    NetDevice h = NetDevice("wlxdc4ef40a3f9f");
-    h.setInterface(false);
-    h.enableMonitorMode();
-    h.setInterface(true);
+
+    wifiAdapter.setInterface(false);
+    wifiAdapter.enableMonitorMode();
+    wifiAdapter.setInterface(true);
     lastColorRed = false;
 
     effectPresets = PresetModel::readJson<EffectPresetModel, 100>("effects.json");
@@ -67,7 +66,6 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     presetRandom = new std::uniform_int_distribution<std::mt19937::result_type>(0, 15);
     paletteRandom = new std::uniform_int_distribution<std::mt19937::result_type>(0, 6);
 
-
     lastEffectChange = std::chrono::system_clock::now();
     lastPresetChange = std::chrono::system_clock::now();
 
@@ -77,9 +75,7 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
         colors.push({0.0, 1.0});
     }
 
-
     setWindowFlags(Qt::Window | Qt::WindowFullscreenButtonHint);
-    //setWindowState(Qt::WindowMaximized);
 
     // Create menu bar and actions
     QMenuBar *menuBar = new QMenuBar(this);
@@ -806,10 +802,8 @@ void AudioWindow::applyTubePreset(const TubePresetModel *model) {
 }
 
 void AudioWindow::checkStatus() {
-    NetDevice h = NetDevice("wlxdc4ef40a3f9f");
-
     if (wifiLabel) {
-        if (h.checkInterface()) {
+        if (wifiAdapter.checkInterface()) {
             wifiLabel->setText("Online");
         } else {
             wifiLabel->setText("Offline");

@@ -4,7 +4,7 @@
 #include <qwidget.h>
 #include <vector>
 #include "vscslider.h"
-#include "wifieventprocessor.h"
+#include "core/wifieventprocessor.h"
 
 class DmxWindow : public QWidget
 {

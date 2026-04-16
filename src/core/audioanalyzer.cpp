@@ -1,4 +1,4 @@
-#include "audioanalyzer.h"
+#include "core/audioanalyzer.h"
 #include <pulse/pulseaudio.h>
 
 

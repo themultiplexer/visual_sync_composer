@@ -1,9 +1,9 @@
 #ifndef OGLWIDGET_H
 #define OGLWIDGET_H
 
-#include "frequencyregion.h"
-#include "runningmean.h"
-#include "runningvariance.h"
+#include "ui/frequencyregion.h"
+#include "core/runningmean.h"
+#include "core/runningvariance.h"
 
 #ifdef __APPLE__
 #include <OpenGL/OpenGL.h>

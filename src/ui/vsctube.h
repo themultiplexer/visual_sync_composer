@@ -6,8 +6,8 @@
 #include <QVBoxLayout>
 #include <QApplication>
 #include <random>
-#include "helper.h"
-#include "tubewidget.h"
+#include "core/helper.h"
+#include "ui/tubewidget.h"
 
 #ifndef VSCTUBE_H
 #define VSCTUBE_H

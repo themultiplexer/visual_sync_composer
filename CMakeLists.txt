@@ -44,8 +44,11 @@ endif()
 
 
 file(GLOB PROJECT_SOURCES
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/*.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/ui/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/ui/*.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/core/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/core/*.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp
 )
 
 
@@ -60,7 +63,7 @@ add_subdirectory(src/f1_driver)
 
 add_compile_definitions(GLM_ENABLE_EXPERIMENTAL)
 
-include_directories( ${FREETYPE_INCLUDE_DIRS} ${AVAHI_INCLUDE_DIRS})
+include_directories(${CMAKE_SOURCE_DIR}/src/ ${FREETYPE_INCLUDE_DIRS} ${AVAHI_INCLUDE_DIRS})
 
 target_link_libraries(VisualSyncComposer PRIVATE
     f1_driver

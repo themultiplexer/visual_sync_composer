@@ -1,5 +1,5 @@
-#include "controllerabstractor.h"
-#include "audiowindow.h"
+#include "core/controllerabstractor.h"
+#include "ui/audiowindow.h"
 #include "helper.h"
 #include "wifieventprocessor.h"
 

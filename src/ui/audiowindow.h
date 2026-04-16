@@ -3,7 +3,7 @@
 
 #include <QMainWindow>
 #include <QComboBox>
-#include "controllerabstractor.h"
+#include "core/controllerabstractor.h"
 #include "qmainwindow.h"
 #include <QWidget>
 #include <QCloseEvent>
@@ -15,10 +15,10 @@
 #include <QLineEdit>
 #include <QColorDialog>
 #include <QGroupBox>
-#include "audiofilter.h"
-#include "knobwidget.h"
-#include "midireceiver.h"
-#include "presetbutton.h"
+#include "core/audiofilter.h"
+#include "ui/knobwidget.h"
+#include "core/midireceiver.h"
+#include "ui/presetbutton.h"
 #include <QGuiApplication>
 #include <QApplication>
 #include <QtNetwork/QNetworkReply>
@@ -44,24 +44,24 @@
 #include <QFileDialog>
 #include <QThread>
 #include <QCheckBox>
-#include "fullscreenwindow.h"
-#include "vscslider.h"
-#include "audioanalyzer.h"
-#include "oglwidget.h"
-#include "tubewidget.h"
-#include "wifieventprocessor.h"
+#include "ui/fullscreenwindow.h"
+#include "ui/vscslider.h"
+#include "core/audioanalyzer.h"
+#include "ui/oglwidget.h"
+#include "ui/tubewidget.h"
+#include "core/wifieventprocessor.h"
 #include <boost/archive/binary_oarchive.hpp>
 #include <boost/archive/binary_iarchive.hpp>
 #include <boost/serialization/vector.hpp>
 
-#include "effectpresetmodel.h"
-#include "wifieventprocessor.h"
+#include "core/effectpresetmodel.h"
+#include "core/wifieventprocessor.h"
 #include <boost/circular_buffer.hpp>
 #include <QRadioButton>
-#include "helper.h"
-#include "vsctube.h"
-#include "netdevice.h"
-#include "tubepresetmodel.h"
+#include "core/helper.h"
+#include "ui/vsctube.h"
+#include "core/netdevice.h"
+#include "core/tubepresetmodel.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -149,6 +149,7 @@ private:
     bool sliderDidChanged;
 
     ControllerAbstractor *controller;
+    NetDevice wifiAdapter;
 
     FixedQueue<uint64_t, 10> beats;
     FixedQueue<std::array<float, 2>, 1> colors;

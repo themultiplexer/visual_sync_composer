@@ -1,5 +1,5 @@
-#include "knobwidget.h"
-#include "helper.h"
+#include "ui/knobwidget.h"
+#include "core/helper.h"
 
 
 #define PROGRAM_VERTEX_ATTRIBUTE 0

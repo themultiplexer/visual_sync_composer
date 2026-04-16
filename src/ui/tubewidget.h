@@ -1,7 +1,7 @@
 #ifndef TUBEWIDGET_H
 #define TUBEWIDGET_H
 
-#include "wifieventprocessor.h"
+#include "core/wifieventprocessor.h"
 
 #ifdef __APPLE__
 #include <OpenGL/OpenGL.h>

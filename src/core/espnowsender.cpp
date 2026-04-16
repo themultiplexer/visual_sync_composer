@@ -66,7 +66,10 @@ void espnowsender::start() {
     bzero(&ifr, sizeof(ifr));
 
     fd = socket(PF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
-    assert(fd != -1);
+    if (fd == -1) {
+        printf("Could not get adapter into RAW mode\n");
+        return;
+    }
 
     std::cout << this->interface << std::endl;
     strncpy((char *)ifr.ifr_name, this->interface, IFNAMSIZ); //interface

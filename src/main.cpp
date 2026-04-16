@@ -1,4 +1,4 @@
-#include "audiowindow.h"
+#include "ui/audiowindow.h"
 #include <QGuiApplication>
 #include <QApplication>
 #include <QThread>

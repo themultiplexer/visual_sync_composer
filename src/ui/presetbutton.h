@@ -1,7 +1,7 @@
 #ifndef EFFECTPRESETBUTTON_H
 #define EFFECTPRESETBUTTON_H
 
-#include "presetmodel.h"
+#include "core/presetmodel.h"
 #include <QLabel>
 #include <QTimer>
 
