@@ -39,6 +39,7 @@ if(APPLE)
 else()
   pkg_check_modules(KISSFFT REQUIRED kissfft-float)
   pkg_check_modules(AVAHI REQUIRED avahi-client)
+  pkg_check_modules(RTMIDI REQUIRED rtmidi)
 endif()
 
 
@@ -62,8 +63,9 @@ qt_add_executable(VisualSyncComposer
 add_subdirectory(src/f1_driver)
 
 add_compile_definitions(GLM_ENABLE_EXPERIMENTAL)
+add_compile_definitions(MIDI_CONTROLLER)
 
-include_directories(${CMAKE_SOURCE_DIR}/src/ ${FREETYPE_INCLUDE_DIRS} ${AVAHI_INCLUDE_DIRS})
+include_directories(${CMAKE_SOURCE_DIR}/src/ ${FREETYPE_INCLUDE_DIRS} ${AVAHI_INCLUDE_DIRS} ${RTMIDI_INCLUDE_DIRS})
 
 target_link_libraries(VisualSyncComposer PRIVATE
     f1_driver
@@ -76,6 +78,7 @@ target_link_libraries(VisualSyncComposer PRIVATE
     ${AVAHI_LIBRARIES}
     ${Boost_LIBRARIES}
     ${KISSFFT_LIBRARIES}
+    ${RTMIDI_LIBRARIES}
     RtAudio::rtaudio
     nlohmann_json::nlohmann_json
     OpenSSL::SSL

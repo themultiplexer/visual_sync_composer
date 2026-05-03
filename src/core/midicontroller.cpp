@@ -1,6 +1,6 @@
-#if 0
+#ifdef MIDI_CONTROLLER
 
-#include "midireceiver.h"
+#include "midicontroller.h"
 #include <chrono>
 #include <iostream>
 #include <cstdlib>
@@ -26,16 +26,16 @@ static bool done;
 
 static void finish(int ignore){ done = true; }
 
-MidiReceiver::MidiReceiver() : midiin(nullptr) {
+MidiController::MidiController() : midiin(nullptr) {
 
 }
 
 static void static_callback(double deltatime, std::vector< unsigned char > *message, void *userData) {
-    return static_cast<MidiReceiver*>(userData)->mycallback(deltatime, message);
+    return static_cast<MidiController*>(userData)->mycallback(deltatime, message);
 }
 
-void MidiReceiver::mycallback( double deltatime, std::vector< unsigned char > *message)
-//void MidiReceiver::mycallback( double deltatime, std::vector< unsigned char > *message, void *userData )
+void MidiController::mycallback( double deltatime, std::vector< unsigned char > *message)
+//void MidiController::mycallback( double deltatime, std::vector< unsigned char > *message, void *userData )
 {
     unsigned int nBytes = message->size();
 
@@ -61,51 +61,55 @@ void MidiReceiver::mycallback( double deltatime, std::vector< unsigned char > *m
     }
 }
 
-void MidiReceiver::start() {
+void MidiController::start(bool virtualController) {
     midiin = new RtMidiIn();
     midiout = new RtMidiOut();
 
-    // Find ports by name
-    for (unsigned int i = 0; i < midiin->getPortCount(); ++i) {
-        if (midiin->getPortName(i).find("F1_Controller_Out") != std::string::npos) {
-            midiin->openPort(i);
+    if (virtualController) {
+        midiout->openVirtualPort("VSC_Out");
+    } else {
+        // Find ports by name
+        for (unsigned int i = 0; i < midiin->getPortCount(); ++i) {
+            if (midiin->getPortName(i).find("F1_Controller_Out") != std::string::npos) {
+                midiin->openPort(i);
+            }
         }
-    }
 
-    for (unsigned int i = 0; i < midiout->getPortCount(); ++i) {
-        if (midiout->getPortName(i).find("F1_Controller_In") != std::string::npos) {
-            midiout->openPort(i);
+        for (unsigned int i = 0; i < midiout->getPortCount(); ++i) {
+            if (midiout->getPortName(i).find("F1_Controller_In") != std::string::npos) {
+                midiout->openPort(i);
+            }
         }
+
+        // Check available ports.
+        unsigned int nPorts = midiin->getPortCount();
+        if ( nPorts == 0 ) {
+            std::cout << "No ports available!\n";
+            return;
+        }
+
+
+        // Set our callback function.  This should be done immediately after
+        // opening the port to avoid having incoming messages written to the
+        // queue.
+        //midiin->setCallback( std::bind(&MidiController::mycallback, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3) );
+        midiin->setCallback(static_callback, this);
+
+        // Don't ignore sysex, timing, or active sensing messages.
+        midiin->ignoreTypes( false, false, false );
+
+        std::cout << "\nReading MIDI input ... press <enter> to quit.\n";
+        char input;
+        std::cin.get(input);
     }
-
-    // Check available ports.
-    unsigned int nPorts = midiin->getPortCount();
-    if ( nPorts == 0 ) {
-        std::cout << "No ports available!\n";
-        return;
-    }
-
-
-    // Set our callback function.  This should be done immediately after
-    // opening the port to avoid having incoming messages written to the
-    // queue.
-    //midiin->setCallback( std::bind(&MidiReceiver::mycallback, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3) );
-    midiin->setCallback(static_callback, this);
-
-    // Don't ignore sysex, timing, or active sensing messages.
-    midiin->ignoreTypes( false, false, false );
-
-    std::cout << "\nReading MIDI input ... press <enter> to quit.\n";
-    char input;
-    std::cin.get(input);
 }
 
-void MidiReceiver::send(int col, int row, bool release) const
+void MidiController::send(int col, int row, bool release) const
 {
     send(MIDI_NOTE_MATRIX_BASE + (row * 4) + col, release);
 }
 
-void MidiReceiver::send(int note, bool release) const
+void MidiController::send(int note, bool release) const
 {
     std::vector<unsigned char> message(3);
 
@@ -117,17 +121,17 @@ void MidiReceiver::send(int note, bool release) const
 }
 
 
-bool MidiReceiver::getDone() const
+bool MidiController::getDone() const
 {
     return done;
 }
 
-void MidiReceiver::setDone(bool newDone)
+void MidiController::setDone(bool newDone)
 {
     done = newDone;
 }
 
-MidiReceiver::~MidiReceiver()
+MidiController::~MidiController()
 {
     delete midiin;
 }

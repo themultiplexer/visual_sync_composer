@@ -3,8 +3,7 @@
 
 #include <QMainWindow>
 #include <QComboBox>
-#include "core/controllerabstractor.h"
-#include "qmainwindow.h"
+#include <QMainWindow>
 #include <QWidget>
 #include <QCloseEvent>
 #include <QSplitter>
@@ -15,10 +14,6 @@
 #include <QLineEdit>
 #include <QColorDialog>
 #include <QGroupBox>
-#include "core/audiofilter.h"
-#include "ui/knobwidget.h"
-#include "core/midireceiver.h"
-#include "ui/presetbutton.h"
 #include <QGuiApplication>
 #include <QApplication>
 #include <QtNetwork/QNetworkReply>
@@ -44,16 +39,21 @@
 #include <QFileDialog>
 #include <QThread>
 #include <QCheckBox>
+#include <boost/archive/binary_oarchive.hpp>
+#include <boost/archive/binary_iarchive.hpp>
+#include <boost/serialization/vector.hpp>
+
+#include "core/controllerabstractor.h"
+#include "core/audiofilter.h"
+#include "ui/knobwidget.h"
+#include "core/midicontroller.h"
+#include "ui/presetbutton.h"
 #include "ui/fullscreenwindow.h"
 #include "ui/vscslider.h"
 #include "core/audioanalyzer.h"
 #include "ui/oglwidget.h"
 #include "ui/tubewidget.h"
 #include "core/wifieventprocessor.h"
-#include <boost/archive/binary_oarchive.hpp>
-#include <boost/archive/binary_iarchive.hpp>
-#include <boost/serialization/vector.hpp>
-
 #include "core/effectpresetmodel.h"
 #include "core/wifieventprocessor.h"
 #include <boost/circular_buffer.hpp>
@@ -124,7 +124,7 @@ private:
     AudioAnalyzer* a;
     QDockWidget *dock;
     OGLWidget *glv, *popoutGlv;
-    int currentEffect, currentTab, currentPreset, currentPaletteIndex, numBeats, numGroups;
+    int currentEffect, currentTab, currentPreset, currentPaletteIndex, numBeats, numGroups, currentGroup;
     ColorControl colorMode;
     QLabel *numBeatLabel, *wifiLabel;
     bool lastColorRed;
@@ -172,7 +172,7 @@ private:
     VSCSlider *otherSlider;
     std::array<float,2> currentColor;
     int lastButton;
-    //MidiReceiver *receiver;
+    MidiController *midiController;
     QComboBox* combo;
 
     std::array<std::array<std::array<float, 2>, 4>, 4> buttonColors;

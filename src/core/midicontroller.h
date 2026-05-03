@@ -1,19 +1,20 @@
-#if 0
+#ifdef MIDI_CONTROLLER
 #ifndef MIDIRECEIVER_H
 #define MIDIRECEIVER_H
 
 #include <qobject.h>
 #include <qwindowdefs.h>
+#include <RtMidi.h>
 
 
-class MidiReceiver : public QObject
+class MidiController : public QObject
 {
 Q_OBJECT
 
 public:
-    MidiReceiver();
-    ~MidiReceiver();
-    void start();
+    MidiController();
+    ~MidiController();
+    void start(bool virtualController);
 
     bool getDone() const;
     void setDone(bool newDone);

@@ -5,6 +5,7 @@
 #include "eventprocessor.h"
 #include <QDebug>
 #include <QLabel>
+#include <cstdint>
 #include <random>
 
 struct HELLO_DATA {
@@ -37,6 +38,7 @@ struct CONFIG_DATA {
     uint8_t parameter2;
     uint8_t parameter3;
     uint8_t modifiers;
+    uint8_t group;
 
     std::string toString()
     {
@@ -76,12 +78,12 @@ public:
     void textEvent(std::string data);
     void sendBroadcastPeak(uint8_t hue, uint8_t sat, uint8_t group);
     void sendIndividualPeak(std::array<uint8_t, 6> mac, uint8_t hue, uint8_t sat);
-    void sendConfig();
+    void sendConfig(uint8_t group = 0);
     void sendUpdateMessage();
     void registerReceiver(WifiTextEventReceiver *receiver);
     void initHandlers();
     void setTubeOffsets(const std::vector<int> &newTubeOffsets);
-    void sendConfigTo(std::array<uint8_t, 6> dst_mac);
+    void sendConfigTo(std::array<uint8_t, 6> dst_mac, uint8_t group = 0);
     void sendUpdateMessageTo(std::array<uint8_t, 6> dst_mac);
     CONFIG_DATA getMasterconfig() const;
     void setMasterconfig(const CONFIG_DATA &newMasterconfig);
@@ -90,8 +92,8 @@ public:
     void sendSyncConfig();
     void sendDmx(std::vector<double> channel);
     void sendPalette(std::array<uint8_t, 8> palette);
-
     void sendHelloToAll();
+
 private:
     void callback(std::array<uint8_t, 6> src_mac, std::span<uint8_t> data);
 

@@ -1,5 +1,7 @@
 #include "ui/audiowindow.h"
+#include "RtMidi.h"
 #include "core/audiofilter.h"
+#include "core/fixturepresetmodel.h"
 #include "ui/dmxwindow.h"
 #include "ui/fullscreenwindow.h"
 #include "ui/knobwidget.h"
@@ -10,6 +12,8 @@
 
 #include <QDockWidget>
 #include <iostream>
+#include <qcolor.h>
+#include <qnamespace.h>
 #include <string>
 
 #define USE_DOCK 0
@@ -38,8 +42,12 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     : QMainWindow(parent)
     , popoutGlv(nullptr), activeEffectPresetButton(nullptr), activeTubePresetButton(nullptr), fullScreenWindow(new FullscreenWindow()), wifiLabel(nullptr), currentEffect(0), currentPreset(0), currentTab(0), timer(nullptr), tubeFrames(0), tubePresets(16), currentPaletteIndex(0), wifiAdapter("wlxdc4ef40a3f9f")
 {
+    midiController = new MidiController();
+    midiController->start(true);
+
     numBeats = 0;
     numGroups = 1;
+    currentGroup = 0;
 
     groupMode = GroupSelection::CountUp;
     controller = new ControllerAbstractor(this);
@@ -398,6 +406,8 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
                     currentEffect = (int)index;
                     setNewEffect(model);
 
+                    midiController->send(col, row, false);
+
                     autoCheckboxes[1]->setChecked(false);
 
                     for (auto const& [id, preset] : model->getPresets()->getTubePresets()) {
@@ -456,11 +466,8 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
         tabWidget->addTab(gridWidget, tr(("Bank " + std::to_string(tab)).c_str()));
     }
 
-    std::vector<TubePresetModel *> fixtures;
 
-    for (int i = 0; i < 16; i++) {
-        fixtures.push_back(new TubePresetModel(std::to_string(i), i));
-    }
+    std::vector<FixturePresetModel *> fixtures = PresetModel::readJson<FixturePresetModel, 16>("fixtures.json");
 
     QWidget *fixturesWidget = new QWidget;
     QGridLayout* fixturesLayout = new QGridLayout(fixturesWidget);
@@ -469,7 +476,7 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     for (int row = 0; row < 4; ++row) {
         for (int col = 0; col < 4; ++col) {
             int index = row * 4 + col;
-            TubePresetModel *model = fixtures[index];
+            FixturePresetModel *model = fixtures[index];
             model->id = index;
             PresetButton *button = new PresetButton(model, this);
             button->setMaximumWidth(70);
@@ -480,7 +487,11 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
             connect(button, &PresetButton::releasedInstantly, [=, this](){
                 ptrdiff_t index = std::distance(fixtureButtons.begin(), std::find(fixtureButtons.begin(), fixtureButtons.end(), button));
                 button->setActive(!button->getActive());
+
+                currentGroup = (int)index;
                 std::cout << index << std::endl;
+
+                PresetModel::saveToJsonFile(fixtures, "fixtures.json");
             });
             fixtureButtons.push_back(button);
         }
@@ -598,7 +609,7 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
 
     glv = new OGLWidget(1024);
     glv->setMinimumHeight(50);
-    glv->setMaximumHeight(120);
+    //glv->setMaximumHeight(120);
     connect(glv, &OGLWidget::threshChanged, this, &AudioWindow::sliderChanged);
     connect(glv, &OGLWidget::rangeChanged, this, [=, this](){
         a->setFilter(new audiofilter());
@@ -865,7 +876,7 @@ void AudioWindow::setNewEffect(EffectPresetModel *model) {
 
     CONFIG_DATA d = slidersToConfig(model->config);
     ep->setMasterconfig(d);
-    ep->sendConfig();
+    ep->sendConfig(currentGroup);
 
     applyTubePreset(model->getPresets());
     sendTubeSyncData();
@@ -976,7 +987,7 @@ void AudioWindow::checkTime(){
         if (diff >= 25) {
             CONFIG_DATA d = slidersToConfig(ep->getMasterconfig());
             ep->setMasterconfig(d);
-            ep->sendConfigTo({0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF});
+            ep->sendConfig(currentGroup);
             lastSliderChange = std::chrono::system_clock::now();
             sliderDidChanged = false;
         }
@@ -1077,7 +1088,7 @@ void AudioWindow::effectChanged(int index)
     CONFIG_DATA d = ep->getMasterconfig();
     d.led_mode = index;
     ep->setMasterconfig(d);
-    ep->sendConfig();
+    ep->sendConfig(currentGroup);
     for (auto t : tubes) {
         t->setEffect(d);
         t->sync();
@@ -1100,7 +1111,7 @@ void AudioWindow::modifierChanged(bool state)
     }
 
     ep->setMasterconfig(d);
-    ep->sendConfig();
+    ep->sendConfig(currentGroup);
 }
 
 EffectPresetModel *AudioWindow::getCurrentEffect()

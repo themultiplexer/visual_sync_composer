@@ -128,9 +128,9 @@ void WifiEventProcessor::sendDmx(std::vector<double> channels) {
 }
 
 
-void WifiEventProcessor::sendConfig()
+void WifiEventProcessor::sendConfig(uint8_t group)
 {
-    sendConfigTo({0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF});
+    sendConfigTo({0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}, group);
 }
 
 void WifiEventProcessor::sendSyncConfig()
@@ -147,9 +147,10 @@ void WifiEventProcessor::sendSyncConfig()
     handler->send(reinterpret_cast<uint8_t*>(&sync_config), sizeof(SYNC_DATA), {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF});
 }
 
-void WifiEventProcessor::sendConfigTo(std::array<uint8_t, 6> dst_mac)
+void WifiEventProcessor::sendConfigTo(std::array<uint8_t, 6> dst_mac, uint8_t group)
 {
     CONFIG_DATA tube_config = masterconfig;
+    tube_config.group = group;
     handler->send(reinterpret_cast<uint8_t*>(&tube_config), sizeof(CONFIG_DATA), dst_mac);
     std::cout << "Sending" << tube_config.toString() << " to " << arrayToString(dst_mac) << std::endl;
 }

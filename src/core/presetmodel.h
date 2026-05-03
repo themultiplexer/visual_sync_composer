@@ -1,7 +1,6 @@
 #ifndef PRESETMODEL_H
 #define PRESETMODEL_H
 
-#include "helper.h"
 #include "qjsonobject.h"
 #include "qjsonarray.h"
 #include "qjsondocument.h"
