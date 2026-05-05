@@ -1,10 +1,24 @@
 #include "core/audioanalyzer.h"
+#include "core/onsetsdshelpers.h"
+
 #include <pulse/pulseaudio.h>
 
 
 AudioAnalyzer::AudioAnalyzer(): stereo(true), useFilterOutput(false), filter(new audiofilter()) {
     cfg = kiss_fft_alloc(FRAMES, 0, NULL, NULL);
     adc = new RtAudio(RtAudio::Api::LINUX_PULSE);
+
+    // There are various types of onset detector available, we must choose one
+    int odftype = ODS_ODF_RCOMPLEX;
+
+    // Allocate contiguous memory using malloc or whatever is reasonable.
+    float* odsdata = (float*) malloc( onsetsds_memneeded(odftype, 512, 11) );
+
+    // Now initialise the OnsetsDS struct and its associated memory
+    onsetsds_init(&ods, odsdata, ODS_FFT_FFTW3_HC, odftype, 512, 11, 48000.f);
+
+    odsbuf = new OnsetsDSAudioBuf();
+    onsetsds_init_audiodata(odsbuf, &ods, 10);
 }
 
 void AudioAnalyzer::setInputVolume(int percent)
@@ -79,6 +93,10 @@ void AudioAnalyzer::do_kissfft(void* inputBuffer, float* outputBuffer, int chann
     }
 }
 
+void onsetsds_callback(OnsetsDSAudioBuf* odsbuf, int freq){
+    std::cout << "onset!" << freq << std::endl;
+}
+
 int AudioAnalyzer::record(void* outputBuffer, void* inputBuffer, unsigned int nBufferFrames, double streamTime, unsigned int status) {
     float* in = static_cast<float*>(inputBuffer);
     float* out = static_cast<float*>(outputBuffer);
@@ -109,6 +127,10 @@ int AudioAnalyzer::record(void* outputBuffer, void* inputBuffer, unsigned int nB
         applyHannWindow(((float *)inputBuffer), 0);
         do_kissfft(inputBuffer, freqs, 0);
     }
+
+    onsetsds_process_audiodata(odsbuf, (float *)inputBuffer, nBufferFrames, onsetsds_callback);
+	odsbuf->sampsElapsed += nBufferFrames;
+
     return 0;
 }
 

@@ -3,6 +3,8 @@
 #include "audiofilter.h"
 #include <rtaudio/RtAudio.h>
 #include <kissfft/kiss_fft.h>
+#include "core/onsetsds.h"
+#include "core/onsetsdshelpers.h"
 
 #define FRAMES 2048
 #define FREQUENCIES 64
@@ -35,6 +37,9 @@ private:
     RtAudio *adc;
     bool stereo, useFilterOutput;
     audiofilter *filter;
+
+    OnsetsDS ods;
+    OnsetsDSAudioBuf *odsbuf;
 
     void do_kissfft(void *inputBuffer, float *outputBuffer, int channel);
     void applyHannWindow(float *data, int channel);

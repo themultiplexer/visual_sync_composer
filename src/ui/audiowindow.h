@@ -43,6 +43,8 @@
 #include <boost/archive/binary_iarchive.hpp>
 #include <boost/serialization/vector.hpp>
 
+#include "core/onsetsds.h"
+#include "core/onsetsdshelpers.h"
 #include "core/controllerabstractor.h"
 #include "core/audiofilter.h"
 #include "ui/knobwidget.h"
