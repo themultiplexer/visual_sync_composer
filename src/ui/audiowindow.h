@@ -139,7 +139,7 @@ private:
     std::string values[20] = {"Hue", "Pump", "Tube", "Pump Limiter","Duck","FadeToColor","Sparkle","Fire","Bounce", "Colorcycle", "11", "Strobe", "Random Flicker", "Tunnel", "Tunnel2", "Placeholder","confetti", "sinelon", "bpm", "juggle"};
 
     std::vector<QCheckBox*> ledModifierCheckboxes;
-    std::vector<QCheckBox*> autoCheckboxes;
+    std::vector<QCheckBox*> autoCheckboxes, lockCheckboxes;
     std::vector<QRadioButton*> ledModeRadioButtons;
     std::vector<EffectPresetModel *> effectPresets;
     std::vector<TubePresetModel *> tubePresets;

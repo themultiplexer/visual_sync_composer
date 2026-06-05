@@ -248,6 +248,21 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
         autoCheckboxes.push_back(checkbox);
     }
     modifiersLayout->addWidget(autoSelectorWidget);
+
+    QWidget *lockSelectorWidget = new QWidget;
+    QHBoxLayout *lockSelectorLayout = new QHBoxLayout(autoSelectorWidget);
+    lockSelectorLayout->addWidget(new QLabel("Lock:"));
+
+    for (std::string effect : {"Composition"}) {
+        QCheckBox *checkbox = new QCheckBox();
+        checkbox->setText(effect.c_str());
+        connect(checkbox, &QCheckBox::toggled, this, [=](){
+
+        });
+        lockSelectorLayout->addWidget(checkbox);
+    }
+    modifiersLayout->addWidget(lockSelectorWidget);
+
     //modifiersLayout->setContentsMargins(0,0,0,0);
     effectSettingsLayout->setContentsMargins(0,0,0,0);
     effectSettingsLayout->setSpacing(0);
@@ -878,8 +893,8 @@ void AudioWindow::setNewEffect(EffectPresetModel *model) {
     ep->setMasterconfig(d);
     ep->sendConfig(currentGroup);
 
-    applyTubePreset(model->getPresets());
-    sendTubeSyncData();
+    //applyTubePreset(model->getPresets());
+    //sendTubeSyncData();
 
     if (this->ledModifierCheckboxes[0]->isChecked()) {
         peakEvent();
@@ -887,14 +902,14 @@ void AudioWindow::setNewEffect(EffectPresetModel *model) {
 }
 
 void AudioWindow::peakEvent(int group, int index, bool pickColor) {
-    int currentGroup = 0;
+    int peakGroup = 0;
     if (groupMode == GroupSelection::CountUp) {
         if (numGroups > 1) {
-            currentGroup = (numBeats  % numGroups) + 1;
+            peakGroup = (numBeats  % numGroups) + 1;
         }
     } else if (groupMode == GroupSelection::Regions) {
         if (numGroups > 1) {
-            currentGroup = group;
+            peakGroup = group;
         }
     }
 
@@ -905,7 +920,7 @@ void AudioWindow::peakEvent(int group, int index, bool pickColor) {
     }
 
     numBeats++;
-    numBeatLabel->setText(QString::number(currentGroup));
+    numBeatLabel->setText(QString::number(peakGroup));
 
     // TODO Generating a random palette would be cooler.
     if (pickColor) {
@@ -938,7 +953,7 @@ void AudioWindow::peakEvent(int group, int index, bool pickColor) {
         ep->sendIndividualPeak(macs[index], hue, sat);
         tubes[index]->setPeaked(hsv2rgb({currentColor[0] * 360, currentColor[1], 1.0}), currentGroup);
     } else {
-        ep->sendBroadcastPeak(hue, sat, currentGroup);
+        ep->sendBroadcastPeak(hue, sat, peakGroup);
         for (auto t : tubes) {
             t->setPeaked(hsv2rgb({currentColor[0] * 360, currentColor[1], 1.0}), currentGroup);
         }

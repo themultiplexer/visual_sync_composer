@@ -19,10 +19,11 @@
 
 #include "onsetsdshelpers.h"
 
+#include <iostream>
 #include <stdlib.h>
 #include <fftw3.h>
 
-void onsetsds_init_audiodata(OnsetsDSAudioBuf *odsbuf, OnsetsDS *ods, /* size_t framesize, */ size_t hopsize){
+void onsetsds_init_audiodata(OnsetsDSAudioBuf *odsbuf, OnsetsDS *ods, size_t hopsize){
 	
 	odsbuf->ods    = ods;
 	odsbuf->buflen = ods->fftsize;
@@ -35,9 +36,9 @@ void onsetsds_init_audiodata(OnsetsDSAudioBuf *odsbuf, OnsetsDS *ods, /* size_t 
 	odsbuf->window       = (float*) malloc(framesizebytes);
 	odsbuf->windoweddata = (float*) fftwf_malloc(framesizebytes);
 	odsbuf->fftbuf       = (float*) fftwf_malloc(framesizebytes);
-	
+
 	// Create the FFTW plan
-	odsbuf->fftplan = fftwf_plan_r2r_1d(ods->fftsize, odsbuf->windoweddata, odsbuf->fftbuf, FFTW_R2HC, FFTW_ESTIMATE);
+	odsbuf->fftplan = fftwf_plan_dft_r2c_1d(ods->fftsize, odsbuf->windoweddata, (fftwf_complex *)odsbuf->fftbuf, FFTW_MEASURE);
 	
 	// zero odsbuf.data
 	memset(odsbuf->data, 0, framesizebytes);
@@ -65,26 +66,27 @@ void onsetsds_destroy_audiodata(OnsetsDSAudioBuf *odsbuf){
 }
 
 
-double calculate_energy(float *data, int sampleRate, int N, int f_low, int f_high) {
-    // Map frequency to bins (approximate!)
-    double freqResolution = (double)sampleRate / (2.0 * N);
+double calculate_energy(fftwf_complex *data, int sampleRate, int N, int f_low, int f_high) {
+    double freqResolution = (double)sampleRate / N;
 
     int bin_low  = (int)(f_low  / freqResolution);
     int bin_high = (int)(f_high / freqResolution);
 
-    if (bin_high >= N) bin_high = N - 1;
+    if (bin_high > N/2) bin_high = N/2;
 
     double energy = 0.0;
 
     for (int k = bin_low; k <= bin_high; k++) {
-        energy += data[k] * data[k];
+        float re = data[k][0];
+        float im = data[k][1];
+        energy += re*re + im*im;
     }
 	energy /= (bin_high - bin_low + 1);
 	return energy;
 }
 
 
-void onsetsds_process_audiodata(OnsetsDSAudioBuf* odsbuf, float* data, size_t datalen, ODSDataCallback callback){
+void onsetsds_process_audiodata(OnsetsDSAudioBuf* odsbuf, float* data, float * out, size_t datalen, ODSDataCallback callback){
 	
 	if(datalen==0){
 		printf("onsetsds_process_audiodata GRRRRRR: no audio data sent (datalen==0)\n");
@@ -100,6 +102,7 @@ void onsetsds_process_audiodata(OnsetsDSAudioBuf* odsbuf, float* data, size_t da
 	while(dataleft > 0){
 		// Read the smaller of how-much-available and how-much-to-fill-the-buffer
 		numtocopy = ods_min(dataleft, odsbuf->buflen - odsbuf->writepos);
+
 //		printf("onsetsds_process_audiodata: datalen = %i, dataleft = %i, buflen = %i, about to copy %i values to position %i\n", 
 //					datalen, dataleft, odsbuf->buflen, numtocopy, odsbuf->writepos);
 		memcpy(&odsbuf->data[odsbuf->writepos], &data[datareadpos], numtocopy * sizeof(float));
@@ -125,23 +128,30 @@ void onsetsds_process_audiodata(OnsetsDSAudioBuf* odsbuf, float* data, size_t da
 			// FFT
 			fftwf_execute(odsbuf->fftplan);
 
-			double a = calculate_energy(odsbuf->fftbuf, 48000, odsbuf->buflen, 20, 150);
-			double b = calculate_energy(odsbuf->fftbuf, 48000, odsbuf->buflen, 150, 2000);
-			double c = calculate_energy(odsbuf->fftbuf, 48000, odsbuf->buflen, 5000, 10000);
-		
+			for (int k = 0; k < 1024; k++) {
+				float re = ((fftwf_complex *)odsbuf->fftbuf)[k][0];
+				float im = ((fftwf_complex *)odsbuf->fftbuf)[k][1];
+				out[k] = re*re + im*im;
+			}
 
+			double a = calculate_energy((fftwf_complex *)odsbuf->fftbuf, 48000, 2048, 20, 500);
+			double b = calculate_energy((fftwf_complex *)odsbuf->fftbuf, 48000, 2048, 500, 1000);
+			double c = calculate_energy((fftwf_complex *)odsbuf->fftbuf, 48000, 2048, 5000, 10000);
+		
 			// Onset detection
-			if(onsetsds_process(odsbuf->ods, odsbuf->fftbuf)){
-				// Call the callback!
-				int i = 0;
+			if (onsetsds_process(odsbuf->ods, reinterpret_cast<float*>(odsbuf->fftbuf))) {
+
 				if (a > b && a > c) {
-					i = 1;
+					callback(a, 1);
 				} else if (b > c && b > a) {
-					i = 2;
+					callback(b, 2);
 				} else if (c > a && c > b) {
-					i = 3;
+					callback(b, 3);
+				} else {
+					callback(b, 4);
+
 				}
-				callback(odsbuf, i);
+				
 			}
 			
 		} // End buffer-is-filled

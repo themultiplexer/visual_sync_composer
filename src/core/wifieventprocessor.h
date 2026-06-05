@@ -42,7 +42,7 @@ struct CONFIG_DATA {
 
     std::string toString()
     {
-        return "[led_mode = " + std::to_string(led_mode) + "]";
+        return "[led_mode = " + std::to_string(led_mode) + ", group = " + std::to_string(group) + "]";
     }
 };
 

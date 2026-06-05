@@ -61,7 +61,7 @@ typedef struct OnsetsDSAudioBuf{
 	float *data;         // size will be buflen
 	float *window;       // size will be buflen
 	float *windoweddata; // size will be buflen
-	fftwf_complex *fftbuf; // size will be buflen
+	float *fftbuf; // size will be buflen
 	fftwf_plan fftplan;
 	
 	// Whole-file-only things (i.e. unused when you're pushing audio blocks yourself):
@@ -70,13 +70,7 @@ typedef struct OnsetsDSAudioBuf{
 	ODSFileCallback filecallback;
 } OnsetsDSAudioBuf;
 
-/**
-When using onsetsds_process_audiodata(), this specifies that your callback function should
-take an #OnsetsDSAudioBuf and a size_t as arguments, and return void. The size_t will be a sample
-offset at which the detected onset occurred, within the audio frame that was just passed in. (More than 
-one onset per audio frame is possible, depending on how much data you're passing in at a time.)
-*/
-typedef void (*ODSDataCallback)(OnsetsDSAudioBuf*, int);
+typedef void (*ODSDataCallback)(double, int);
 
 /**
 This data structure stores statistics derived from using onsetsds_evaluate_audiofile(), describing how well
@@ -128,8 +122,7 @@ Process a new chunk of audio data.
 			It will be passed the #OnsetsDSAudioBuf object and (more importantly) the sample offset at which the onset was detected 
 			(i.e. a value between 0 and datalen).
 */
-void onsetsds_process_audiodata(OnsetsDSAudioBuf* odsbuf, float* data, size_t datalen, 
-			ODSDataCallback callback);
+void onsetsds_process_audiodata(OnsetsDSAudioBuf* odsbuf, float* data, float * out, size_t datalen, ODSDataCallback callback);
 
 ////////////////////////////////////////////////////////////////////////////////
 
