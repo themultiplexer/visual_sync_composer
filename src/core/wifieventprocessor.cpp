@@ -1,5 +1,6 @@
 #include "wifieventprocessor.h"
 #include <cstdint>
+#include <iterator>
 #include <stdint.h>
 #include <stdio.h>
 #include <string>
@@ -117,11 +118,11 @@ void WifiEventProcessor::sendIndividualPeak(std::array<uint8_t, 6> mac, uint8_t 
     handler->send(reinterpret_cast<uint8_t*>(&peak), sizeof(PEAK_DATA), mac);
 }
 
-void WifiEventProcessor::sendDmx(std::vector<double> channels) {
+void WifiEventProcessor::sendDmx(std::vector<uint8_t> channels) {
     DMX_DATA dmx;
-    std::array<uint8_t, 5> bytes{};
+    std::array<uint8_t, sizeof(DMX_DATA)> bytes{};
     for (size_t i = 0; i < bytes.size(); ++i) {
-        bytes[i] = channels[i] * 255.0f;
+        bytes[i] = channels[i];
     }
 
     handler->send(reinterpret_cast<uint8_t*>(bytes.data()), bytes.size(), {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF});

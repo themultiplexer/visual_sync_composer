@@ -2,6 +2,7 @@
 #include "RtMidi.h"
 #include "core/audiofilter.h"
 #include "core/fixturepresetmodel.h"
+#include "core/wifieventprocessor.h"
 #include "ui/dmxwindow.h"
 #include "ui/fullscreenwindow.h"
 #include "ui/knobwidget.h"
@@ -11,6 +12,7 @@
 #include "core/tubepresetmodel.h"
 
 #include <QDockWidget>
+#include <cstdint>
 #include <iostream>
 #include <qcolor.h>
 #include <qnamespace.h>
@@ -198,8 +200,8 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     });
 
     QPushButton *dmxbutton = new QPushButton("Dmx Tool");
-    connect(dmxbutton, &QPushButton::pressed, [=](){
-        DmxWindow *dmxw = new DmxWindow(ep);
+    connect(dmxbutton, &QPushButton::pressed, [=, this](){
+        DmxWindow *dmxw = new DmxWindow(this, ep);
         dmxw->show();
     });
 
@@ -436,6 +438,8 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
                     if (ok && !text.isEmpty()) {
                         EffectPresetModel *model = static_cast<EffectPresetModel *>(button->getModel());
                         model->setConfig(ep->getMasterconfig());
+                        model->dmx_config = currentDmxData;
+
                         if (currentPreset != -1) {
                             model->setPresets(*tubePresets[currentPreset]);
                         }
@@ -896,8 +900,21 @@ void AudioWindow::setNewEffect(EffectPresetModel *model) {
     //applyTubePreset(model->getPresets());
     //sendTubeSyncData();
 
+    DMX_DATA dmx = model->dmx_config;
+    std::vector<uint8_t> channels(9);
+    for (int i = 0; i < 9; i++) {
+        channels[i] = dmx.channels[i];
+    }
+    ep->sendDmx(channels);
+
     if (this->ledModifierCheckboxes[0]->isChecked()) {
         peakEvent();
+    }
+}
+
+void AudioWindow::setDmxChannels(std::vector<uint8_t> channels) {
+    for (int i = 0; i < channels.size(); i++) {
+        currentDmxData.channels[i] = channels[i];
     }
 }
 
@@ -960,7 +977,19 @@ void AudioWindow::peakEvent(int group, int index, bool pickColor) {
     }
 
     rgb c = hsv2rgb({(hue/255.0) * 360.0, sat/255.0, 1.0});
-    ep->sendDmx({c.r, c.g, c.b, 0.0, 1.0});
+
+    /*
+    ep->sendDmx({(uint8_t)(currentEffect * currentTab + 5),
+        currentEffectConfig.speed_factor,
+        (uint8_t)(c.r * 70 + c.g * 70 + c.b * 70), 
+        (uint8_t)((currentEffectConfig.modifiers & 0x01) * currentEffectConfig.speed_factor), 
+        (uint8_t)((currentEffectConfig.modifiers & 0x02) * currentEffectConfig.speed_factor),
+        (uint8_t)((currentEffectConfig.modifiers & 0x04) * currentEffectConfig.speed_factor),
+        (uint8_t)((currentEffectConfig.modifiers & 0x08) * currentEffectConfig.speed_factor),
+        (uint8_t)((currentEffectConfig.modifiers & 0x10) * currentEffectConfig.speed_factor),
+        (uint8_t)((currentEffectConfig.modifiers & 0x20) * currentEffectConfig.speed_factor),
+    });
+    */
 }
 
 void AudioWindow::checkTime(){

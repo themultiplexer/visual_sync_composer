@@ -107,6 +107,8 @@ public:
     void bpmChanged(int bpm);
     void loadLyrics();
     void setNewEffect(EffectPresetModel *model);
+    void setDmxChannels(std::vector<uint8_t> channels);
+
     int activeEffect;
     EffectPresetModel *getCurrentEffect();
     void setNewEffect(int index);
@@ -163,6 +165,7 @@ private:
     std::uniform_int_distribution<std::mt19937::result_type> *hueRandom, *byteRandom, *effectRandom, *presetRandom, *paletteRandom;
     std::array<std::array<float, 2>, 6> currentPalette;
     CONFIG_DATA currentEffectConfig;
+    DMX_DATA currentDmxData;
 
     void closeEvent(QCloseEvent *event) override;
     void spinboxChanged(int bpm);
