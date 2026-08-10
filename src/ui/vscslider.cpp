@@ -71,7 +71,7 @@ VSCSlider::VSCSlider(QString name, Qt::Orientation orientation, QWidget *parent,
         leftLabel = new QLabel(name);
     } else {
         layout = new QHBoxLayout;
-        name.resize(12, ' ');
+        name.resize(15, ' ');
         leftLabel = new QLabel(name);
         //leftLabel->setFont(QFontDatabase::systemFont(QFontDatabase::FixedFont));
         leftLabel->setMinimumWidth(150);

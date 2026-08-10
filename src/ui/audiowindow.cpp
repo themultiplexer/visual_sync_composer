@@ -14,7 +14,9 @@
 #include <QDockWidget>
 #include <cstdint>
 #include <iostream>
+#include <qboxlayout.h>
 #include <qcolor.h>
+#include <qfont.h>
 #include <qnamespace.h>
 #include <string>
 
@@ -226,7 +228,7 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     combo->setMaximumHeight(50);
 
     QHBoxLayout* modifiersLayout = new QHBoxLayout(effectSettingsWidget);
-    modifiersLayout->addWidget(new QLabel("Modifiers:"));
+    modifiersLayout->addWidget(new QLabel("<b>Modifiers:</b>"));
     for (std::string effect : {"Fadeout After Peak","No Color Delay","Reversed","Stickiness","Pseudo Random","Sync On Peak","7","8"}) {
         QCheckBox *check = new QCheckBox();
         check->setText(effect.c_str());
@@ -238,8 +240,7 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
 
     QWidget *autoSelectorWidget = new QWidget;
     QHBoxLayout *autoSelectorLayout = new QHBoxLayout(autoSelectorWidget);
-    autoSelectorLayout->addWidget(new QLabel("Auto Mode:"));
-
+    autoSelectorLayout->addWidget(new QLabel("<b>Auto Mode:</b>"));
     for (std::string effect : {"Color", "Effect", "Composition"}) {
         QCheckBox *checkbox = new QCheckBox();
         checkbox->setText(effect.c_str());
@@ -252,8 +253,8 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     modifiersLayout->addWidget(autoSelectorWidget);
 
     QWidget *lockSelectorWidget = new QWidget;
-    QHBoxLayout *lockSelectorLayout = new QHBoxLayout(autoSelectorWidget);
-    lockSelectorLayout->addWidget(new QLabel("Lock:"));
+    QHBoxLayout *lockSelectorLayout = new QHBoxLayout(lockSelectorWidget);
+    lockSelectorLayout->addWidget(new QLabel("<b>Lock:</b>"));
 
     for (std::string effect : {"Composition"}) {
         QCheckBox *checkbox = new QCheckBox();
@@ -320,49 +321,49 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
         tubesLayout->addWidget(tube, 1);
     }
 
-    sensitivitySlider = new VSCSlider("Sensitivity", Qt::Horizontal, tubesWidget);
+    sensitivitySlider = new VSCSlider("<b>Sensitivity</b>", Qt::Horizontal, tubesWidget);
     sensitivitySlider->setMinimum(0);
     sensitivitySlider->setValue(80);
     sensitivitySlider->setMaximum(100);
     connect(sensitivitySlider, &VSCSlider::valueChanged, this, &AudioWindow::sliderChanged);
 
-    saturationSlider = new VSCSlider("Saturation", Qt::Horizontal, tubesWidget);
+    saturationSlider = new VSCSlider("<b>Saturation</b>", Qt::Horizontal, tubesWidget);
     saturationSlider->setMinimum(0);
     saturationSlider->setValue(50);
     saturationSlider->setMaximum(255);
     connect(saturationSlider, &VSCSlider::valueChanged, this, &AudioWindow::sliderChanged);
 
-    brightnessSlider = new VSCSlider("Brightness", Qt::Horizontal, tubesWidget);
+    brightnessSlider = new VSCSlider("<b>Brightness</b>", Qt::Horizontal, tubesWidget);
     brightnessSlider->setMinimum(0);
     brightnessSlider->setValue(0);
     brightnessSlider->setMaximum(255);
     connect(brightnessSlider, &VSCSlider::valueChanged, this, &AudioWindow::sliderChanged);
 
-    speedSlider = new VSCSlider("Speed", Qt::Horizontal, tubesWidget, true);
+    speedSlider = new VSCSlider("<b>Speed</b>", Qt::Horizontal, tubesWidget, true);
     speedSlider->setMinimum(1);
     speedSlider->setValue(5);
     speedSlider->setMaximum(255);
     connect(speedSlider, &VSCSlider::valueChanged, this, &AudioWindow::sliderChanged);
 
-    effect1Slider = new VSCSlider("Param 1", Qt::Horizontal, tubesWidget);
+    effect1Slider = new VSCSlider("<b>Param 1</b>", Qt::Horizontal, tubesWidget);
     effect1Slider->setMinimum(1);
     effect1Slider->setValue(5);
     effect1Slider->setMaximum(255);
     connect(effect1Slider, &VSCSlider::valueChanged, this, &AudioWindow::sliderChanged);
 
-    effect2Slider = new VSCSlider("Param 2", Qt::Horizontal, tubesWidget);
+    effect2Slider = new VSCSlider("<b>Param 2</b>", Qt::Horizontal, tubesWidget);
     effect2Slider->setMinimum(1);
     effect2Slider->setValue(5);
     effect2Slider->setMaximum(255);
     connect(effect2Slider, &VSCSlider::valueChanged, this, &AudioWindow::sliderChanged);
 
-    effect3Slider = new VSCSlider("Param 3", Qt::Horizontal, tubesWidget);
+    effect3Slider = new VSCSlider("<b>Param 3</b>", Qt::Horizontal, tubesWidget);
     effect3Slider->setMinimum(1);
     effect3Slider->setValue(128);
     effect3Slider->setMaximum(255);
     connect(effect3Slider, &VSCSlider::valueChanged, this, &AudioWindow::sliderChanged);
 
-    effect4Slider = new VSCSlider("Param 4", Qt::Horizontal, tubesWidget);
+    effect4Slider = new VSCSlider("<b>Param 4</b>", Qt::Horizontal, tubesWidget);
     effect4Slider->setMinimum(1);
     effect4Slider->setValue(128);
     effect4Slider->setMaximum(255);
@@ -397,7 +398,7 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
         controller->setPage(index + 1);
     });
 
-    for (int tab = 0; tab < 4; ++tab) {
+    for (int tab = 0; tab < 5; ++tab) {
         // Loop to create buttons and add them to the layout
         QWidget *gridWidget = new QWidget;
         gridWidget->setMaximumWidth(600);
@@ -427,6 +428,11 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
 
                     autoCheckboxes[1]->setChecked(false);
 
+                    if (model->colors.size() > 0) {
+                        std::cout << "Size";
+                        std::copy_n(model->colors.begin(), 6, currentPalette.begin());
+                    }
+
                     for (auto const& [id, preset] : model->getPresets()->getTubePresets()) {
                         std::cout << id << " " << preset.delay << std::endl;
                     }
@@ -445,6 +451,7 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
                         }
                         model->setName(text.toStdString());
                         button->setModel(model);
+                        model->colors = std::vector<std::array<float, 2>>(std::begin(currentPalette), std::end(currentPalette));
                         EffectPresetModel::saveToJsonFile(effectPresets, "effects.json");
 
                         for (auto const& [id, preset] : model->getPresets()->getTubePresets()) {
@@ -576,7 +583,7 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
                 QColor color = QColorDialog::getColor(Qt::white, this, "Button Color", QColorDialog::DontUseNativeDialog);
                 button->setColor(color, false);
                 model->color = color;
-                EffectPresetModel::saveToJsonFile(tubePresets, "tubes.json");
+                PresetModel::saveToJsonFile(tubePresets, "tubes.json");
             });
             tubeButtons.push_back(button);
         }
@@ -643,28 +650,26 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
     QVBoxLayout *topLayout = new QVBoxLayout(topWidget);
     topLayout->setSpacing(0);
 
-    RadioSelection *groupSelection = new RadioSelection("Group Selection Mode:", {"Count Up", "Region", "Random"}, [=, this](int i){
+    QHBoxLayout *hbox = new QHBoxLayout();
+
+    RadioSelection *groupSelection = new RadioSelection("<b>Group Selection Mode:</b>", {"Count Up", "Region", "Random"}, [=, this](int i){
         groupMode = (GroupSelection)i;
     }, 1, this);
-    topLayout->addWidget(groupSelection);
+    hbox->addWidget(groupSelection);
+    hbox->addStretch();
 
-    RadioSelection *colorSelection = new RadioSelection("Color Selection Mode:", {"Count Up", "Region", "Random"}, [=, this](int i){
+    RadioSelection *colorSelection = new RadioSelection("<b>Color Selection Mode:</b>", {"Count Up", "Region", "Random"}, [=, this](int i){
         colorSelectionMode = (ColorSelectionMode)i;
     }, 1, this);
-    topLayout->addWidget(colorSelection);
-
-    RadioSelection *visualModeSelection = new RadioSelection("FFT Vis Mode:", {"Exp Mean", "Mean", "Variance"}, [=, this](int i){
-        glv->setVisMode((VisMode)i);
-    }, 0, this);
-    topLayout->addWidget(visualModeSelection);
-
+    hbox->addWidget(colorSelection);
+    hbox->addStretch();
 
     std::vector<std::array<std::array<float, 2>, 6>> palettes;
     palettes.push_back({{ {0.0f, 1.0f}, {0.0f, 0.0f}, {0.0f, 1.0f}, {0.0f, 0.0f}, {0.0f, 1.0f}, {0.0f, 0.0f} }});
     palettes.push_back({{ {0.333f, 1.0f}, {0.0f, 0.0f}, {0.333f, 1.0f}, {0.0f, 0.0f}, {0.333f, 1.0f}, {0.0f, 0.0f} }});
     palettes.push_back({{ {0.8f, 1.0f}, {0.2f, 1.0f}, {0.8f, 1.0f}, {0.2f, 1.0f}, {0.8f, 1.0f}, {0.2f, 1.0f} }});
 
-    RadioSelection *paletteSelection = new RadioSelection("Color Palettes:", {"Maximum Frequency", "Manual", "Random Hue", "Random Hue&Sat", "Red|White", "Greenish",  "Custom"}, [=, this](int i){
+    RadioSelection *paletteSelection = new RadioSelection("<b>Color Palettes:</b>", {"Maximum Frequency", "Manual", "Random Hue", "Random Hue&Sat", "Red|White", "Greenish",  "Custom"}, [=, this](int i){
         if (i == 0) {
             colorMode = ColorControl::Frequency;
         } else if (i == 1) {
@@ -684,12 +689,15 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
         }
         peakEvent();
     }, 4, this);
-    topLayout->addWidget(paletteSelection);
+    hbox->addWidget(paletteSelection);
+    hbox->addStretch();
+
+    topLayout->addLayout(hbox);
 
 
+    QHBoxLayout *prochbox = new QHBoxLayout();
     QHBoxLayout *header = new QHBoxLayout(topWidget);
-
-    header->addWidget(numBeatLabel);
+    
     bpmLabel = new QLabel("bpm");
     tmpLabel = new QLabel("name");
     audioCheckBox = new QCheckBox("Audio Filter");
@@ -698,10 +706,20 @@ AudioWindow::AudioWindow(WifiEventProcessor *ep, QWidget *parent)
         a->setUseFilterOutput(checked);
     });
     header->addWidget(new QLabel("Analysis: "));
+    header->addWidget(numBeatLabel);
     header->addWidget(bpmLabel);
     header->addWidget(tmpLabel);
     header->addWidget(audioCheckBox);
-    topLayout->addLayout(header);
+    prochbox->addLayout(header);
+    prochbox->addStretch();
+
+    RadioSelection *visualModeSelection = new RadioSelection("<b>FFT Vis Mode:</b>", {"Exp Mean", "Mean", "Variance"}, [=, this](int i){
+        glv->setVisMode((VisMode)i);
+    }, 0, this);
+    prochbox->addWidget(visualModeSelection);
+    prochbox->addStretch();
+
+    topLayout->addLayout(prochbox);
 
     // Create a dock widget to hold it
     if (USE_DOCK) {

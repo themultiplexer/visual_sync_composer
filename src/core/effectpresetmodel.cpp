@@ -3,8 +3,9 @@
 #include "qjsonobject.h"
 #include <cstdint>
 #include <string>
+#include <vector>
 
-EffectPresetModel::EffectPresetModel(std::string name, int id) : preset("empty", 0) {
+EffectPresetModel::EffectPresetModel(std::string name, int id) : preset("empty", 0), colors() {
     this->name = name;
     this->id = id;
     for (CONFIG_DATA *data : {&config, &secondary_config}) {
@@ -16,9 +17,11 @@ EffectPresetModel::EffectPresetModel(std::string name, int id) : preset("empty",
         data->speed_factor = 4;
     }
     dmx_config = {0};
+    group_mode = 0;
+    color_mode = 0;
 }
 
-EffectPresetModel::EffectPresetModel(std::string name, int id, CONFIG_DATA data, CONFIG_DATA data2, DMX_DATA dmx_data, QColor color, TubePresetModel tubepreset) : preset(tubepreset) {
+EffectPresetModel::EffectPresetModel(std::string name, int id, CONFIG_DATA data, CONFIG_DATA data2, DMX_DATA dmx_data, QColor color, int group_mode, int color_mode, std::vector<std::array<float, 2>> colors, TubePresetModel tubepreset) : preset(tubepreset) {
     this->name = name;
     this->id = id;
     this->config = data;
@@ -56,6 +59,17 @@ QJsonObject EffectPresetModel::toJson() const {
     QJsonArray array;
     array << color.red() << color.green() << color.blue();
     obj.insert("button_color", array);
+
+    QJsonArray jcolors;
+    for (std::array<float, 2> color : colors) {
+        QJsonArray array;
+        array << color[0] << color[1];
+        jcolors.push_back(array);
+    }
+    obj.insert("colors", jcolors);
+
+    obj["group_mode"] = group_mode;
+    obj["color_mode"] = color_mode;
 
     int i = 0;
     std::tuple<const CONFIG_DATA *, QString> items[] = {
@@ -111,6 +125,17 @@ EffectPresetModel* EffectPresetModel::fromJson(const QJsonObject &obj) {
 
     TubePresetModel *tubepreset = TubePresetModel::fromJson(obj["tubepresets"].toObject());
 
-    auto f = new EffectPresetModel(name, obj["id"].toInt(), config1, config2, dmx_data, color, *tubepreset);
+    QJsonArray jcolors = obj["colors"].toArray();
+
+    std::vector<std::array<float, 2>> colors;
+
+    for (QJsonValueRef obj : jcolors) {
+        colors.push_back({static_cast<float>(obj[0].toDouble()), static_cast<float>(obj[1].toDouble()) });
+    }
+
+    int group_mode = obj["group_mode"].toInt();
+    int color_mode = obj["color_mode"].toInt();
+
+    auto f = new EffectPresetModel(name, obj["id"].toInt(), config1, config2, dmx_data, color, group_mode, color_mode, colors, *tubepreset);
     return f;
 }

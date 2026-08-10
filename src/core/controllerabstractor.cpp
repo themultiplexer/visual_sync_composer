@@ -61,7 +61,7 @@ void ControllerAbstractor::flashStopButton(int index) {
 }
 
 void ControllerAbstractor::onWheelChanged(int page) {
-    audiowindow->tabWidget->setCurrentIndex((page - 1) % 4);
+    audiowindow->tabWidget->setCurrentIndex((page - 1) % 5);
 }
 
 void ControllerAbstractor::setPage(int page)
