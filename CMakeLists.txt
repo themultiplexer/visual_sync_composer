@@ -32,6 +32,8 @@ find_package(Qt6 REQUIRED COMPONENTS
     Widgets
     OpenGLWidgets
     Network
+    Quick
+    Svg
 )
 
 if(APPLE)
@@ -54,12 +56,27 @@ file(GLOB PROJECT_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp
 )
 
+list(FILTER PROJECT_SOURCES EXCLUDE REGEX "src/ui/oglwidget.*")
 
 qt_add_executable(VisualSyncComposer
     MACOSX_BUNDLE
     MANUAL_FINALIZATION
     ${PROJECT_SOURCES}
     ${app_icon_macos}
+)
+
+qt_add_qml_module(VisualSyncComposer
+    URI vsc
+    QML_FILES
+        qml/Main.qml
+        qml/components/LabeledSlider.qml
+        qml/components/PaletteKnob.qml
+        qml/components/PresetGrid.qml
+        qml/components/SpectrumView.qml
+        qml/components/TubeCard.qml
+    SOURCES
+        src/ui/oglwidget.h
+        src/ui/oglwidget.cpp
 )
 
 add_subdirectory(src/f1_driver)
@@ -71,6 +88,8 @@ include_directories(${CMAKE_SOURCE_DIR}/src/ ${FREETYPE_INCLUDE_DIRS} ${AVAHI_IN
 
 target_link_libraries(VisualSyncComposer PRIVATE
     f1_driver
+    Qt6::Quick
+    Qt6::Svg
     Qt6::Widgets
     Qt6::OpenGL
     Qt6::OpenGLWidgets

@@ -4,6 +4,7 @@
 #include "ui/frequencyregion.h"
 #include "core/runningmean.h"
 #include "core/runningvariance.h"
+#include <qqmlintegration.h>
 
 #ifdef __APPLE__
 #include <OpenGL/OpenGL.h>
@@ -26,6 +27,10 @@
 #include <glm/gtx/normalize_dot.hpp>
 #include <glm/gtx/rotate_vector.hpp>
 
+#include <QQuickFramebufferObject>
+
+#include <QtQml/qqmlregistration.h>
+
 #define NUM_POINTS 1024
 
 enum class VisMode {
@@ -39,12 +44,13 @@ struct Vertex2D {
     glm::vec4 color;
 };
 
-class OGLWidget : public QOpenGLWidget, protected QOpenGLFunctions
+class OGLWidget : public QQuickFramebufferObject
 {
     Q_OBJECT
+    //QML_ELEMENT
 
 public:
-    OGLWidget(int step, QWidget *parent = 0);
+    OGLWidget(QQuickItem *parent = nullptr);
     ~OGLWidget();
 
     float getThresh();
@@ -63,6 +69,7 @@ signals:
     void threshChanged();
     void rangeChanged();
 
+    QQuickFramebufferObject::Renderer *createRenderer() const override;
 
 protected:
     void initializeGL();

@@ -1,10 +1,10 @@
 #include "dmxwindow.h"
-#include "audiowindow.h"
+#include "core/audiocontroller.h"
 #include <cstdint>
 #include <qboxlayout.h>
 #include <qwidget.h>
 
-DmxWindow::DmxWindow(AudioWindow *aw, WifiEventProcessor *ep) {
+DmxWindow::DmxWindow(AudioController *aw, WifiEventProcessor *ep) {
     this->ep = ep;
     this->aw = aw;
 
@@ -29,6 +29,6 @@ void DmxWindow::sliderChanged()
     for (size_t i = 0; i < sliders.size(); ++i) {
         channels[i] = sliders[i]->pct() * 255;
     }
-    aw->setDmxChannels(channels);
+    //aw->setDmxChannels(channels);
     ep->sendDmx(channels);
 }

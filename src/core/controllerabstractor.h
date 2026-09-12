@@ -1,6 +1,7 @@
 #ifndef CONTROLLERABSTRACTOR_H
 #define CONTROLLERABSTRACTOR_H
 
+#include "core/audiocontroller.h"
 #include "f1_driver/include/controller_handler.h"
 #include <qcolor.h>
 #include <random>
@@ -11,7 +12,7 @@ class AudioWindow;
 class ControllerAbstractor : ControllerDelegate
 {
 public:
-    ControllerAbstractor(AudioWindow *window);
+    ControllerAbstractor(AudioController *window);
 
     void processEvents();
     bool isCaptureToggled();
@@ -22,7 +23,7 @@ public:
     std::uniform_int_distribution<std::mt19937::result_type> *byteRandom;
 
     // This is not clean but I am lazy
-    AudioWindow *audiowindow;
+    AudioController *audiocontroller;
 
     std::array<float, 4> buttonAfterglow;
 

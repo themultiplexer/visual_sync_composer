@@ -1,32 +1,34 @@
 #include "oglwidget.h"
-#include "audiowindow.h"
+#include "oglrenderer.h"
 #include "qdebug.h"
 #include "qtimer.h"
 #include <cmath>
 #include <QOpenGLDebugLogger>
+#include <iostream>
+
 
 #define PROGRAM_VERTEX_ATTRIBUTE 0
 
-OGLWidget::OGLWidget(int step, QWidget *parent)
-    : QOpenGLWidget(parent), step(step), decay(0.02), regions(), currentRegionIndex(0)
+OGLWidget::OGLWidget(QQuickItem *parent) : QQuickFramebufferObject(parent), step(10), decay(0.02), regions(), currentRegionIndex(0)
 {
     regions.push_back(new FrequencyRegion(1, 1, 10, NUM_POINTS, "low"));
     regions.push_back(new FrequencyRegion(2, 250, 325, NUM_POINTS, "high"));
     regions.push_back(new FrequencyRegion(3, 50, 150, NUM_POINTS, "melody"));
 
-
-    setMouseTracking(true);
-    installEventFilter(this);
-    setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Expanding);
+    setAcceptedMouseButtons(Qt::AllButtons);
 }
 
 OGLWidget::~OGLWidget()
 {
 
 }
+/*
+QQuickFramebufferObject::Renderer * OGLWidget::createRenderer() const
+{
+    return new OGLRenderer();
+}*/
 
 void OGLWidget::cleanupGL() {
-    makeCurrent(); // Ensure the context is current
     qDebug() << "Cleanup";
 
     if (lineShaderProgram) {
@@ -38,8 +40,6 @@ void OGLWidget::cleanupGL() {
         delete regionShaderProgram;
         regionShaderProgram = nullptr;
     }
-
-    doneCurrent(); // Done with the context
 }
 
 float OGLWidget::getThresh() {
@@ -61,11 +61,6 @@ void OGLWidget::processData(const std::function<void (FrequencyRegion&)>& callba
 
 void OGLWidget::initializeGL()
 {
-    qDebug() << "init GL";
-    initializeOpenGLFunctions();
-
-    connect(context(), &QOpenGLContext::aboutToBeDestroyed, this, &OGLWidget::cleanupGL);
-
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -329,7 +324,7 @@ bool OGLWidget::eventFilter(QObject *obj, QEvent *event) {
             reg->mouseEvent(x, y);
 
             if (reg->getNewInside()) {
-                setCursor(Qt::OpenHandCursor);
+                //setCursor(Qt::OpenHandCursor);
                 if (reg->getNewOnLine()) {
                     if (!reg->getDragging()) {
                         setCursor(Qt::SizeVerCursor);
@@ -345,7 +340,7 @@ bool OGLWidget::eventFilter(QObject *obj, QEvent *event) {
                     return true;
                 }
             } else {
-                setCursor(Qt::ArrowCursor);
+                //setCursor(Qt::ArrowCursor);
             }
         }
 

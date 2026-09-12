@@ -4,7 +4,7 @@
 #include <linux/wireless.h>
 #endif
 
-#include "netdevice.h"
+#include "wifiadapter.h"
 #include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
@@ -14,27 +14,27 @@
 
 #include <fcntl.h>
 
-NetDevice::NetDevice(const char *interface) {
+WifiAdapter::WifiAdapter(const char *interface) {
     this->interface = interface;
 }
 
 
 #ifdef __APPLE__
-bool NetDevice::setInterface(bool up) {
+bool WifiAdapter::setInterface(bool up) {
     return true;
 }
 
-bool NetDevice::enableMonitorMode() {
+bool WifiAdapter::enableMonitorMode() {
     return true;
 }
 
-bool NetDevice::checkInterface() {
+bool WifiAdapter::checkInterface() {
     return true;
 }
 
 #else
 
-bool NetDevice::setInterface(bool up) {
+bool WifiAdapter::setInterface(bool up) {
     struct ifreq ifr;
     int sockfd;
 
@@ -76,7 +76,7 @@ bool NetDevice::setInterface(bool up) {
     return true;
 }
 
-bool NetDevice::enableMonitorMode() {
+bool WifiAdapter::enableMonitorMode() {
     struct iwreq request;
     int sockfd;
 
@@ -107,7 +107,7 @@ bool NetDevice::enableMonitorMode() {
     return true;
 }
 
-bool NetDevice::checkInterface() {
+bool WifiAdapter::checkInterface() {
     int sockfd = socket(AF_INET, SOCK_DGRAM, 0);
     if (sockfd < 0) {
         perror("socket");

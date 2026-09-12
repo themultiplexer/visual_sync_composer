@@ -1,10 +1,10 @@
-#ifndef NETDEVICE_H
-#define NETDEVICE_H
+#ifndef WIFIADAPTER_H
+#define WIFIADAPTER_H
 
-class NetDevice
+class WifiAdapter
 {
 public:
-    NetDevice(const char *interface);
+    WifiAdapter(const char *interface);
 
 public:
     bool enableMonitorMode();
@@ -14,4 +14,4 @@ private:
     const char *interface;
 };
 
-#endif // NETDEVICE_H
+#endif // WIFIADAPTER_H
