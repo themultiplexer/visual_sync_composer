@@ -169,14 +169,7 @@ Item {
                     id: spectrum
                     Layout.fillWidth: true
                     Layout.fillHeight: true
-                    leftSpectrum: audioController.leftSpectrum
-                    rightSpectrum: audioController.rightSpectrum
-                    threshold: audioController.sensitivity
-                    decay: audioController.spectrumDecay
-                    visualizationMode: visualizationMode
-                    onFilterRangeEdited: function(lower, upper) {
-                        audioController.setFilterRange(lower, upper)
-                    }
+
                 }
 
                 ColumnLayout {

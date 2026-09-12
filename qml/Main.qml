@@ -15,7 +15,11 @@ ApplicationWindow {
     visible: true
     title: qsTr("Visual Sync Controller")
 
-    Dev {}
+    color: "#000000"
+
+    Dev {
+        anchors.fill: parent
+    }
 
 
     onClosing: function(close) {

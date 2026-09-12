@@ -54,6 +54,15 @@ file(GLOB PROJECT_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp
 )
 
+qt_add_executable(VisualSyncComposer
+    MACOSX_BUNDLE
+    MANUAL_FINALIZATION
+    ${PROJECT_SOURCES}
+    ${app_icon_macos}
+)
+
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/)
+
 qt_add_qml_module(VisualSyncComposerQml
     URI visual_sync_composer
     QML_FILES
@@ -66,18 +75,11 @@ qt_add_qml_module(VisualSyncComposerQml
         qml/components/TubeCard.qml
     OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/visual_sync_composer"
 #    SOURCES
-#        src/ui/oglwidget.h
-#        src/ui/oglwidget.cpp
+#        src/ui/ogltest.h
+#        src/ui/ogltest.cpp
+    DEPENDENCIES
+        QtQuick
 )
-
-qt_add_executable(VisualSyncComposer
-    MACOSX_BUNDLE
-    MANUAL_FINALIZATION
-    ${PROJECT_SOURCES}
-    ${app_icon_macos}
-)
-
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/)
 
 
 
@@ -86,6 +88,13 @@ qt_query_qml_module(VisualSyncComposerQml
     TARGET_PATH module_target_path
     MODULE_RESOURCE_PATH module_resource_path
     QMLDIR module_qmldir
+)
+
+target_link_libraries(VisualSyncComposerQml
+    PRIVATE
+        Qt6::Quick
+        Qt6::Qml
+        Qt6::OpenGL
 )
 
 message(STATUS "QML URI: ${module_uri}")

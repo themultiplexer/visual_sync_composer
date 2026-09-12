@@ -9,24 +9,19 @@
 
 #define PROGRAM_VERTEX_ATTRIBUTE 0
 
-OGLWidget::OGLWidget(QQuickItem *parent) : QQuickFramebufferObject(parent), step(10), decay(0.02), regions(), currentRegionIndex(0)
+OGLWidget::OGLWidget(): step(10), decay(0.02), regions(), currentRegionIndex(0)
 {
     regions.push_back(new FrequencyRegion(1, 1, 10, NUM_POINTS, "low"));
     regions.push_back(new FrequencyRegion(2, 250, 325, NUM_POINTS, "high"));
     regions.push_back(new FrequencyRegion(3, 50, 150, NUM_POINTS, "melody"));
 
-    setAcceptedMouseButtons(Qt::AllButtons);
+    
 }
 
 OGLWidget::~OGLWidget()
 {
 
 }
-/*
-QQuickFramebufferObject::Renderer * OGLWidget::createRenderer() const
-{
-    return new OGLRenderer();
-}*/
 
 void OGLWidget::cleanupGL() {
     qDebug() << "Cleanup";
@@ -69,7 +64,7 @@ void OGLWidget::initializeGL()
     glPointSize(10.0);
 
     // Create and compile the vertex shader using a raw string literal.
-    QOpenGLShader *vshader = new QOpenGLShader(QOpenGLShader::Vertex, this);
+    QOpenGLShader *vshader = new QOpenGLShader(QOpenGLShader::Vertex);
     const char *vsrc = R"(
         #version 330 core
         layout (location = 0) in vec2 vertex;
@@ -83,7 +78,7 @@ void OGLWidget::initializeGL()
     vshader->compileSourceCode(vsrc);
 
     // Create and compile the fragment shader.
-    QOpenGLShader *fshader = new QOpenGLShader(QOpenGLShader::Fragment, this);
+    QOpenGLShader *fshader = new QOpenGLShader(QOpenGLShader::Fragment);
     const char *fsrc = R"(
         #version 330 core
         in vec2 pos;
@@ -134,7 +129,7 @@ void OGLWidget::initializeGL()
     fshader->compileSourceCode(fsrc);
 
     // Create and compile the vertex shader using a raw string literal.
-    QOpenGLShader *lineVShader = new QOpenGLShader(QOpenGLShader::Vertex, this);
+    QOpenGLShader *lineVShader = new QOpenGLShader(QOpenGLShader::Vertex);
     const char *lineVSrc = R"(
         #version 330 core
         layout (location = 0) in vec2 vertex;
@@ -160,7 +155,7 @@ void OGLWidget::initializeGL()
     lineVShader->compileSourceCode(lineVSrc);
 
     // Create and compile the fragment shader.
-    QOpenGLShader *lineFShader = new QOpenGLShader(QOpenGLShader::Fragment, this);
+    QOpenGLShader *lineFShader = new QOpenGLShader(QOpenGLShader::Fragment);
     const char *lineFSrc = R"(
         #version 330 core
         in vec2 pos;
@@ -173,7 +168,7 @@ void OGLWidget::initializeGL()
     )";
     lineFShader->compileSourceCode(lineFSrc);
 
-    lineShaderProgram = new QOpenGLShaderProgram(this);
+    lineShaderProgram = new QOpenGLShaderProgram();
     lineShaderProgram->addShader(lineVShader);
     lineShaderProgram->addShader(lineFShader);
     lineShaderProgram->link();
@@ -194,7 +189,7 @@ void OGLWidget::initializeGL()
     lineShaderProgram->release();
     lineVao.release();
 
-    regionShaderProgram = new QOpenGLShaderProgram(this);
+    regionShaderProgram = new QOpenGLShaderProgram();
     regionShaderProgram->addShader(vshader);
     regionShaderProgram->addShader(fshader);
     regionShaderProgram->link();
@@ -223,7 +218,7 @@ void OGLWidget::initializeGL()
     vao.release();
 }
 
-void OGLWidget::paintGL()
+void OGLWidget::render()
 {
     glClear(GL_COLOR_BUFFER_BIT); 
 
@@ -311,7 +306,7 @@ std::vector<Vertex2D> OGLWidget::generatePolylineQuads(const std::vector<Vertex2
     return vertices;
 }
 
-
+/*
 bool OGLWidget::eventFilter(QObject *obj, QEvent *event) {
     auto mouseEvent = dynamic_cast<QMouseEvent *>(event);
     if (mouseEvent != nullptr) {
@@ -353,7 +348,7 @@ bool OGLWidget::eventFilter(QObject *obj, QEvent *event) {
         }
     }
     return false;
-}
+}*/
 
 VisMode OGLWidget::getVisMode() const
 {

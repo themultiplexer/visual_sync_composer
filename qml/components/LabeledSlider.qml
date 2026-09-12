@@ -34,6 +34,7 @@ RowLayout {
     Label {
         Layout.preferredWidth: 44
         horizontalAlignment: Text.AlignRight
+        color: "#FFFFFF"
         text: root.integral
               ? Math.round(slider.value).toString()
               : slider.value.toFixed(root.decimals)

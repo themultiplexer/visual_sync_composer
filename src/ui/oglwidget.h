@@ -12,8 +12,6 @@
 #include <GL/gl.h>
 #endif
 
-#include <QWidget>
-#include <QOpenGLWidget>
 #include <QMouseEvent>
 #include <QOpenGLContext>
 #include <QOpenGLExtraFunctions>
@@ -44,13 +42,11 @@ struct Vertex2D {
     glm::vec4 color;
 };
 
-class OGLWidget : public QQuickFramebufferObject
+class OGLWidget : public QQuickFramebufferObject::Renderer
 {
-    Q_OBJECT
-    QML_ELEMENT
 
 public:
-    OGLWidget(QQuickItem *parent = nullptr);
+    OGLWidget();
     ~OGLWidget();
 
     float getThresh();
@@ -64,17 +60,15 @@ public:
 
     VisMode getVisMode() const;
     void setVisMode(VisMode newVisMode);
+    void initializeGL();
 
 signals:
     void threshChanged();
     void rangeChanged();
 
-    QQuickFramebufferObject::Renderer *createRenderer() const override;
-
 protected:
-    void initializeGL();
     void resizeGL(int w, int h);
-    void paintGL();
+    void render() override;
 
     QOpenGLShaderProgram *regionShaderProgram, *lineShaderProgram;
     QOpenGLVertexArrayObject vao, lineVao;

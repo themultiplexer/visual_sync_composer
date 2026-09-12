@@ -22,6 +22,7 @@
 
 #include "core/audiocontroller.h"
 #include "core/wifieventprocessor.h"
+#include "ui/ogltest.h"
 
 
 std::array<uint8_t, 6> my_mac = {0xDC, 0x4E, 0xF4, 0x0A, 0x3F, 0x9F};
@@ -39,6 +40,12 @@ int main(int argc, char *argv[])
     QQuickWindow::setGraphicsApi(QSGRendererInterface::OpenGL);
 
     QQmlApplicationEngine engine;
+
+    qmlRegisterType<OGLTest>(
+        "visual_sync_composer",
+        1, 0,
+        "OGLTest"
+    );
     engine.rootContext()->setContextProperty(QStringLiteral("audioController"), &audioController);
 
 
