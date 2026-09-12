@@ -46,16 +46,15 @@ Frame {
 
         Label {
             Layout.fillWidth: true
-            horizontalAlignment: Text.AlignHCenter
             text: root.tube.mac
             elide: Text.ElideMiddle
+            color: "#FFFFFF"
             font.bold: true
         }
 
-        Label { text: qsTr("Delay") }
+        Label { text: qsTr("Delay"); color: "#FFFFFF"; }
         SpinBox {
             id: delayBox
-            Layout.fillWidth: true
             from: 0
             to: 255
             value: root.tube.delay
@@ -63,10 +62,9 @@ Frame {
             onValueModified: root.changed(value, groupBox.value)
         }
 
-        Label { text: qsTr("Group") }
+        Label { text: qsTr("Group"); color: "#FFFFFF"; }
         SpinBox {
             id: groupBox
-            Layout.fillWidth: true
             from: 0
             to: 32
             value: root.tube.group
@@ -75,7 +73,6 @@ Frame {
         }
 
         RowLayout {
-            Layout.fillWidth: true
             Button {
                 text: "◀"
                 enabled: root.tubeIndex > 0

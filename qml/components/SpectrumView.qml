@@ -3,6 +3,8 @@ import QtQuick
 Item {
     id: root
 
+    OGLWidget {}
+
     property var leftSpectrum: []
     property var rightSpectrum: []
     property real threshold: 0.8

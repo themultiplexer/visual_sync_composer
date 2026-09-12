@@ -85,7 +85,7 @@ Item {
                     RowLayout {
                         Layout.fillWidth: true
 
-                        Label { text: qsTr("Group selection"); font.bold: true }
+                        Label { text: qsTr("Group selection"); font.bold: true; color: "#FFFFFF"; }
                         ComboBox {
                             model: [qsTr("Count up"), qsTr("Region"), qsTr("Random")]
                             currentIndex: audioController.groupSelectionMode
@@ -94,7 +94,7 @@ Item {
 
                         Item { Layout.fillWidth: true }
 
-                        Label { text: qsTr("Color selection"); font.bold: true }
+                        Label { text: qsTr("Color selection"); font.bold: true; color: "#FFFFFF"; }
                         ComboBox {
                             model: [qsTr("Count up"), qsTr("Region"), qsTr("Random")]
                             currentIndex: audioController.colorSelectionMode
@@ -103,7 +103,7 @@ Item {
 
                         Item { Layout.fillWidth: true }
 
-                        Label { text: qsTr("Color source"); font.bold: true }
+                        Label { text: qsTr("Color source"); font.bold: true; color: "#FFFFFF"; }
                         ComboBox {
                             id: paletteMode
                             model: [
@@ -124,9 +124,9 @@ Item {
                     RowLayout {
                         Layout.fillWidth: true
 
-                        Label { text: qsTr("Analysis:"); font.bold: true }
-                        Label { text: qsTr("Group %1").arg(audioController.beatGroup) }
-                        Label { text: qsTr("%1 bpm").arg(audioController.bpm) }
+                        Label { text: qsTr("Analysis:"); font.bold: true; color: "#FFFFFF"; }
+                        Label { text: qsTr("Group %1").arg(audioController.beatGroup); color: "#FFFFFF"; }
+                        Label { text: qsTr("%1 bpm").arg(audioController.bpm); color: "#FFFFFF"; }
                         Label {
                             text: qsTr("%1 ms").arg(audioController.meanBeatIntervalMs.toFixed(1))
                         }
@@ -138,7 +138,7 @@ Item {
 
                         Item { Layout.fillWidth: true }
 
-                        Label { text: qsTr("FFT visualization"); font.bold: true }
+                        Label { text: qsTr("FFT visualization"); font.bold: true; color: "#FFFFFF"; }
                         ComboBox {
                             model: [qsTr("Exponential mean"), qsTr("Mean"), qsTr("Variance")]
                             currentIndex: visualizationMode
@@ -209,7 +209,7 @@ Item {
                             onActivated: audioController.ledMode = currentIndex
                         }
 
-                        Label { text: qsTr("Modifiers:"); font.bold: true }
+                        Label { text: qsTr("Modifiers:"); font.bold: true; color: "#FFFFFF"; }
                         Repeater {
                             model: [
                                 qsTr("Fadeout after peak"), qsTr("No color delay"),
@@ -230,9 +230,27 @@ Item {
                     RowLayout {
                         Layout.fillWidth: true
 
-                        Label { text: qsTr("Auto mode:"); font.bold: true }
-                        CheckBox { id: automaticColor; text: qsTr("Color") }
-                        CheckBox { id: automaticEffects; text: qsTr("Effect") }
+                        Label { text: qsTr("Auto mode:"); font.bold: true; color: "#FFFFFF"; }
+                        CheckBox {
+                            id: automaticColor
+                            text: qsTr("Color")
+                            contentItem: Text {
+                                text: automaticColor.text
+                                font: automaticColor.font
+                                color: "#FFFFFF"
+                                leftPadding: automaticColor.indicator.width + automaticColor.spacing
+                            }
+                        }
+                        CheckBox {
+                            id: automaticEffects;
+                            text: qsTr("Effect")
+                            contentItem: Text {
+                                text: automaticEffects.text
+                                font: automaticEffects.font
+                                color: "#FFFFFF"
+                                leftPadding: automaticEffects.indicator.width + automaticEffects.spacing
+                            }
+                        }
                         CheckBox { id: automaticComposition; text: qsTr("Composition") }
 
                         Item { Layout.fillWidth: true }

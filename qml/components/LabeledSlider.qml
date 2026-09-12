@@ -21,6 +21,7 @@ RowLayout {
     Label {
         id: label
         Layout.preferredWidth: 90
+        color: "#FFFFFF"
         font.bold: true
     }
 

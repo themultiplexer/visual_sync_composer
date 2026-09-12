@@ -47,7 +47,7 @@ struct Vertex2D {
 class OGLWidget : public QQuickFramebufferObject
 {
     Q_OBJECT
-    //QML_ELEMENT
+    QML_ELEMENT
 
 public:
     OGLWidget(QQuickItem *parent = nullptr);

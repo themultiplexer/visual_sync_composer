@@ -45,8 +45,6 @@ else()
   pkg_check_modules(FFTW3 REQUIRED fftw3f)
 endif()
 
-
-
 file(GLOB PROJECT_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ui/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ui/*.h
@@ -56,8 +54,6 @@ file(GLOB PROJECT_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp
 )
 
-list(FILTER PROJECT_SOURCES EXCLUDE REGEX "src/ui/oglwidget.*")
-
 qt_add_executable(VisualSyncComposer
     MACOSX_BUNDLE
     MANUAL_FINALIZATION
@@ -65,8 +61,10 @@ qt_add_executable(VisualSyncComposer
     ${app_icon_macos}
 )
 
-qt_add_qml_module(VisualSyncComposer
-    URI vsc
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/)
+
+qt_add_qml_module(VisualSyncComposerQml
+    URI visual_sync_composer
     QML_FILES
         qml/Main.qml
         qml/Dev.qml
@@ -75,9 +73,9 @@ qt_add_qml_module(VisualSyncComposer
         qml/components/PresetGrid.qml
         qml/components/SpectrumView.qml
         qml/components/TubeCard.qml
-    SOURCES
-        src/ui/oglwidget.h
-        src/ui/oglwidget.cpp
+#    SOURCES
+#        src/ui/oglwidget.h
+#        src/ui/oglwidget.cpp
 )
 
 add_subdirectory(src/f1_driver)
@@ -85,7 +83,7 @@ add_subdirectory(src/f1_driver)
 add_compile_definitions(GLM_ENABLE_EXPERIMENTAL)
 add_compile_definitions(MIDI_CONTROLLER)
 
-include_directories(${CMAKE_SOURCE_DIR}/src/ ${FREETYPE_INCLUDE_DIRS} ${AVAHI_INCLUDE_DIRS} ${RTMIDI_INCLUDE_DIRS} ${FFTW3_INCLUDE_DIRS})
+target_include_directories(VisualSyncComposer PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src/ ${FREETYPE_INCLUDE_DIRS} ${AVAHI_INCLUDE_DIRS} ${RTMIDI_INCLUDE_DIRS} ${FFTW3_INCLUDE_DIRS} PRIVATE VisualSyncComposerQml)
 
 target_link_libraries(VisualSyncComposer PRIVATE
     f1_driver

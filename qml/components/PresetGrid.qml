@@ -42,6 +42,7 @@ GridLayout {
             Label {
                 anchors.fill: parent
                 anchors.margins: 5
+                color: "#FFFFFF"
                 horizontalAlignment: Text.AlignHCenter
                 verticalAlignment: Text.AlignVCenter
                 wrapMode: Text.Wrap
