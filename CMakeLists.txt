@@ -69,6 +69,7 @@ qt_add_qml_module(VisualSyncComposer
     URI vsc
     QML_FILES
         qml/Main.qml
+        qml/Dev.qml
         qml/components/LabeledSlider.qml
         qml/components/PaletteKnob.qml
         qml/components/PresetGrid.qml
