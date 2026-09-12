@@ -54,15 +54,6 @@ file(GLOB PROJECT_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp
 )
 
-qt_add_executable(VisualSyncComposer
-    MACOSX_BUNDLE
-    MANUAL_FINALIZATION
-    ${PROJECT_SOURCES}
-    ${app_icon_macos}
-)
-
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/)
-
 qt_add_qml_module(VisualSyncComposerQml
     URI visual_sync_composer
     QML_FILES
@@ -73,17 +64,41 @@ qt_add_qml_module(VisualSyncComposerQml
         qml/components/PresetGrid.qml
         qml/components/SpectrumView.qml
         qml/components/TubeCard.qml
+    OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/visual_sync_composer"
 #    SOURCES
 #        src/ui/oglwidget.h
 #        src/ui/oglwidget.cpp
 )
+
+qt_add_executable(VisualSyncComposer
+    MACOSX_BUNDLE
+    MANUAL_FINALIZATION
+    ${PROJECT_SOURCES}
+    ${app_icon_macos}
+)
+
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/)
+
+
+
+qt_query_qml_module(VisualSyncComposerQml
+    URI module_uri
+    TARGET_PATH module_target_path
+    MODULE_RESOURCE_PATH module_resource_path
+    QMLDIR module_qmldir
+)
+
+message(STATUS "QML URI: ${module_uri}")
+message(STATUS "QML target path: ${module_target_path}")
+message(STATUS "QML resource path: ${module_resource_path}")
+message(STATUS "QML qmldir: ${module_qmldir}")
 
 add_subdirectory(src/f1_driver)
 
 add_compile_definitions(GLM_ENABLE_EXPERIMENTAL)
 add_compile_definitions(MIDI_CONTROLLER)
 
-target_include_directories(VisualSyncComposer PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src/ ${FREETYPE_INCLUDE_DIRS} ${AVAHI_INCLUDE_DIRS} ${RTMIDI_INCLUDE_DIRS} ${FFTW3_INCLUDE_DIRS} PRIVATE VisualSyncComposerQml)
+target_include_directories(VisualSyncComposer PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src/ ${FREETYPE_INCLUDE_DIRS} ${AVAHI_INCLUDE_DIRS} ${RTMIDI_INCLUDE_DIRS} ${FFTW3_INCLUDE_DIRS})
 
 target_link_libraries(VisualSyncComposer PRIVATE
     f1_driver
@@ -104,6 +119,7 @@ target_link_libraries(VisualSyncComposer PRIVATE
     nlohmann_json::nlohmann_json
     OpenSSL::SSL
     OpenSSL::Crypto
+    VisualSyncComposerQml
 )
 
 set_target_properties(VisualSyncComposer PROPERTIES
