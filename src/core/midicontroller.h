@@ -1,4 +1,3 @@
-#ifdef MIDI_CONTROLLER
 #ifndef MIDIRECEIVER_H
 #define MIDIRECEIVER_H
 
@@ -36,4 +35,3 @@ private:
 };
 
 #endif // MIDIRECEIVER_H
-#endif

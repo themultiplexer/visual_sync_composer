@@ -1,6 +1,4 @@
 #include "core/audioanalyzer.h"
-#include "core/onsetsds.h"
-#include "core/onsetsdshelpers.h"
 
 #include <pulse/pulseaudio.h>
 
@@ -8,18 +6,6 @@
 AudioAnalyzer::AudioAnalyzer(): stereo(false), useFilterOutput(false), filter(new audiofilter()) {
     cfg = kiss_fft_alloc(FRAMES, 0, NULL, NULL);
     adc = new RtAudio(RtAudio::Api::LINUX_PULSE);
-
-    // There are various types of onset detector available, we must choose one
-    int odftype = ODS_ODF_POWER;
-
-    // Allocate contiguous memory using malloc or whatever is reasonable.
-    float* odsdata = (float*) malloc( onsetsds_memneeded(odftype, 2048, 4) );
-
-    // Now initialise the OnsetsDS struct and its associated memory
-    onsetsds_init(&ods, odsdata, ODS_FFT_FFTW3_R2C, odftype, 2048, 4, 48000.f);
-
-    odsbuf = new OnsetsDSAudioBuf();
-    onsetsds_init_audiodata(odsbuf, &ods, 0);
 }
 
 void AudioAnalyzer::setInputVolume(int percent)

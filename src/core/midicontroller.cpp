@@ -1,5 +1,3 @@
-#ifdef MIDI_CONTROLLER
-
 #include "midicontroller.h"
 #include <chrono>
 #include <iostream>
@@ -135,5 +133,3 @@ MidiController::~MidiController()
 {
     delete midiin;
 }
-
-#endif

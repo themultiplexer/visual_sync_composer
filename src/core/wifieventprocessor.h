@@ -4,7 +4,7 @@
 #include "espnowsender.h"
 #include "eventprocessor.h"
 #include <QDebug>
-#include <QLabel>
+
 #include <cstdint>
 #include <random>
 
