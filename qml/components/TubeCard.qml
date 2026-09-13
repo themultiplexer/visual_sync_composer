@@ -15,8 +15,6 @@ Frame {
 
     property color peakColor: "transparent"
 
-    implicitWidth: 130
-
     function flash(color) {
         peakColor = color
         peakAnimation.restart()
@@ -48,6 +46,7 @@ Frame {
             Layout.fillWidth: true
             text: root.tube.mac
             elide: Text.ElideMiddle
+            padding: 0
             color: "#FFFFFF"
             font.bold: true
         }
@@ -58,6 +57,7 @@ Frame {
             from: 0
             to: 255
             value: root.tube.delay
+            padding: 0
             editable: true
             onValueModified: root.changed(value, groupBox.value)
         }
@@ -68,23 +68,29 @@ Frame {
             from: 0
             to: 32
             value: root.tube.group
+            padding: 0
             editable: true
             onValueModified: root.changed(delayBox.value, value)
         }
 
         RowLayout {
+            width: 50
+            height: 50
             Button {
                 text: "◀"
                 enabled: root.tubeIndex > 0
                 onClicked: root.moveRequested(-1)
+                padding: 0
             }
             Button {
                 Layout.fillWidth: true
                 text: qsTr("Peak")
+                padding: 0
                 onClicked: root.peakRequested()
             }
             Button {
                 text: "▶"
+                padding: 0
                 onClicked: root.moveRequested(1)
             }
         }

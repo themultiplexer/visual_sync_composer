@@ -1,5 +1,4 @@
 #include "ogltest.h"
-#include "oglrenderer.h"
 #include "ui/oglwidget.h"
 #include <qdebug.h>
 

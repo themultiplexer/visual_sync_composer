@@ -1,5 +1,3 @@
-#include <QWidget>
-#include <QOpenGLWidget>
 #include <QMouseEvent>
 #include <QOpenGLContext>
 #include <QOpenGLExtraFunctions>

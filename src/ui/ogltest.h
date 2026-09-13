@@ -7,7 +7,6 @@
 
 class OGLTest : public QQuickFramebufferObject
 {
-    Q_OBJECT
     QML_ELEMENT
 public:
     explicit OGLTest(QQuickItem *parent = nullptr);

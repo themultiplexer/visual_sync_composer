@@ -1,5 +1,5 @@
 import QtQuick
-import visual_sync_composer 1.0
+import visual_sync_composer
 
 Item {
     id: root

@@ -5,14 +5,8 @@
 #define PROGRAM_VERTEX_ATTRIBUTE 0
 
 
-KnobWidget::KnobWidget(QWidget *parent)
-    : QOpenGLWidget(parent), outerPercentage(0.5f), innerPercentage(1.0f), color(255, 0, 0), shiftPressed(false)
+KnobWidget::KnobWidget() : outerPercentage(0.5f), innerPercentage(1.0f), color(255, 0, 0), shiftPressed(false)
 {
-
-    setMouseTracking(true);
-    installEventFilter(this);
-    setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Expanding);
-
     timeZero = std::chrono::system_clock::now();
 }
 
@@ -23,7 +17,6 @@ KnobWidget::~KnobWidget()
 
 void KnobWidget::initializeGL()
 {
-    initializeOpenGLFunctions();
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -31,7 +24,7 @@ void KnobWidget::initializeGL()
     glClearColor(0,0,0,0);
 
     // Create and compile the vertex shader using a raw string literal.
-    QOpenGLShader *vshader = new QOpenGLShader(QOpenGLShader::Vertex, this);
+    QOpenGLShader *vshader = new QOpenGLShader(QOpenGLShader::Vertex);
     const char *vsrc = R"(
             #version 330 core
             layout (location = 0) in vec2 vertex;
@@ -45,7 +38,7 @@ void KnobWidget::initializeGL()
     vshader->compileSourceCode(vsrc);
 
     // Create and compile the fragment shader.
-    QOpenGLShader *fshader = new QOpenGLShader(QOpenGLShader::Fragment, this);
+    QOpenGLShader *fshader = new QOpenGLShader(QOpenGLShader::Fragment);
     const char *fsrc = R"(
             #version 330 core
             in vec2 pos;
@@ -115,7 +108,7 @@ void KnobWidget::initializeGL()
         )";
     fshader->compileSourceCode(fsrc);
 
-    program = new QOpenGLShaderProgram(this);
+    program = new QOpenGLShaderProgram();
     program->addShader(vshader);
     program->addShader(fshader);
     program->link();
@@ -141,7 +134,7 @@ void KnobWidget::initializeGL()
     vao.release();
     program->release();
 }
-
+/*
 void KnobWidget::mousePressEvent(QMouseEvent *event)
 {
     if (event->button() == Qt::LeftButton) {
@@ -168,6 +161,7 @@ void KnobWidget::wheelEvent(QWheelEvent *event)
     distance += numSteps;
     update();
 }
+*/
 
 QColor KnobWidget::getColor() const
 {
@@ -210,13 +204,13 @@ void KnobWidget::setInnerPercentage(float newPercentage)
     update();
 }
 
-void KnobWidget::paintGL()
+void KnobWidget::render()
 {
     glClear(GL_COLOR_BUFFER_BIT); 
     auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - timeZero).count();
     program->bind();
     program->setUniformValue("iTime", ((float)ms / 1000.0f));
-    program->setUniformValue("iResolution", QVector2D(width(), height()));
+    program->setUniformValue("iResolution", QVector2D(50, 50));
     program->setUniformValue("per1", outerPercentage);
     program->setUniformValue("per2", innerPercentage);
     program->setUniformValue("knobColor", QVector3D(color.red() / 255.0, color.green() / 255.0, color.blue() / 255.0));

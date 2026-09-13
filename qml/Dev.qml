@@ -119,10 +119,7 @@ Item {
                                     audioController.selectBuiltInPalette(currentIndex - 4)
                             }
                         }
-                    }
 
-                    RowLayout {
-                        Layout.fillWidth: true
 
                         Label { text: qsTr("Analysis:"); font.bold: true; color: "#FFFFFF"; }
                         Label { text: qsTr("Group %1").arg(audioController.beatGroup); color: "#FFFFFF"; }
@@ -154,7 +151,7 @@ Item {
 
                 ColumnLayout {
                     Layout.preferredWidth: 80
-                    Label { text: qsTr("Decay"); Layout.alignment: Qt.AlignHCenter }
+                    Label { text: qsTr("Decay"); Layout.alignment: Qt.AlignHCenter; color: "#FFFFFF"; }
                     Slider {
                         Layout.fillHeight: true
                         orientation: Qt.Vertical
@@ -174,7 +171,7 @@ Item {
 
                 ColumnLayout {
                     Layout.preferredWidth: 80
-                    Label { text: qsTr("Volume"); Layout.alignment: Qt.AlignHCenter }
+                    Label { text: qsTr("Volume"); Layout.alignment: Qt.AlignHCenter; color: "#FFFFFF"; }
                     Slider {
                         Layout.fillHeight: true
                         orientation: Qt.Vertical
@@ -211,11 +208,18 @@ Item {
                                 "7", "8"
                             ]
                             delegate: CheckBox {
+                                id: cb
                                 required property int index
                                 required property string modelData
                                 text: modelData
                                 checked: Boolean(audioController.modifiers[index])
                                 onClicked: audioController.setModifier(index, checked)
+                                contentItem: Text {
+                                    text: cb.text
+                                    font: cb.font
+                                    color: "#FFFFFF"
+                                    leftPadding: cb.indicator.width + cb.spacing
+                                }
                             }
                         }
                     }
@@ -248,7 +252,7 @@ Item {
 
                         Item { Layout.fillWidth: true }
 
-                        Label { text: qsTr("Lock:"); font.bold: true }
+                        Label { text: qsTr("Lock:"); font.bold: true; color: "#FFFFFF"; }
                         CheckBox { id: compositionLock; text: qsTr("Composition") }
                     }
                 }
@@ -354,7 +358,7 @@ Item {
                     Layout.alignment: Qt.AlignTop
                     ColumnLayout {
                         anchors.fill: parent
-                        Label { text: qsTr("Fixture group"); font.bold: true }
+                        Label { text: qsTr("Fixture group"); font.bold: true; color: "#FFFFFF"; }
                         PresetGrid {
                             presets: audioController.fixturePresets
                             activeIndex: audioController.activeFixtureGroup
@@ -373,22 +377,7 @@ Item {
                     ColumnLayout {
                         anchors.fill: parent
 
-                        RowLayout {
-                            Repeater {
-                                model: Math.min(4, audioController.palette.length)
-                                PaletteKnob {
-                                    required property int index
-                                    readonly property var entry: audioController.palette[index]
-                                    hue: entry.hue
-                                    saturation: entry.saturation
-                                    onEdited: function(hue, saturation) {
-                                        audioController.setPaletteEntry(index, hue, saturation)
-                                    }
-                                }
-                            }
-                        }
-
-                        Label { text: qsTr("Tube coordination"); font.bold: true }
+                        Label { text: qsTr("Tube coordination"); font.bold: true; color: "#FFFFFF"; }
                         PresetGrid {
                             presets: audioController.tubePresets
                             activeIndex: audioController.activeTubePreset

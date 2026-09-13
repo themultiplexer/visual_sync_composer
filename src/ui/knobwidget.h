@@ -7,8 +7,6 @@
 #include <GL/gl.h>
 #endif
 
-#include <QWidget>
-#include <QOpenGLWidget>
 #include <QMouseEvent>
 #include <QOpenGLContext>
 #include <QOpenGLExtraFunctions>
@@ -18,13 +16,14 @@
 #include <QOpenGLBuffer>
 #include <QOpenGLFunctions>
 
+#include <QQuickFramebufferObject>
 
-class KnobWidget : public QOpenGLWidget, protected QOpenGLFunctions
+#include <QtQml/qqmlregistration.h>
+
+class KnobWidget : public QQuickFramebufferObject::Renderer
 {
-    Q_OBJECT
-
 public:
-    KnobWidget(QWidget *parent = 0);
+    KnobWidget();
     ~KnobWidget();
 
     void setFrequencies(const std::vector<float> &newFrequencies, bool peak, float level);
@@ -41,12 +40,8 @@ signals:
     void verticalMouseMovement(float diff);
 
 protected:
-    void initializeGL() override;
-    void paintGL() override;
-
-    void mousePressEvent(QMouseEvent *event) override;
-    void mouseMoveEvent(QMouseEvent *event) override;
-    void wheelEvent(QWheelEvent *event) override;
+    void initializeGL();
+    void render() override;
 
     QOpenGLShaderProgram *program;
     QOpenGLVertexArrayObject vao, vao1;

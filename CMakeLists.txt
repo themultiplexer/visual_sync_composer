@@ -69,14 +69,13 @@ qt_add_qml_module(VisualSyncComposerQml
         qml/Main.qml
         qml/Dev.qml
         qml/components/LabeledSlider.qml
-        qml/components/PaletteKnob.qml
         qml/components/PresetGrid.qml
         qml/components/SpectrumView.qml
         qml/components/TubeCard.qml
     OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/visual_sync_composer"
-#    SOURCES
-#        src/ui/ogltest.h
-#        src/ui/ogltest.cpp
+    SOURCES
+        src/ui/ogltest.h
+        src/ui/ogltest.cpp
     DEPENDENCIES
         QtQuick
 )
