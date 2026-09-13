@@ -2,20 +2,20 @@
 #include "oglrenderer.h"
 #include "qdebug.h"
 #include "qtimer.h"
+#include "core/frequencyregion.h"
+#include "ui/glfrequencyregion.h"
+#include "ui/ogltest.h"
 #include <cmath>
 #include <QOpenGLDebugLogger>
 #include <iostream>
-
+#include <QOpenGLFramebufferObject>
+#include <QOpenGLFramebufferObjectFormat>
 
 #define PROGRAM_VERTEX_ATTRIBUTE 0
 
-OGLWidget::OGLWidget(): step(10), decay(0.02), regions(), currentRegionIndex(0)
+OGLWidget::OGLWidget(): step(10), visMode(VisMode::ExpMean), decay(0.02), regions(), currentRegionIndex(0)
 {
-    regions.push_back(new FrequencyRegion(1, 1, 10, NUM_POINTS, "low"));
-    regions.push_back(new FrequencyRegion(2, 250, 325, NUM_POINTS, "high"));
-    regions.push_back(new FrequencyRegion(3, 50, 150, NUM_POINTS, "melody"));
 
-    
 }
 
 OGLWidget::~OGLWidget()
@@ -37,21 +37,29 @@ void OGLWidget::cleanupGL() {
     }
 }
 
-float OGLWidget::getThresh() {
-    return regions[0]->getThresh();
-}
-
-void OGLWidget::setThresh(float newThresh) {
-    return regions[0]->setThresh(newThresh);
-}
-
-void OGLWidget::processData(const std::function<void (FrequencyRegion&)>& callback)
+void OGLWidget::synchronize(QQuickFramebufferObject *item)
 {
-    for (auto& reg : regions) {
-        if (reg->processData(smoothFrequencies)) {
-            callback(*reg);
-        }
+    auto *ogl = static_cast<OGLTest *>(item);
+
+    m_spectrum = ogl->m_spectrum;
+    if (m_spectrum.size() > 0) {
+        auto l = std::vector<float>(m_spectrum.constBegin(), m_spectrum.constEnd());
+        setFrequencies(l, l);
     }
+
+    if (ogl->m_regions.size() > 0) {
+        std::vector<GLFrequencyRegion *> rgs;
+        for (FrequencyRegion *region : ogl->m_regions) {
+            rgs.push_back(new GLFrequencyRegion(region, NUM_POINTS));
+        }
+        setRegions(rgs);
+    }
+}
+
+void OGLWidget::updateGL(QQuickFramebufferObject* fbo)
+{
+    synchronize(fbo);
+    update();
 }
 
 void OGLWidget::initializeGL()
@@ -98,7 +106,7 @@ void OGLWidget::initializeGL()
             int ongrid = int(mx > 0.002 && mx < 0.004);
             vec4 gridcolor = ongrid * vec4(vec3(0.2), 1.0);
             FragColor = gridcolor;
-            for (int i = 0; i < 3; i++) {
+            for (int i = 0; i < 2; i++) {
                 int ind = i * 6;
                 float start = regions[ind + 0];
                 float end = regions[ind + 1];
@@ -152,7 +160,8 @@ void OGLWidget::initializeGL()
             gl_Position = vec4(p, 0.0, 1.0);
         }
     )";
-    lineVShader->compileSourceCode(lineVSrc);
+    if (!lineVShader->compileSourceCode(lineVSrc))
+        qDebug() << "Line VS:" << lineVShader->log();
 
     // Create and compile the fragment shader.
     QOpenGLShader *lineFShader = new QOpenGLShader(QOpenGLShader::Fragment);
@@ -166,12 +175,14 @@ void OGLWidget::initializeGL()
             FragColor = col;
         }
     )";
-    lineFShader->compileSourceCode(lineFSrc);
+    if (!lineFShader->compileSourceCode(lineFSrc))
+        qDebug() << "Line FS:" << lineFShader->log();
 
     lineShaderProgram = new QOpenGLShaderProgram();
     lineShaderProgram->addShader(lineVShader);
     lineShaderProgram->addShader(lineFShader);
-    lineShaderProgram->link();
+    if (!lineShaderProgram->link())
+        qDebug() << "Line link:" << lineShaderProgram->log();
 
     lineVao.create();
     lineVao.bind();
@@ -222,6 +233,22 @@ void OGLWidget::render()
 {
     glClear(GL_COLOR_BUFFER_BIT); 
 
+    regionShaderProgram->bind();
+    std::vector<GLfloat> test;
+    for (auto reg : regions) {
+        test.push_back(-1.0 + 2 * reg->region->getStart());
+        test.push_back(-1.0 + 2 * reg->region->getEnd());
+        test.push_back(reg->region->getLevel());
+        test.push_back(reg->region->getThresh());
+        test.push_back(reg->region->getPeak());
+        test.push_back(static_cast<GLfloat>(reg->region->getColor()));
+    }
+    regionShaderProgram->setUniformValueArray("regions", test.data(), test.size() * 6, 1);
+    vao.bind();
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+    vao.release();
+    regionShaderProgram->release();
+
     lineVertexPositionBuffer.bind();
     lineVertexPositionBuffer.allocate(lineVertices.data(), lineVertices.size() * sizeof(Vertex2D));
     lineVertexPositionBuffer.release();
@@ -241,30 +268,14 @@ void OGLWidget::render()
     glDrawArrays(GL_TRIANGLES, 0, lineVertices2.size());
     lineVao.release();
     lineShaderProgram->release();
-
-    regionShaderProgram->bind();
-    std::vector<GLfloat> test;
-    for (auto reg : regions) {
-        test.push_back(-1.0 + 2 * reg->getStart());
-        test.push_back(-1.0 + 2 * reg->getEnd());
-        test.push_back(reg->getLevel());
-        test.push_back(reg->getThresh());
-        test.push_back(reg->getPeak());
-        test.push_back(static_cast<GLfloat>(reg->getColor()));
-    }
-    regionShaderProgram->setUniformValueArray("regions", test.data(), test.size() * 6, 1);
-    vao.bind();
-    glDrawArrays(GL_TRIANGLES, 0, 6);
-    vao.release();
-    regionShaderProgram->release();
 }
 
-std::vector<FrequencyRegion*> OGLWidget::getRegions() const
+std::vector<GLFrequencyRegion*> OGLWidget::getRegions() const
 {
     return regions;
 }
 
-void OGLWidget::setRegions(std::vector<FrequencyRegion*> newRegions)
+void OGLWidget::setRegions(std::vector<GLFrequencyRegion*> newRegions)
 {
     regions = newRegions;
 }
@@ -305,50 +316,6 @@ std::vector<Vertex2D> OGLWidget::generatePolylineQuads(const std::vector<Vertex2
 
     return vertices;
 }
-
-/*
-bool OGLWidget::eventFilter(QObject *obj, QEvent *event) {
-    auto mouseEvent = dynamic_cast<QMouseEvent *>(event);
-    if (mouseEvent != nullptr) {
-        float x = ((float)mouseEvent->pos().x() / (float)width());
-        float y = ((float)mouseEvent->pos().y() / (float)height());
-
-        FrequencyRegion* active = regions[mouseEvent->modifiers() == Qt::ControlModifier];
-
-        for (auto& reg : regions) {
-            reg->mouseEvent(x, y);
-
-            if (reg->getNewInside()) {
-                //setCursor(Qt::OpenHandCursor);
-                if (reg->getNewOnLine()) {
-                    if (!reg->getDragging()) {
-                        setCursor(Qt::SizeVerCursor);
-                    }
-                } else if (reg->getNewOnStart() || reg->getNewOnEnd()) {
-                    setCursor(Qt::SizeHorCursor);
-                } else {
-                    setCursor(Qt::ArrowCursor);
-                }
-                active = reg;
-                emit rangeChanged();
-                if (event->type() != QEvent::MouseButtonPress && event->type() != QEvent::MouseButtonRelease) {
-                    return true;
-                }
-            } else {
-                //setCursor(Qt::ArrowCursor);
-            }
-        }
-
-        if (mouseEvent->button() == Qt::LeftButton) {
-            if (event->type() == QEvent::MouseButtonPress) {
-                active->mouseClick(x, y);
-            } else if (event->type() == QEvent::MouseButtonRelease) {
-                active->mouseReleased(x, y);
-            }
-        }
-    }
-    return false;
-}*/
 
 VisMode OGLWidget::getVisMode() const
 {
@@ -415,6 +382,16 @@ void OGLWidget::setFrequencies(const std::vector<float> &leftFrequencies, const 
     lineVertices2 = generatePolylineQuads(path2, width);
 
     update();
+}
+
+
+QOpenGLFramebufferObject *OGLWidget::createFramebufferObject(const QSize &size)
+{
+    QOpenGLFramebufferObjectFormat format;
+    format.setAttachment(QOpenGLFramebufferObject::CombinedDepthStencil);
+    format.setSamples(4);
+
+    return new QOpenGLFramebufferObject(size, format);
 }
 
 void OGLWidget::resizeGL(int w, int h)

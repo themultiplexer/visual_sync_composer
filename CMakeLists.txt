@@ -76,6 +76,7 @@ qt_add_qml_module(VisualSyncComposerQml
     SOURCES
         src/ui/ogltest.h
         src/ui/ogltest.cpp
+        src/core/frequencyregion.cpp
     DEPENDENCIES
         QtQuick
 )

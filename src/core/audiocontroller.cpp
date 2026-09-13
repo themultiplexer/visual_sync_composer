@@ -13,6 +13,7 @@
 #include "core/tubepresetmodel.h"
 #include "core/wifiadapter.h"
 #include "core/wifieventprocessor.h"
+#include "core/frequencyregion.h"
 
 #include <QFileInfo>
 #include <QVariantMap>
@@ -124,6 +125,12 @@ AudioController::AudioController(WifiEventProcessor *eventProcessor, QObject *pa
         {0.0F, 0.0F}, {0.0F, 1.0F}, {0.0F, 0.0F}
     }};
 
+    m_frequencyRegions.push_back(new FrequencyRegion(1, 0.01, 0.05, 1024,"low"));
+    m_frequencyRegions.push_back(new FrequencyRegion(2, 0.6, 0.7, 1024,"hi"));
+    //m_frequencyRegions.push_back(new FrequencyRegion(3, 0.3, 0.5, 1024, "mid"));
+
+    m_regions = getRegions();
+
     rebuildEffectNames();
     loadPersistentState();
 }
@@ -184,6 +191,11 @@ int AudioController::colorSelectionMode() const noexcept
 int AudioController::colorControlMode() const noexcept
 {
     return static_cast<int>(m_colorControl);
+}
+
+std::vector<EffectPresetModel *> AudioController::getEffectPresets() const
+{
+    return m_effectPresetModels;
 }
 
 QVariantList AudioController::effectPresets() const
@@ -585,15 +597,6 @@ void AudioController::triggerPeak(int region, int tubeIndex, bool chooseNewColor
     }
 }
 
-void AudioController::reportDetectedBeat(int region, double intervalMs)
-{
-    if (region < 0 || region >= 3 || !m_controlSurface->isCaptureToggled())
-        return;
-
-    triggerPeak(region);
-    updateBeatStatistics(intervalMs);
-}
-
 void AudioController::processAutomaticModes(bool automaticEffects,
                                             bool automaticComposition)
 {
@@ -818,11 +821,16 @@ void AudioController::processAudioFrame()
     m_leftSpectrum.reserve(spectrumSize);
     m_rightSpectrum.reserve(spectrumSize);
 
+    std::array<float, 1024> arr;
+
     for (int index = 0; index < spectrumSize; ++index) {
         const double frequencyWeight = std::log10(
             (double(index) / double(spectrumSize)) * 5.0 + 1.01);
         left[index] = std::log10(left[index] * frequencyWeight * 2.0 + 1.01);
         right[index] = std::log10(right[index] * frequencyWeight * 2.0 + 1.01);
+
+        arr[index] = left[index];
+
         m_leftSpectrum.push_back(left[index]);
         m_rightSpectrum.push_back(right[index]);
     }
@@ -837,7 +845,14 @@ void AudioController::processAudioFrame()
         emit paletteChanged();
     }
 
-    detectSpectrumBeats();
+    processData(arr, [this](FrequencyRegion &region){
+        if (m_controlSurface->isCaptureToggled()) {
+            //TODO update statistics with tapper
+            //updateBeatStatistics(intervalMs));
+            triggerPeak(region.getIndex());
+        }
+    });
+
     emit spectrumChanged();
 }
 
@@ -848,6 +863,17 @@ void AudioController::updateConnectionStatus()
         return;
     m_online = current;
     emit onlineChanged();
+}
+
+QVariantList AudioController::getRegions() const {
+    QVariantList result;
+    result.reserve(m_frequencyRegions.size());
+
+    for (FrequencyRegion *region : m_frequencyRegions) {
+        result.append(QVariant::fromValue(static_cast<QObject *>(region)));
+    }
+
+    return result;
 }
 
 void AudioController::sendPendingConfiguration()
@@ -910,47 +936,17 @@ void AudioController::scheduleConfigurationSend()
 
 void AudioController::refreshControlSurface()
 {
+    qDebug() << "updateMatrix";
     m_controlSurface->updateMatrix();
+    qDebug() << "done updateMatrix";
 }
 
-void AudioController::detectSpectrumBeats()
+void AudioController::processData(std::array<float, 1024> &data, const std::function<void (FrequencyRegion&)>& callback)
 {
-    if (m_leftSpectrum.isEmpty() || !m_controlSurface->isCaptureToggled())
-        return;
-
-    static constexpr std::array<double, 4> regionLimits{0.0, 0.08, 0.25, 1.0};
-    const auto now = std::chrono::steady_clock::now();
-
-    for (int region = 0; region < 3; ++region) {
-        const qsizetype begin = qsizetype(
-            regionLimits[region] * double(m_leftSpectrum.size()));
-        const qsizetype end = std::max<qsizetype>(
-            begin + 1,
-            qsizetype(regionLimits[region + 1] * double(m_leftSpectrum.size())));
-
-        double level = 0.0;
-        for (qsizetype index = begin;
-             index < std::min(end, m_leftSpectrum.size()); ++index) {
-            level = std::max(level, m_leftSpectrum[index].toDouble());
+    for (auto& reg : m_frequencyRegions) {
+        if (reg->processData(data)) {
+            callback(*reg);
         }
-
-        m_regionEnvelopes[region] = std::max(
-            level, m_regionEnvelopes[region] - m_spectrumDecay);
-        const bool above = m_regionEnvelopes[region] >= m_sensitivity;
-
-        const auto sinceLast = std::chrono::duration_cast<std::chrono::milliseconds>(
-            now - m_lastRegionBeat[region]);
-        if (above && !m_regionAboveThreshold[region]
-            && (m_lastRegionBeat[region].time_since_epoch().count() == 0
-                || sinceLast.count() > 120)) {
-            const double interval = m_lastRegionBeat[region].time_since_epoch().count() == 0
-                ? 0.0 : double(sinceLast.count());
-            m_lastRegionBeat[region] = now;
-            triggerPeak(region);
-            updateBeatStatistics(interval);
-        }
-
-        m_regionAboveThreshold[region] = above;
     }
 }
 

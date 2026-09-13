@@ -64,10 +64,10 @@ Item {
                                     target: audioController
                                     function onTubePeakTriggered(tubeIndex, color, group) {
                                         if (tubeIndex === tubeCard.index)
-                                            tubeCard.flash(color)
+                                            tubeCard.flash(color, 0)
                                     }
                                     function onAllTubesPeakTriggered(color, group) {
-                                        tubeCard.flash(color)
+                                        tubeCard.flash(color, tube.delay)
                                     }
                                 }
                             }
@@ -128,9 +128,16 @@ Item {
                             text: qsTr("%1 ms").arg(audioController.meanBeatIntervalMs.toFixed(1))
                         }
                         CheckBox {
+                            id: audioFilter
                             text: qsTr("Audio filter")
                             checked: audioController.audioFilterEnabled
                             onClicked: audioController.audioFilterEnabled = checked
+                            contentItem: Text {
+                                text: audioFilter.text
+                                font: audioFilter.font
+                                color: "#FFFFFF"
+                                leftPadding: audioFilter.indicator.width + audioFilter.spacing
+                            }
                         }
 
                         Item { Layout.fillWidth: true }
@@ -151,7 +158,6 @@ Item {
 
                 ColumnLayout {
                     Layout.preferredWidth: 80
-                    Label { text: qsTr("Decay"); Layout.alignment: Qt.AlignHCenter; color: "#FFFFFF"; }
                     Slider {
                         Layout.fillHeight: true
                         orientation: Qt.Vertical
@@ -166,12 +172,23 @@ Item {
                     id: spectrum
                     Layout.fillWidth: true
                     Layout.fillHeight: true
-
+                    leftSpectrum: audioController.leftSpectrum
+                    rightSpectrum: audioController.rightSpectrum
+                    regions: audioController.regions
+                    threshold: audioController.sensitivity
+                    decay: audioController.spectrumDecay
+                    visualizationMode: visualizationMode
+                    filterLower: spectrum.filterLower
+                    filterUpper: spectrum.filterUpper
+                    onFilterRangeEdited: function(lower, upper) {
+                        spectrum.filterLower = lower
+                        spectrum.filterUpper = upper
+                        audioController.setFilterRange(lower, upper)
+                    }
                 }
 
                 ColumnLayout {
                     Layout.preferredWidth: 80
-                    Label { text: qsTr("Volume"); Layout.alignment: Qt.AlignHCenter; color: "#FFFFFF"; }
                     Slider {
                         Layout.fillHeight: true
                         orientation: Qt.Vertical
@@ -248,12 +265,26 @@ Item {
                                 leftPadding: automaticEffects.indicator.width + automaticEffects.spacing
                             }
                         }
-                        CheckBox { id: automaticComposition; text: qsTr("Composition") }
+                        CheckBox { id: automaticComposition
+                        text: qsTr("Composition")
+                                                    contentItem: Text {
+                                text: automaticComposition.text
+                                font: automaticComposition.font
+                                color: "#FFFFFF"
+                                leftPadding: automaticComposition.indicator.width + automaticComposition.spacing
+                            } }
 
                         Item { Layout.fillWidth: true }
 
                         Label { text: qsTr("Lock:"); font.bold: true; color: "#FFFFFF"; }
-                        CheckBox { id: compositionLock; text: qsTr("Composition") }
+                        CheckBox { id: compositionLock
+                        text: qsTr("Composition")
+                                                    contentItem: Text {
+                                text: compositionLock.text
+                                font: compositionLock.font
+                                color: "#FFFFFF"
+                                leftPadding: compositionLock.indicator.width + compositionLock.spacing
+                            } }
                     }
                 }
             }
@@ -335,7 +366,7 @@ Item {
                             }
                             Repeater {
                                 model: 5
-                                TabButton { required property int index; text: qsTr("Bank %1").arg(index) }
+                                TabButton { required property int index; text: qsTr("%1").arg(index) }
                             }
                         }
 
@@ -410,35 +441,6 @@ Item {
         onTriggered: audioController.processAutomaticModes(
                          automaticEffects.checked,
                          automaticComposition.checked)
-    }
-
-    Window {
-        id: fullscreenSpectrum
-        title: qsTr("Spectrum")
-        color: "black"
-
-        SpectrumView {
-            anchors.fill: parent
-            leftSpectrum: audioController.leftSpectrum
-            rightSpectrum: audioController.rightSpectrum
-            threshold: audioController.sensitivity
-            decay: audioController.spectrumDecay
-            visualizationMode: visualizationMode
-            filterLower: spectrum.filterLower
-            filterUpper: spectrum.filterUpper
-            onFilterRangeEdited: function(lower, upper) {
-                spectrum.filterLower = lower
-                spectrum.filterUpper = upper
-                audioController.setFilterRange(lower, upper)
-            }
-        }
-
-    /*
-        Shortcut {
-            sequence: StandardKey.Cancel
-            onActivated: fullscreenSpectrum.close()
-        }
-        */
     }
 
     FileDialog {

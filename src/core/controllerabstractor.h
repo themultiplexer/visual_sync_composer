@@ -48,6 +48,8 @@ private:
     bool shiftMode, colorMode, syncMode;
     float brightness;
     std::vector<int> pressedButtons;
+    std::array<std::array<std::array<float, 2>, 4>, 4> buttonColors;
+
     void drawColors();
     void drawGroups();
     void drawSyncModes();

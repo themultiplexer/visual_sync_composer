@@ -1,16 +1,12 @@
 import QtQuick
 import visual_sync_composer
 
-Item {
-    id: root
-
-    OGLTest {
-        id: widget
-        anchors.fill: parent
-    }
+OGLTest {
+    id: oglwidget
 
     property var leftSpectrum: []
     property var rightSpectrum: []
+    property var regions: []
     property real threshold: 0.8
     property real decay: 0.05
     property int visualizationMode: 0
@@ -20,9 +16,24 @@ Item {
     signal filterRangeEdited(real lower, real upper)
     signal sigtest()
 
-    implicitHeight: 180
+    onLeftSpectrumChanged: {
+        oglwidget.setSpectrum(leftSpectrum)
+        oglwidget.update()
+    }
+    onRightSpectrumChanged:  {
+        oglwidget.setSpectrum(leftSpectrum)
+        oglwidget.update()
+    }
+    onRegionsChanged:  {
+        oglwidget.setRegions(regions)
+        oglwidget.update()
+    }
 
-    onLeftSpectrumChanged: widget.requestPaint()
-    onRightSpectrumChanged: widget.requestPaint()
-   
+    Component.onCompleted: {
+        console.log("OGLTest completed:", oglwidget)
+    }
+
+    Component.onDestruction: {
+        console.log("OGLTest destroyed:", oglwidget)
+    }
 }

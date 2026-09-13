@@ -1,7 +1,8 @@
 #ifndef OGLWIDGET_H
 #define OGLWIDGET_H
 
-#include "ui/frequencyregion.h"
+#include "ui/glfrequencyregion.h"
+#include "core/frequencyregion.h"
 #include "core/runningmean.h"
 #include "core/runningvariance.h"
 #include <qqmlintegration.h>
@@ -49,24 +50,24 @@ public:
     OGLWidget();
     ~OGLWidget();
 
-    float getThresh();
-    void setThresh(float newThresh);
-    void processData(const std::function<void (FrequencyRegion &)> &callback);
     float getDecay() const;
     void setDecay(float newDecay);
-    std::vector<FrequencyRegion*> getRegions() const;
-    void setRegions(std::vector<FrequencyRegion *> newRegions);
+    std::vector<GLFrequencyRegion*> getRegions() const;
+    void setRegions(std::vector<GLFrequencyRegion *> newRegions);
     void setFrequencies(const std::vector<float> &leftFrequencies, const std::vector<float> &rightFrequencies);
 
     VisMode getVisMode() const;
     void setVisMode(VisMode newVisMode);
     void initializeGL();
+    void updateGL(QQuickFramebufferObject* fbo);
 
 signals:
     void threshChanged();
     void rangeChanged();
 
 protected:
+    QOpenGLFramebufferObject *createFramebufferObject(const QSize &size) override;
+    void synchronize(QQuickFramebufferObject *item) override;
     void resizeGL(int w, int h);
     void render() override;
 
@@ -78,10 +79,11 @@ protected:
     std::array<RunningMean<16>, 1024> runningMean1, runningMean2;
     std::array<RunningVariance<64>, 1024> runningVar1, runningVar2;
     std::array<int, 1024> recentFrequencies, recentFrequencies2;
-    std::vector<FrequencyRegion*> regions;
+    std::vector<GLFrequencyRegion*> regions;
 
     void createVBO();
 private:
+    QVector<float> m_spectrum;
     bool eventFilter(QObject *obj, QEvent *event);
     GLuint m_vbo;
     bool dragging;

@@ -9,7 +9,7 @@ class FrequencyRegion : public QObject {
 Q_OBJECT
 
 public:
-    FrequencyRegion(int index, int min, int max, int step, std::string name = "unnamed");
+    FrequencyRegion(int index, float min, float max, int step, std::string name = "unnamed");
 
     void setThresh(float newThresh);
     float getThresh() const;
@@ -23,43 +23,31 @@ public:
     int getScaledMin();
     int getScaledMax();
 
-    void mouseEvent(float x, float y);
-    void mouseClick(float x, float y);
-    void mouseReleased(float x, float y);
-
     float getColor() const;
+    int getStep() const;
     bool processData(std::array<float, 1024> &data);
+
     float getLevel() const;
     float getPeak() const;
 
-    std::chrono::time_point<std::chrono::steady_clock> getLastBeat() const;
-
     int getBeatMillis() const;
-    bool getDragging() const;
 
-    bool getHovering() const;
-    bool getNewInside() const;
-    bool getNewOnLine() const;
-    bool getNewOnStart() const;
-
-    bool getNewOnEnd() const;
     int getIndex() const;
     void setIndex(int newIndex);
 
+    std::string getName() const;
+
 signals:
     void valueChanged();
-
 
 private:
     float start, end, thresh;
     int min, max, step;
     std::string name;
-    bool mouseDown;
     int beatMillis;
     int index;
 
     std::chrono::time_point<std::chrono::steady_clock> lastBeat;
-    bool hovering, dragging, draggingStart, draggingEnd, onLine, inside, newInside, newOnLine, newOnStart, newOnEnd;
     float peak, level;
     float dx, prestart, preend, color;
 };

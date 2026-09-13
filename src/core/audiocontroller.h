@@ -12,6 +12,7 @@
 #include <chrono>
 #include <cstdint>
 #include <memory>
+#include <qcontainerfwd.h>
 #include <random>
 #include <vector>
 
@@ -23,6 +24,7 @@ class MidiController;
 class TubePresetModel;
 class WifiAdapter;
 class WifiEventProcessor;
+class FrequencyRegion;
 
 // AudioController contains application state and commands only. It deliberately
 // has no dependency on QWidget, QQuickItem, QQmlContext, or any visual object.
@@ -66,6 +68,7 @@ class AudioController final : public QObject
     Q_PROPERTY(QVariantList palette READ palette NOTIFY paletteChanged)
     Q_PROPERTY(QVariantList leftSpectrum READ leftSpectrum NOTIFY spectrumChanged)
     Q_PROPERTY(QVariantList rightSpectrum READ rightSpectrum NOTIFY spectrumChanged)
+    Q_PROPERTY(QVariantList regions READ regions NOTIFY regionsChanged)
 
 public:
     enum class GroupSelection {
@@ -123,6 +126,8 @@ public:
     int colorSelectionMode() const noexcept;
     int colorControlMode() const noexcept;
 
+    std::vector<EffectPresetModel *> getEffectPresets() const;
+
     const QStringList &effectNames() const noexcept { return m_effectNames; }
     QVariantList effectPresets() const;
     QVariantList tubePresets() const;
@@ -131,6 +136,7 @@ public:
     QVariantList palette() const;
     const QVariantList &leftSpectrum() const noexcept { return m_leftSpectrum; }
     const QVariantList &rightSpectrum() const noexcept { return m_rightSpectrum; }
+    const QVariantList &regions() const noexcept { return m_regions; }
 
 public slots:
     void start();
@@ -164,7 +170,7 @@ public slots:
     Q_INVOKABLE void triggerPeak(int region = 0,
                                  int tubeIndex = -1,
                                  bool chooseNewColor = true);
-    Q_INVOKABLE void reportDetectedBeat(int region, double intervalMs);
+
     Q_INVOKABLE void processAutomaticModes(bool automaticEffects,
                                            bool automaticComposition);
 
@@ -207,6 +213,7 @@ signals:
     void tubesChanged();
     void paletteChanged();
     void spectrumChanged();
+    void regionsChanged();
 
     // Presentation reacts to these events. The controller never calls a visual
     // object directly.
@@ -234,11 +241,13 @@ private:
     void applyCurrentConfiguration();
     void scheduleConfigurationSend();
     void refreshControlSurface();
-    void detectSpectrumBeats();
+    void processData(std::array<float, 1024> &data, const std::function<void (FrequencyRegion&)>& callback);
     void updateBeatStatistics(double intervalMs);
     HsColor choosePeakColor(int region, bool chooseNewColor);
     QColor toDisplayColor(const HsColor &color) const;
     static int boundedByte(int value);
+
+    QVariantList getRegions() const;
 
     WifiEventProcessor *m_eventProcessor = nullptr; // non-owning
     std::unique_ptr<AudioAnalyzer> m_audioAnalyzer;
@@ -247,6 +256,7 @@ private:
     std::unique_ptr<WifiAdapter> m_wifiAdapter;
 
     std::vector<EffectPresetModel *> m_effectPresetModels;
+    std::vector<FrequencyRegion *> m_frequencyRegions;
     std::vector<TubePresetModel *> m_tubePresetModels;
     std::vector<FixturePresetModel *> m_fixturePresetModels;
     std::vector<TubeState> m_tubeStates;
@@ -254,6 +264,7 @@ private:
     QStringList m_effectNames;
     QVariantList m_leftSpectrum;
     QVariantList m_rightSpectrum;
+    QVariantList m_regions;
 
     bool m_started = false;
     bool m_online = false;
