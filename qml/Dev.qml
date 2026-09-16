@@ -63,11 +63,12 @@ Item {
                                 Connections {
                                     target: audioController
                                     function onTubePeakTriggered(tubeIndex, color, group) {
-                                        if (tubeIndex === tubeCard.index)
+                                        if (tubeIndex === tubeCard.index && (group == tube.group || group == 0))
                                             tubeCard.flash(color, 0)
                                     }
                                     function onAllTubesPeakTriggered(color, group) {
-                                        tubeCard.flash(color, tube.delay)
+                                        if (group == tube.group || group == 0)
+                                            tubeCard.flash(color, tube.delay)
                                     }
                                 }
                             }
@@ -277,14 +278,16 @@ Item {
                         Item { Layout.fillWidth: true }
 
                         Label { text: qsTr("Lock:"); font.bold: true; color: "#FFFFFF"; }
-                        CheckBox { id: compositionLock
-                        text: qsTr("Composition")
-                                                    contentItem: Text {
+                        CheckBox {
+                            id: compositionLock
+                            text: qsTr("Composition")
+                                contentItem: Text {
                                 text: compositionLock.text
                                 font: compositionLock.font
                                 color: "#FFFFFF"
                                 leftPadding: compositionLock.indicator.width + compositionLock.spacing
-                            } }
+                            }
+                        }
                     }
                 }
             }
@@ -300,53 +303,66 @@ Item {
 
                     ColumnLayout {
                         anchors.fill: parent
-                        LabeledSlider {
-                            text: qsTr("Sensitivity")
-                            from: 0; to: 100
-                            value: audioController.sensitivity * 100
-                            onEdited: value => audioController.sensitivity = value / 100
+                        CheckBox {
+                                id: activeGroup
+                                text: qsTr("Composition")
+                                    contentItem: Text {
+                                    text: activeGroup.text
+                                    font: activeGroup.font
+                                    color: "#FFFFFF"
+                                    leftPadding: activeGroup.indicator.width + activeGroup.spacing
+                                }
                         }
-                        LabeledSlider {
-                            text: qsTr("Brightness")
-                            from: 0; to: 255
-                            value: audioController.brightness
-                            onEdited: value => audioController.brightness = Math.round(value)
-                        }
-                        LabeledSlider {
-                            id: saturationSlider
-                            text: qsTr("Saturation")
-                            from: 0; to: 255
-                            value: audioController.peakSaturation * 255
-                            onEdited: value => audioController.peakSaturation = value / 255
-                        }
-                        LabeledSlider {
-                            text: qsTr("Speed")
-                            from: 1; to: 255
-                            value: audioController.speed
-                            onEdited: value => audioController.speed = Math.round(value)
-                        }
-                        LabeledSlider {
-                            text: qsTr("Parameter 1")
-                            from: 1; to: 255
-                            value: audioController.parameter1
-                            onEdited: value => audioController.parameter1 = Math.round(value)
-                        }
-                        LabeledSlider {
-                            text: qsTr("Parameter 2")
-                            from: 1; to: 255
-                            value: audioController.parameter2
-                            onEdited: value => audioController.parameter2 = Math.round(value)
-                        }
-                        LabeledSlider {
-                            text: qsTr("Parameter 3")
-                            from: 1; to: 255
-                            value: audioController.parameter3
-                            onEdited: value => audioController.parameter3 = Math.round(value)
-                        }
-                        LabeledSlider {
-                            text: qsTr("Parameter 4")
-                            from: 1; to: 255
-                            value: 128
+
+                        ColumnLayout {
+                            LabeledSlider {
+                                text: qsTr("Sensitivity")
+                                from: 0; to: 100
+                                value: audioController.sensitivity * 100
+                                onEdited: value => audioController.sensitivity = value / 100
+                            }
+                            LabeledSlider {
+                                text: qsTr("Brightness")
+                                from: 0; to: 255
+                                value: audioController.brightness
+                                onEdited: value => audioController.brightness = Math.round(value)
+                            }
+                            LabeledSlider {
+                                id: saturationSlider
+                                text: qsTr("Saturation")
+                                from: 0; to: 255
+                                value: audioController.peakSaturation * 255
+                                onEdited: value => audioController.peakSaturation = value / 255
+                            }
+                            LabeledSlider {
+                                text: qsTr("Speed")
+                                from: 1; to: 255
+                                value: audioController.speed
+                                onEdited: value => audioController.speed = Math.round(value)
+                            }
+                            LabeledSlider {
+                                text: qsTr("Parameter 1")
+                                from: 1; to: 255
+                                value: audioController.parameter1
+                                onEdited: value => audioController.parameter1 = Math.round(value)
+                            }
+                            LabeledSlider {
+                                text: qsTr("Parameter 2")
+                                from: 1; to: 255
+                                value: audioController.parameter2
+                                onEdited: value => audioController.parameter2 = Math.round(value)
+                            }
+                            LabeledSlider {
+                                text: qsTr("Parameter 3")
+                                from: 1; to: 255
+                                value: audioController.parameter3
+                                onEdited: value => audioController.parameter3 = Math.round(value)
+                            }
+                            LabeledSlider {
+                                text: qsTr("Parameter 4")
+                                from: 1; to: 255
+                                value: 128
+                            }
                         }
                     }
                 }
@@ -429,6 +445,21 @@ Item {
                     text: qsTr("PEAK")
                     font.bold: true
                     onPressed: audioController.triggerPeak()
+                }
+                Frame {
+                    Layout.alignment: Qt.AlignTop
+                    ColumnLayout {
+                        anchors.fill: parent
+                        Repeater {
+                            model: 8
+                            LabeledSlider {
+                                text: qsTr("Channel %1").arg(index)
+                                from: 0; to: 100
+                                value: audioController.dmxChannels[index]
+                                onEdited: value => audioController.setDmxChannel(index, value)
+                            }
+                        }
+                    }
                 }
             }
         }

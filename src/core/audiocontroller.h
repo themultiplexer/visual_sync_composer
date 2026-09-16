@@ -69,6 +69,8 @@ class AudioController final : public QObject
     Q_PROPERTY(QVariantList leftSpectrum READ leftSpectrum NOTIFY spectrumChanged)
     Q_PROPERTY(QVariantList rightSpectrum READ rightSpectrum NOTIFY spectrumChanged)
     Q_PROPERTY(QVariantList regions READ regions NOTIFY regionsChanged)
+    Q_PROPERTY(QVariantList dmxChannels READ dmxChannels NOTIFY dmxChannelsChanged)
+    
 
 public:
     enum class GroupSelection {
@@ -137,6 +139,7 @@ public:
     const QVariantList &leftSpectrum() const noexcept { return m_leftSpectrum; }
     const QVariantList &rightSpectrum() const noexcept { return m_rightSpectrum; }
     const QVariantList &regions() const noexcept { return m_regions; }
+    const QVariantList &dmxChannels() const noexcept { return m_dmxChannels; }
 
 public slots:
     void start();
@@ -190,6 +193,7 @@ public slots:
     Q_INVOKABLE void putTubeIntoFirmwareUpdateMode(int tubeIndex);
     Q_INVOKABLE void flashFirmware(const QUrl &file);
     Q_INVOKABLE void setDmxChannels(const QVariantList &channels);
+    Q_INVOKABLE void setDmxChannel(int channel, int value);
 
 signals:
     void onlineChanged();
@@ -214,6 +218,7 @@ signals:
     void paletteChanged();
     void spectrumChanged();
     void regionsChanged();
+    void dmxChannelsChanged();
 
     // Presentation reacts to these events. The controller never calls a visual
     // object directly.
@@ -265,6 +270,7 @@ private:
     QVariantList m_leftSpectrum;
     QVariantList m_rightSpectrum;
     QVariantList m_regions;
+    QVariantList m_dmxChannels;
 
     bool m_started = false;
     bool m_online = false;
@@ -298,7 +304,6 @@ private:
     HsColor m_currentColor{0.0F, 1.0F};
     int m_paletteIndex = 0;
 
-    std::array<std::uint8_t, 9> m_currentDmxData{};
     std::vector<double> m_recentBeatIntervals;
     std::array<double, 3> m_regionEnvelopes{};
     std::array<bool, 3> m_regionAboveThreshold{};

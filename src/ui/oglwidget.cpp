@@ -59,7 +59,6 @@ void OGLWidget::synchronize(QQuickFramebufferObject *item)
 void OGLWidget::updateGL(QQuickFramebufferObject* fbo)
 {
     synchronize(fbo);
-    update();
 }
 
 void OGLWidget::initializeGL()
@@ -268,6 +267,8 @@ void OGLWidget::render()
     glDrawArrays(GL_TRIANGLES, 0, lineVertices2.size());
     lineVao.release();
     lineShaderProgram->release();
+
+    update();
 }
 
 std::vector<GLFrequencyRegion*> OGLWidget::getRegions() const
@@ -380,8 +381,6 @@ void OGLWidget::setFrequencies(const std::vector<float> &leftFrequencies, const 
     }
     lineVertices = generatePolylineQuads(path1, width);
     lineVertices2 = generatePolylineQuads(path2, width);
-
-    update();
 }
 
 

@@ -129,6 +129,17 @@ AudioController::AudioController(WifiEventProcessor *eventProcessor, QObject *pa
     m_frequencyRegions.push_back(new FrequencyRegion(2, 0.6, 0.7, 1024,"hi"));
     //m_frequencyRegions.push_back(new FrequencyRegion(3, 0.3, 0.5, 1024, "mid"));
 
+    m_dmxChannels.push_back(5);
+    m_dmxChannels.push_back(15);
+    m_dmxChannels.push_back(35);
+    m_dmxChannels.push_back(55);
+    m_dmxChannels.push_back(75);
+    m_dmxChannels.push_back(95);
+    m_dmxChannels.push_back(120);
+    m_dmxChannels.push_back(180);
+    m_dmxChannels.push_back(150);
+
+
     m_regions = getRegions();
 
     rebuildEffectNames();
@@ -309,10 +320,10 @@ void AudioController::selectEffectPreset(int index)
     m_eventProcessor->setMasterconfig(configuration);
     m_eventProcessor->sendConfig(m_activeFixtureGroup);
 
-    std::vector<std::uint8_t> dmxChannels(9);
+    std::vector<std::uint8_t> dmxValues(9);
     for (int channel = 0; channel < 9; ++channel)
-        dmxChannels[channel] = preset->dmx_config.channels[channel];
-    m_eventProcessor->sendDmx(dmxChannels);
+        dmxValues[channel] = preset->dmx_config.channels[channel];
+    m_eventProcessor->sendDmx(dmxValues);
 
     const int row = m_activeEffectWithinBank / 4;
     const int column = m_activeEffectWithinBank % 4;
@@ -323,6 +334,13 @@ void AudioController::selectEffectPreset(int index)
     emit activeEffectPresetChanged();
     emit effectConfigurationChanged();
     emit paletteChanged();
+
+    QVariantList list;
+    for (const auto &value : dmxValues)
+        list << QVariant::fromValue(value);
+
+    m_dmxChannels = list;
+    emit dmxChannelsChanged();
 
     if (m_modifierMask & 0x80U)
         triggerPeak();
@@ -593,7 +611,7 @@ void AudioController::triggerPeak(int region, int tubeIndex, bool chooseNewColor
         emit tubePeakTriggered(tubeIndex, displayColor, m_activeFixtureGroup);
     } else {
         m_eventProcessor->sendBroadcastPeak(hue, saturation, peakGroup);
-        emit allTubesPeakTriggered(displayColor, m_activeFixtureGroup);
+        emit allTubesPeakTriggered(displayColor, peakGroup);
     }
 }
 
@@ -684,7 +702,7 @@ void AudioController::saveEffectPreset(int index, const QString &name)
         return;
     model->setConfig(m_eventProcessor->getMasterconfig());
     for (int channel = 0; channel < 9; ++channel)
-        model->dmx_config.channels[channel] = m_currentDmxData[channel];
+        model->dmx_config.channels[channel] = m_dmxChannels[channel].toUInt();
     if (m_activeTubePreset >= 0
         && m_activeTubePreset < static_cast<int>(m_tubePresetModels.size())) {
         model->setPresets(*m_tubePresetModels[m_activeTubePreset]);
@@ -694,6 +712,17 @@ void AudioController::saveEffectPreset(int index, const QString &name)
 
     PresetModel::saveToJsonFile(m_effectPresetModels, "effects.json");
     emit effectPresetsChanged();
+}
+
+void AudioController::setDmxChannel(int channel, int value)
+{
+    if (channel < 0 || channel >= m_dmxChannels.size())
+        return;
+
+    value = std::clamp(value, 0, 255);
+
+    m_dmxChannels[channel] = value;
+    emit dmxChannelsChanged();
 }
 
 void AudioController::moveEffectPreset(int from, int to)
@@ -806,7 +835,7 @@ void AudioController::setDmxChannels(const QVariantList &channels)
 {
     const qsizetype count = std::min<qsizetype>(channels.size(), 9);
     for (qsizetype index = 0; index < count; ++index)
-        m_currentDmxData[index] = std::uint8_t(boundedByte(channels[index].toInt()));
+        m_dmxChannels[index] = boundedByte(channels[index].toInt());
 }
 
 void AudioController::processAudioFrame()
