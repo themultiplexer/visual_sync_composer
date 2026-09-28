@@ -35,6 +35,26 @@ int main(int argc, char *argv[])
     QCoreApplication::setApplicationName(QStringLiteral("VisualSync"));
 
     WifiEventProcessor *eventProcessor = new WifiEventProcessor(my_mac, "wlxdc4ef40a3f9f");
+
+    if (getuid() == 0) {
+        printf("Dropping privs\n");
+        /* process is running as root, drop privileges */
+        if (setgid(1000) != 0)
+            printf("setgid: Unable to drop group privileges: %s\n", strerror(errno));
+        if (setuid(1000) != 0)
+            printf("setuid: Unable to drop user privileges: %s\n", strerror(errno));
+    }
+
+    setenv("HOME", "/home/josh/", 1);
+    setenv("USER", "josh", 1);
+    setenv("XDG_RUNTIME_DIR", "/run/user/1000", 1);
+    setenv("XDG_DATA_HOME", "/home/josh/.local/share", 1);
+    setenv("XDG_CONFIG_HOME", "/home/josh/.config", 1);
+    setenv("XDG_CACHE_HOME", "/home/josh/.cache", 1);
+
+    printf("%d\n", getuid());
+    printf("%s\n", getenv("USER"));
+
     AudioController audioController(eventProcessor);
 
     QQuickWindow::setGraphicsApi(QSGRendererInterface::OpenGL);

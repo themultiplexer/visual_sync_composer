@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import QtQuick.Shapes
 
 Frame {
     id: root
@@ -26,8 +27,30 @@ Frame {
     background: Rectangle {
         radius: 6
         color: "#26292e"
-        border.color: root.peakColor.a > 0 ? root.peakColor : "#4f545c"
-        border.width: root.peakColor.a > 0 ? 4 : 1
+        Shape {
+            anchors.fill: parent
+
+            ShapePath {
+                strokeColor: root.peakColor.a > 0
+                             ? root.peakColor
+                             : "#4f545c"
+
+                strokeWidth: root.peakColor.a > 0 ? 4 : 1
+
+                strokeStyle: ShapePath.DashLine
+                dashPattern: [4, 4]
+
+                fillColor: "transparent"
+
+                PathRectangle {
+                    x: 0.5
+                    y: 0.5
+                    width: root.width - 1
+                    height: root.height - 1
+                    radius: 6
+                }
+            }
+        }
     }
 
     SequentialAnimation {

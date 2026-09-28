@@ -185,7 +185,7 @@ QVariantList AudioController::modifiers() const
     QVariantList result;
     result.reserve(8);
     for (int index = 0; index < 8; ++index)
-        result.push_back(bool(m_modifierMask & (1U << (7 - index))));
+        result.push_back(QVariantMap{{QStringLiteral("name"), "id"}, {QStringLiteral("fill"), bool(m_modifierMask & (1U << (7 - index)))}});
     return result;
 }
 

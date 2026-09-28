@@ -71,6 +71,7 @@ qt_add_qml_module(VisualSyncComposerQml
         qml/components/LabeledSlider.qml
         qml/components/PresetGrid.qml
         qml/components/SpectrumView.qml
+        qml/components/ComplexBox.qml
         qml/components/TubeCard.qml
     OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/visual_sync_composer"
     SOURCES

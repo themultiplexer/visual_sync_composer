@@ -42,7 +42,11 @@ GridLayout {
             Label {
                 anchors.fill: parent
                 anchors.margins: 5
-                color: "#FFFFFF"
+                color: {
+                    let c = preset && preset.color ? preset.color : "#3a3d43"
+                    let luminance = (0.2126 * c.r) + (0.7152 * c.g) + (0.0722 * c.b)
+                    return luminance > 0.5 ? "#000000" : "#ffffff"
+                }
                 horizontalAlignment: Text.AlignHCenter
                 verticalAlignment: Text.AlignVCenter
                 wrapMode: Text.Wrap

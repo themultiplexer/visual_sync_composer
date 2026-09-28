@@ -210,41 +210,6 @@ Item {
                     RowLayout {
                         Layout.fillWidth: true
 
-                        ComboBox {
-                            Layout.preferredWidth: 500
-                            model: audioController.effectNames
-                            currentIndex: audioController.ledMode
-                            onActivated: audioController.ledMode = currentIndex
-                        }
-
-                        Label { text: qsTr("Modifiers:"); font.bold: true; color: "#FFFFFF"; }
-                        Repeater {
-                            model: [
-                                qsTr("Fadeout after peak"), qsTr("No color delay"),
-                                qsTr("Reversed"), qsTr("Stickiness"),
-                                qsTr("Pseudo random"), qsTr("Sync on peak"),
-                                "7", "8"
-                            ]
-                            delegate: CheckBox {
-                                id: cb
-                                required property int index
-                                required property string modelData
-                                text: modelData
-                                checked: Boolean(audioController.modifiers[index])
-                                onClicked: audioController.setModifier(index, checked)
-                                contentItem: Text {
-                                    text: cb.text
-                                    font: cb.font
-                                    color: "#FFFFFF"
-                                    leftPadding: cb.indicator.width + cb.spacing
-                                }
-                            }
-                        }
-                    }
-
-                    RowLayout {
-                        Layout.fillWidth: true
-
                         Label { text: qsTr("Auto mode:"); font.bold: true; color: "#FFFFFF"; }
                         CheckBox {
                             id: automaticColor
@@ -297,76 +262,97 @@ Item {
                 Layout.alignment: Qt.AlignTop
                 spacing: 12
 
-                Frame {
-                    Layout.preferredWidth: 360
-                    Layout.alignment: Qt.AlignTop
+                ColumnLayout {
+                    Repeater {
+                        model: 2
+                        Frame {
+                            Layout.preferredWidth: 360
+                            Layout.alignment: Qt.AlignTop
 
-                    ColumnLayout {
-                        anchors.fill: parent
-                        CheckBox {
-                                id: activeGroup
-                                text: qsTr("Composition")
-                                    contentItem: Text {
-                                    text: activeGroup.text
-                                    font: activeGroup.font
-                                    color: "#FFFFFF"
-                                    leftPadding: activeGroup.indicator.width + activeGroup.spacing
+                            ColumnLayout {
+                                anchors.fill: parent
+                                CheckBox {
+                                    id: activeGroup
+                                    text: qsTr("Composition")
+                                        contentItem: Text {
+                                        text: activeGroup.text
+                                        font: activeGroup.font
+                                        color: "#FFFFFF"
+                                        leftPadding: activeGroup.indicator.width + activeGroup.spacing
+                                    }
                                 }
-                        }
 
-                        ColumnLayout {
-                            LabeledSlider {
-                                text: qsTr("Sensitivity")
-                                from: 0; to: 100
-                                value: audioController.sensitivity * 100
-                                onEdited: value => audioController.sensitivity = value / 100
-                            }
-                            LabeledSlider {
-                                text: qsTr("Brightness")
-                                from: 0; to: 255
-                                value: audioController.brightness
-                                onEdited: value => audioController.brightness = Math.round(value)
-                            }
-                            LabeledSlider {
-                                id: saturationSlider
-                                text: qsTr("Saturation")
-                                from: 0; to: 255
-                                value: audioController.peakSaturation * 255
-                                onEdited: value => audioController.peakSaturation = value / 255
-                            }
-                            LabeledSlider {
-                                text: qsTr("Speed")
-                                from: 1; to: 255
-                                value: audioController.speed
-                                onEdited: value => audioController.speed = Math.round(value)
-                            }
-                            LabeledSlider {
-                                text: qsTr("Parameter 1")
-                                from: 1; to: 255
-                                value: audioController.parameter1
-                                onEdited: value => audioController.parameter1 = Math.round(value)
-                            }
-                            LabeledSlider {
-                                text: qsTr("Parameter 2")
-                                from: 1; to: 255
-                                value: audioController.parameter2
-                                onEdited: value => audioController.parameter2 = Math.round(value)
-                            }
-                            LabeledSlider {
-                                text: qsTr("Parameter 3")
-                                from: 1; to: 255
-                                value: audioController.parameter3
-                                onEdited: value => audioController.parameter3 = Math.round(value)
-                            }
-                            LabeledSlider {
-                                text: qsTr("Parameter 4")
-                                from: 1; to: 255
-                                value: 128
+                                ColumnLayout {
+                                    Layout.fillWidth: true
+
+                                    ComboBox {
+                                        model: audioController.effectNames
+                                        currentIndex: audioController.ledMode
+                                        onActivated: audioController.ledMode = currentIndex
+                                    }
+
+                                    ComplexBox {
+                                        items: audioController.modifiers
+                                        onClicked: (index, value) => audioController.setModifier(index, value)
+                                    }
+
+                                    
+                                }
+
+                                ColumnLayout {
+                                    LabeledSlider {
+                                        text: qsTr("Sensitivity")
+                                        from: 0; to: 100
+                                        value: audioController.sensitivity * 100
+                                        onEdited: value => audioController.sensitivity = value / 100
+                                    }
+                                    LabeledSlider {
+                                        text: qsTr("Brightness")
+                                        from: 0; to: 255
+                                        value: audioController.brightness
+                                        onEdited: value => audioController.brightness = Math.round(value)
+                                    }
+                                    LabeledSlider {
+                                        id: saturationSlider
+                                        text: qsTr("Saturation")
+                                        from: 0; to: 255
+                                        value: audioController.peakSaturation * 255
+                                        onEdited: value => audioController.peakSaturation = value / 255
+                                    }
+                                    LabeledSlider {
+                                        text: qsTr("Speed")
+                                        from: 1; to: 255
+                                        value: audioController.speed
+                                        onEdited: value => audioController.speed = Math.round(value)
+                                    }
+                                    LabeledSlider {
+                                        text: qsTr("Parameter 1")
+                                        from: 1; to: 255
+                                        value: audioController.parameter1
+                                        onEdited: value => audioController.parameter1 = Math.round(value)
+                                    }
+                                    LabeledSlider {
+                                        text: qsTr("Parameter 2")
+                                        from: 1; to: 255
+                                        value: audioController.parameter2
+                                        onEdited: value => audioController.parameter2 = Math.round(value)
+                                    }
+                                    LabeledSlider {
+                                        text: qsTr("Parameter 3")
+                                        from: 1; to: 255
+                                        value: audioController.parameter3
+                                        onEdited: value => audioController.parameter3 = Math.round(value)
+                                    }
+                                    LabeledSlider {
+                                        text: qsTr("Parameter 4")
+                                        from: 1; to: 255
+                                        value: 128
+                                    }
+                                }
                             }
                         }
                     }
                 }
-
                 Frame {
                     Layout.alignment: Qt.AlignTop
 
@@ -446,17 +432,34 @@ Item {
                     font.bold: true
                     onPressed: audioController.triggerPeak()
                 }
-                Frame {
-                    Layout.alignment: Qt.AlignTop
-                    ColumnLayout {
-                        anchors.fill: parent
-                        Repeater {
-                            model: 8
-                            LabeledSlider {
-                                text: qsTr("Channel %1").arg(index)
-                                from: 0; to: 100
-                                value: audioController.dmxChannels[index]
-                                onEdited: value => audioController.setDmxChannel(index, value)
+                ColumnLayout {
+                    Repeater {
+                        model: 2
+                        Frame {
+                            Layout.alignment: Qt.AlignTop
+                            ColumnLayout {
+                                anchors.fill: parent
+
+                                RowLayout {
+                                    Label { text: qsTr("Address"); font.bold: true; color: "#FFFFFF";  Layout.preferredWidth: 90; }
+                                    SpinBox {
+                                        id: address
+                                        from: 0
+                                        to: 512
+                                        editable: true
+                                        Layout.preferredWidth: 75;
+                                    }
+                                }
+
+                                Repeater {
+                                    model: 8
+                                    LabeledSlider {
+                                        text: qsTr("Channel %1").arg(index)
+                                        from: 0; to: 100
+                                        value: audioController.dmxChannels[index]
+                                        onEdited: value => audioController.setDmxChannel(index, value)
+                                    }
+                                }
                             }
                         }
                     }
