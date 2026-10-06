@@ -144,6 +144,10 @@ AudioController::AudioController(WifiEventProcessor *eventProcessor, QObject *pa
 
     rebuildEffectNames();
     loadPersistentState();
+
+    m_wifiAdapter->setInterface(false);
+    m_wifiAdapter->enableMonitorMode();
+    m_wifiAdapter->setInterface(true);
 }
 
 AudioController::~AudioController() = default;
@@ -157,11 +161,6 @@ void AudioController::start()
 
     m_midiController->start(true);
 
-    m_wifiAdapter->setInterface(false);
-    m_wifiAdapter->enableMonitorMode();
-    m_wifiAdapter->setInterface(true);
-
-    m_eventProcessor->initHandlers();
     m_audioAnalyzer->getdevices();
     m_audioAnalyzer->startRecording();
 
