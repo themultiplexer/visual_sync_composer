@@ -27,54 +27,52 @@ Item {
                 Layout.fillWidth: true
                 Layout.preferredHeight: 215
 
-                Flickable {
-                    anchors.fill: parent
-                    contentWidth: tubeRow.implicitWidth
-                    clip: true
-                    boundsBehavior: Flickable.StopAtBounds
-
-                    Row {
+                    ScrollView {
                         id: tubeRow
-                        spacing: 8
+                        anchors.fill: parent
+                        contentWidth: 500
 
-                        Repeater {
-                            model: audioController.tubes
+                        RowLayout {
+                            Repeater {
+                                model: audioController.tubes
 
-                            delegate: TubeCard {
-                                id: tubeCard
-                                required property int index
-                                required property var modelData
+                                delegate: TubeCard {
+                                    id: tubeCard
+                                    required property int index
+                                    required property var modelData
 
-                                height: 185
-                                tubeIndex: index
-                                tube: modelData
+                                    height: 185
+                                    tubeIndex: index
+                                    tube: modelData
 
-                                onChanged: function(delay, group) {
-                                    audioController.updateTube(index, delay, group)
-                                }
-                                onMoveRequested: function(offset) {
-                                    audioController.moveTube(index, index + offset)
-                                }
-                                onFlashFirmwareRequested:
-                                    audioController.putTubeIntoFirmwareUpdateMode(index)
-                                onPeakRequested:
-                                    audioController.triggerPeak(0, index, true)
-
-                                Connections {
-                                    target: audioController
-                                    function onTubePeakTriggered(tubeIndex, color, group) {
-                                        if (tubeIndex === tubeCard.index && (group == tube.group || group == 0))
-                                            tubeCard.flash(color, 0)
+                                    onChanged: function(delay, group) {
+                                        audioController.updateTube(index, delay, group)
                                     }
-                                    function onAllTubesPeakTriggered(color, group) {
-                                        if (group == tube.group || group == 0)
-                                            tubeCard.flash(color, tube.delay)
+                                    onMoveRequested: function(offset) {
+                                        audioController.moveTube(index, index + offset)
+                                    }
+                                    onFlashFirmwareRequested:
+                                        audioController.putTubeIntoFirmwareUpdateMode(index)
+                                    onPeakRequested:
+                                        audioController.triggerPeak(0, index, true)
+
+                                    Connections {
+                                        target: audioController
+                                        function onTubePeakTriggered(tubeIndex, color, group) {
+                                            if (tubeIndex === tubeCard.index && (group == tube.group || group == 0))
+                                                tubeCard.flash(color, 0)
+                                        }
+                                        function onAllTubesPeakTriggered(color, group) {
+                                            if (group == tube.group || group == 0)
+                                                tubeCard.flash(color, tube.delay)
+                                        }
                                     }
                                 }
+
                             }
                         }
+                        
                     }
-                }
             }
 
             Frame {
@@ -264,31 +262,45 @@ Item {
 
                 ColumnLayout {
                     Repeater {
-                        model: 2
+                        model: audioController.numGroups
                         Frame {
                             Layout.preferredWidth: 360
                             Layout.alignment: Qt.AlignTop
 
+
+
                             ColumnLayout {
                                 anchors.fill: parent
-                                CheckBox {
-                                    id: activeGroup
-                                    text: qsTr("Composition")
-                                        contentItem: Text {
-                                        text: activeGroup.text
-                                        font: activeGroup.font
-                                        color: "#FFFFFF"
-                                        leftPadding: activeGroup.indicator.width + activeGroup.spacing
+
+                                RowLayout {
+                                    Label { text: qsTr("Group"); font.bold: true; color: "#FFFFFF";  Layout.preferredWidth: 60; }
+                                    SpinBox {
+                                        id: group
+                                        from: 0
+                                        to: 512
+                                        editable: true
                                     }
                                 }
 
                                 ColumnLayout {
                                     Layout.fillWidth: true
 
+                                    CheckBox {
+                                        id: activeGroup
+                                        text: qsTr("Composition")
+                                            contentItem: Text {
+                                            text: activeGroup.text
+                                            font: activeGroup.font
+                                            color: "#FFFFFF"
+                                            leftPadding: activeGroup.indicator.width + activeGroup.spacing
+                                        }
+                                    }
+
                                     ComboBox {
                                         model: audioController.effectNames
                                         currentIndex: audioController.ledMode
                                         onActivated: audioController.ledMode = currentIndex
+                                        Layout.preferredWidth: 150;
                                     }
 
                                     ComplexBox {
@@ -441,13 +453,19 @@ Item {
                                 anchors.fill: parent
 
                                 RowLayout {
-                                    Label { text: qsTr("Address"); font.bold: true; color: "#FFFFFF";  Layout.preferredWidth: 90; }
+                                    Label { text: qsTr("Group"); font.bold: true; color: "#FFFFFF";  Layout.preferredWidth: 60; }
+                                    SpinBox {
+                                        id: dmxgroup
+                                        from: 0
+                                        to: 512
+                                        editable: true
+                                    }
+                                    Label { text: qsTr("Address"); font.bold: true; color: "#FFFFFF";  Layout.preferredWidth: 60; }
                                     SpinBox {
                                         id: address
                                         from: 0
                                         to: 512
                                         editable: true
-                                        Layout.preferredWidth: 75;
                                     }
                                 }
 

@@ -189,6 +189,11 @@ QVariantList AudioController::modifiers() const
     return result;
 }
 
+int AudioController::numGroups() const noexcept
+{
+    return m_numGroups;
+}
+
 int AudioController::groupSelectionMode() const noexcept
 {
     return static_cast<int>(m_groupSelection);

@@ -48,6 +48,7 @@ class AudioController final : public QObject
     Q_PROPERTY(int parameter2 READ parameter2 WRITE setParameter2 NOTIFY effectConfigurationChanged)
     Q_PROPERTY(int parameter3 READ parameter3 WRITE setParameter3 NOTIFY effectConfigurationChanged)
     Q_PROPERTY(int ledMode READ ledMode WRITE setLedMode NOTIFY effectConfigurationChanged)
+    Q_PROPERTY(int numGroups READ numGroups NOTIFY activeTubePresetChanged)
     Q_PROPERTY(QVariantList modifiers READ modifiers NOTIFY effectConfigurationChanged)
 
     Q_PROPERTY(double sensitivity READ sensitivity WRITE setSensitivity NOTIFY sensitivityChanged)
@@ -116,6 +117,7 @@ public:
     int parameter2() const noexcept;
     int parameter3() const noexcept;
     int ledMode() const noexcept;
+    int numGroups() const noexcept;
     QVariantList modifiers() const;
 
     double sensitivity() const noexcept { return m_sensitivity; }
