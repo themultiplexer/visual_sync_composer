@@ -15,14 +15,12 @@ OGLTest::OGLTest(QQuickItem *parent) : QQuickFramebufferObject(parent) {
 }
 
 QQuickFramebufferObject::Renderer * OGLTest::createRenderer() const {
-    
-    qDebug() << "createRenderer" << this;
     oglw->initializeGL();
     return oglw;
 }
 
 void OGLTest::test() {
-    qDebug() << "Hi";
+
 }
 
 void OGLTest::mousePressEvent(QMouseEvent *event)
@@ -73,7 +71,7 @@ bool OGLTest::eventFilter(QObject *obj, QEvent *event) {
             active = reg;
             
             if (event->type() != QEvent::MouseButtonPress && event->type() != QEvent::MouseButtonRelease) {
-                oglw->updateGL(this);
+                update();
                 return true;
             }
         } else {
@@ -91,6 +89,6 @@ bool OGLTest::eventFilter(QObject *obj, QEvent *event) {
         }
     }
 
-    oglw->updateGL(this);
+    update();
     return false;
 }

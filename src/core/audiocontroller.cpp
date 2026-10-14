@@ -7,6 +7,7 @@
 #include "core/devicereqistry.h"
 #include "core/effectpresetmodel.h"
 #include "core/fixturepresetmodel.h"
+#include "core/helper.h"
 #include "core/mdnsflasher.h"
 #include "core/midicontroller.h"
 #include "core/presetmodel.h"
@@ -17,11 +18,17 @@
 
 #include <QFileInfo>
 #include <QVariantMap>
+#include <QDir>
 
 #include <algorithm>
 #include <cmath>
 #include <map>
 #include <numeric>
+#include <qcolor.h>
+#include <qcontainerfwd.h>
+#include <vector>
+
+#include "dmxfixture.h"
 
 namespace {
 
@@ -89,6 +96,35 @@ QVariantMap presetMap(int id, const std::string &name, const QColor &color)
     };
 }
 
+QVariantMap fixtureMap(const DmxFixture *fixture)
+{
+    QVariantList sliders;
+
+    for (DmxSlider s : fixture->sliders) {
+        QVariantList regions;
+        for (const DmxRegion& region : s.regions()) {
+            regions.append(QVariantMap{
+                {QStringLiteral("start"), region.start},
+                {QStringLiteral("end"), region.end},
+                {QStringLiteral("type"), region.type},
+                {QStringLiteral("name"), region.name},
+                {QStringLiteral("properties"), region.properties.toVariantMap()}
+            });
+        }
+        sliders.push_back(QVariantMap{
+            {QStringLiteral("name"), s.name()}, 
+            {QStringLiteral("value"), s.value()},
+            {QStringLiteral("regions"), regions}
+        });
+    }
+
+    return {
+        {QStringLiteral("name"), fixture->name},
+        {QStringLiteral("mode"), fixture->mode},
+        {QStringLiteral("sliders"), sliders}
+    };
+}
+
 } // namespace
 
 AudioController::AudioController(WifiEventProcessor *eventProcessor, QObject *parent)
@@ -129,16 +165,41 @@ AudioController::AudioController(WifiEventProcessor *eventProcessor, QObject *pa
     m_frequencyRegions.push_back(new FrequencyRegion(2, 0.6, 0.7, 1024,"hi"));
     //m_frequencyRegions.push_back(new FrequencyRegion(3, 0.3, 0.5, 1024, "mid"));
 
-    m_dmxChannels.push_back(5);
-    m_dmxChannels.push_back(15);
-    m_dmxChannels.push_back(35);
-    m_dmxChannels.push_back(55);
-    m_dmxChannels.push_back(75);
-    m_dmxChannels.push_back(95);
-    m_dmxChannels.push_back(120);
-    m_dmxChannels.push_back(180);
-    m_dmxChannels.push_back(150);
+    auto fixture = loadFixture(
+        "../open-fixture-library/fixtures/abstract/twister-4.json",
+        "HP (3ch)"
+    );
 
+    m_fixtures.push_back(fixture);
+
+    for (const auto& slider : fixture.sliders) {
+        qDebug() << "Channel:" << slider.channel()
+                << "Name:" << slider.name();
+
+        for (const auto& region : slider.regions()) {
+            qDebug() << "  Range:"
+                    << region.start << "-"
+                    << region.end
+                    << "Type:" << region.type
+                    << "Name:" << region.name;
+        }
+    }
+
+
+    m_fixtureNames = { "Eins", "Zwei" };
+
+    QDir dir("../open-fixture-library/fixtures/");
+    for (const QString &filename : dir.entryList(QDir::Dirs)) {
+        m_fixtureManufacturers.push_back(filename);
+    }
+
+    m_colors = {
+        QColor("#ff0000"),
+        QColor("#00ff00"),
+        QColor("#0000ff"),
+        QColor("#ffff00"),
+        QColor("#ff00ff")
+    };
 
     m_regions = getRegions();
 
@@ -185,6 +246,26 @@ QVariantList AudioController::modifiers() const
     result.reserve(8);
     for (int index = 0; index < 8; ++index)
         result.push_back(QVariantMap{{QStringLiteral("name"), "id"}, {QStringLiteral("fill"), bool(m_modifierMask & (1U << (7 - index)))}});
+    return result;
+}
+
+QVariantList AudioController::fixtures() const
+{
+    QVariantList result;
+    for (const auto &fixture: m_fixtures) {
+        result.push_back(fixtureMap(&fixture));
+    }
+    return result;
+}
+
+QVariantList AudioController::colors() const
+{
+    QVariantList result;
+    result.reserve(8);
+    for (int index = 0; index < 8; ++index) {
+        const auto color = m_colors[index];
+        result.push_back(color);
+    }
     return result;
 }
 
@@ -324,9 +405,22 @@ void AudioController::selectEffectPreset(int index)
     m_eventProcessor->setMasterconfig(configuration);
     m_eventProcessor->sendConfig(m_activeFixtureGroup);
 
+    m_colors.clear();
+    if (preset->colors.size() > 0) {
+        qDebug() << "Got colors!";
+        for (auto color : preset->colors) {        
+            rgb c = hsv2rgb({color[0], color[1], 1.0});
+            m_colors.push_back(QColor(c.r, c.g, c.b));
+        }
+    }
+    emit colorsChanged();
+
+    m_fixtures.clear();
     std::vector<std::uint8_t> dmxValues(9);
-    for (int channel = 0; channel < 9; ++channel)
-        dmxValues[channel] = preset->dmx_config.channels[channel];
+
+    m_fixtures = preset->dmx_config;
+
+
     m_eventProcessor->sendDmx(dmxValues);
 
     const int row = m_activeEffectWithinBank / 4;
@@ -338,13 +432,7 @@ void AudioController::selectEffectPreset(int index)
     emit activeEffectPresetChanged();
     emit effectConfigurationChanged();
     emit paletteChanged();
-
-    QVariantList list;
-    for (const auto &value : dmxValues)
-        list << QVariant::fromValue(value);
-
-    m_dmxChannels = list;
-    emit dmxChannelsChanged();
+    emit fixturesChanged();
 
     if (m_modifierMask & 0x80U)
         triggerPeak();
@@ -704,9 +792,12 @@ void AudioController::saveEffectPreset(int index, const QString &name)
     EffectPresetModel *model = m_effectPresetModels[index];
     if (!model)
         return;
+
     model->setConfig(m_eventProcessor->getMasterconfig());
-    for (int channel = 0; channel < 9; ++channel)
-        model->dmx_config.channels[channel] = m_dmxChannels[channel].toUInt();
+    for (auto fixture : m_fixtures) {
+        model->dmx_config.push_back(fixture);
+    }
+
     if (m_activeTubePreset >= 0
         && m_activeTubePreset < static_cast<int>(m_tubePresetModels.size())) {
         model->setPresets(*m_tubePresetModels[m_activeTubePreset]);
@@ -720,13 +811,13 @@ void AudioController::saveEffectPreset(int index, const QString &name)
 
 void AudioController::setDmxChannel(int channel, int value)
 {
-    if (channel < 0 || channel >= m_dmxChannels.size())
+    if (channel < 0 || channel >= m_fixtures[0].sliders.count())
         return;
 
     value = std::clamp(value, 0, 255);
 
-    m_dmxChannels[channel] = value;
-    emit dmxChannelsChanged();
+    m_fixtures[0].sliders[channel].setValue(value);
+    emit fixturesChanged();
 }
 
 void AudioController::moveEffectPreset(int from, int to)
@@ -838,8 +929,9 @@ void AudioController::flashFirmware(const QUrl &file)
 void AudioController::setDmxChannels(const QVariantList &channels)
 {
     const qsizetype count = std::min<qsizetype>(channels.size(), 9);
-    for (qsizetype index = 0; index < count; ++index)
-        m_dmxChannels[index] = boundedByte(channels[index].toInt());
+    for (qsizetype index = 0; index < count; ++index) {
+        m_fixtures[0].sliders[index].setValue(boundedByte(channels[index].toInt()));
+    }
 }
 
 void AudioController::processAudioFrame()
@@ -969,9 +1061,7 @@ void AudioController::scheduleConfigurationSend()
 
 void AudioController::refreshControlSurface()
 {
-    qDebug() << "updateMatrix";
     m_controlSurface->updateMatrix();
-    qDebug() << "done updateMatrix";
 }
 
 void AudioController::processData(std::array<float, 1024> &data, const std::function<void (FrequencyRegion&)>& callback)

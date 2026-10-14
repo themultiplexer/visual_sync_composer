@@ -1,5 +1,6 @@
 #ifndef EFFECTPRESETMODEL_H
 #define EFFECTPRESETMODEL_H
+#include "core/dmxfixture.h"
 #include "core/helper.h"
 #include "wifieventprocessor.h"
 #include "presetmodel.h"
@@ -13,7 +14,7 @@ class EffectPresetModel : public PresetModel
 {
 public:
     EffectPresetModel(std::string name, int id);
-    EffectPresetModel(std::string name, int id, CONFIG_DATA data, CONFIG_DATA data2, DMX_DATA dmx_data, QColor color, int group_mode, int color_mode, std::vector<std::array<float, 2>> colors, TubePresetModel presets);
+    EffectPresetModel(std::string name, int id, CONFIG_DATA data, CONFIG_DATA data2, std::vector<DmxFixture> dmx_data, QColor color, int group_mode, int color_mode, std::vector<std::array<float, 2>> colors, TubePresetModel presets);
 
     int id;
     int group_mode;
@@ -21,7 +22,7 @@ public:
     std::vector<std::array<float, 2>> colors;
     struct CONFIG_DATA config;
     struct CONFIG_DATA secondary_config;
-    struct DMX_DATA dmx_config;
+    std::vector<DmxFixture> dmx_config;
 
     TubePresetModel preset;
 

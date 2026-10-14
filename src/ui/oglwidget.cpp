@@ -54,12 +54,18 @@ void OGLWidget::synchronize(QQuickFramebufferObject *item)
         }
         setRegions(rgs);
     }
+
+    lineVertexPositionBuffer.bind();
+    lineVertexPositionBuffer.allocate(lineVertices.data(), lineVertices.size() * sizeof(Vertex2D));
+    lineVertexPositionBuffer.release();
+
+    lineVertexPositionBuffer.bind();
+    lineVertexPositionBuffer.allocate(lineVertices2.data(), lineVertices2.size() * sizeof(Vertex2D));
+    lineVertexPositionBuffer.release();
+
+    update();
 }
 
-void OGLWidget::updateGL(QQuickFramebufferObject* fbo)
-{
-    synchronize(fbo);
-}
 
 void OGLWidget::initializeGL()
 {
@@ -187,9 +193,10 @@ void OGLWidget::initializeGL()
     lineVao.bind();
     lineVertexPositionBuffer = QOpenGLBuffer(QOpenGLBuffer::VertexBuffer);
     lineVertexPositionBuffer.create();
-    lineVertexPositionBuffer.setUsagePattern(QOpenGLBuffer::StaticDraw);
+    lineVertexPositionBuffer.setUsagePattern(QOpenGLBuffer::DynamicDraw);
     lineVertexPositionBuffer.bind();
-    lineVertexPositionBuffer.allocate(lineVertices.data(), lineVertices.size() * sizeof(Vertex2D));
+    lineVertexPositionBuffer.allocate(lineVertices.size() * sizeof(Vertex2D));
+    
 
     lineShaderProgram->bind();
     lineShaderProgram->enableAttributeArray(0);
@@ -198,6 +205,7 @@ void OGLWidget::initializeGL()
     lineShaderProgram->setAttributeBuffer(1, GL_FLOAT, offsetof(Vertex2D, color), 4, sizeof(Vertex2D));
     lineShaderProgram->release();
     lineVao.release();
+    lineVertexPositionBuffer.release();
 
     regionShaderProgram = new QOpenGLShaderProgram();
     regionShaderProgram->addShader(vshader);
@@ -242,15 +250,11 @@ void OGLWidget::render()
         test.push_back(reg->region->getPeak());
         test.push_back(static_cast<GLfloat>(reg->region->getColor()));
     }
-    regionShaderProgram->setUniformValueArray("regions", test.data(), test.size() * 6, 1);
+    regionShaderProgram->setUniformValueArray("regions", test.data(), test.size(), 1);
     vao.bind();
     glDrawArrays(GL_TRIANGLES, 0, 6);
     vao.release();
     regionShaderProgram->release();
-
-    lineVertexPositionBuffer.bind();
-    lineVertexPositionBuffer.allocate(lineVertices.data(), lineVertices.size() * sizeof(Vertex2D));
-    lineVertexPositionBuffer.release();
 
     lineShaderProgram->bind();
     lineVao.bind();
@@ -258,17 +262,11 @@ void OGLWidget::render()
     lineVao.release();
     lineShaderProgram->release();
 
-    lineVertexPositionBuffer.bind();
-    lineVertexPositionBuffer.allocate(lineVertices2.data(), lineVertices2.size() * sizeof(Vertex2D));
-    lineVertexPositionBuffer.release();
-
     lineShaderProgram->bind();
     lineVao.bind();
     glDrawArrays(GL_TRIANGLES, 0, lineVertices2.size());
     lineVao.release();
     lineShaderProgram->release();
-
-    update();
 }
 
 std::vector<GLFrequencyRegion*> OGLWidget::getRegions() const

@@ -69,6 +69,7 @@ qt_add_qml_module(VisualSyncComposerQml
         qml/Main.qml
         qml/Dev.qml
         qml/components/LabeledSlider.qml
+        qml/components/DmxSlider.qml
         qml/components/PresetGrid.qml
         qml/components/SpectrumView.qml
         qml/components/ComplexBox.qml

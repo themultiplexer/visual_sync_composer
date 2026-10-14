@@ -59,7 +59,6 @@ public:
     VisMode getVisMode() const;
     void setVisMode(VisMode newVisMode);
     void initializeGL();
-    void updateGL(QQuickFramebufferObject* fbo);
 
 signals:
     void threshChanged();

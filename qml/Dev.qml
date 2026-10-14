@@ -20,12 +20,12 @@ Item {
         contentWidth: availableWidth
 
         ColumnLayout {
-            width: Math.max(1920 - 24, 1060)
+            width: Math.max(1920, 1060)
             spacing: 10
 
             Frame {
                 Layout.fillWidth: true
-                Layout.preferredHeight: 215
+                Layout.preferredHeight: 175
 
                     ScrollView {
                         id: tubeRow
@@ -187,7 +187,7 @@ Item {
                 }
 
                 ColumnLayout {
-                    Layout.preferredWidth: 80
+                    Layout.preferredWidth: 20
                     Slider {
                         Layout.fillHeight: true
                         orientation: Qt.Vertical
@@ -240,6 +240,29 @@ Item {
 
                         Item { Layout.fillWidth: true }
 
+                        Row {
+                            spacing: 6
+
+                            Repeater {
+                                model: 6
+
+                                Rectangle {
+                                    width: 30
+                                    height: 30
+                                    radius: 3
+
+                                    color: index < 5
+                                        ? audioController.colors[index]
+                                        : "transparent"
+
+                                    border.width: 1
+                                    border.color: "#808080"
+                                }
+                            }
+                        }
+
+                        Item { Layout.fillWidth: true }
+
                         Label { text: qsTr("Lock:"); font.bold: true; color: "#FFFFFF"; }
                         CheckBox {
                             id: compositionLock
@@ -261,13 +284,12 @@ Item {
                 spacing: 12
 
                 ColumnLayout {
+                    Layout.alignment: Qt.AlignTop
                     Repeater {
                         model: audioController.numGroups
                         Frame {
                             Layout.preferredWidth: 360
                             Layout.alignment: Qt.AlignTop
-
-
 
                             ColumnLayout {
                                 anchors.fill: parent
@@ -422,6 +444,14 @@ Item {
                     ColumnLayout {
                         anchors.fill: parent
 
+                        Button {
+                            Layout.preferredWidth: 50
+                            Layout.preferredHeight: 50
+                            text: qsTr("PEAK")
+                            font.bold: true
+                            onPressed: audioController.triggerPeak()
+                        }
+
                         Label { text: qsTr("Tube coordination"); font.bold: true; color: "#FFFFFF"; }
                         PresetGrid {
                             presets: audioController.tubePresets
@@ -436,33 +466,60 @@ Item {
                         }
                     }
                 }
-
-                Button {
-                    Layout.preferredWidth: 100
-                    Layout.preferredHeight: 100
-                    text: qsTr("PEAK")
-                    font.bold: true
-                    onPressed: audioController.triggerPeak()
-                }
                 ColumnLayout {
+                    Layout.alignment: Qt.AlignTop
                     Repeater {
-                        model: 2
-                        Frame {
-                            Layout.alignment: Qt.AlignTop
+                        model: audioController.fixtures
+
+                        delegate: Frame {
+                            required property var modelData
+
                             ColumnLayout {
                                 anchors.fill: parent
 
                                 RowLayout {
-                                    Label { text: qsTr("Group"); font.bold: true; color: "#FFFFFF";  Layout.preferredWidth: 60; }
+                                    Label {
+                                        text: modelData.name
+                                        color: "#FFFFFF"
+                                        font.bold: true
+                                    }
+                                    Item {
+                                        Layout.fillWidth: true
+                                    }
+                                    ComboBox {
+                                        model: audioController.fixtureManufacturers
+                                        //currentIndex: audioController.groupSelectionMode
+                                        //onActivated: audioController.groupSelectionMode = currentIndex
+                                    }
+                                    ComboBox {
+                                        model: audioController.fixtureNames
+                                        //currentIndex: audioController.groupSelectionMode
+                                        //onActivated: audioController.groupSelectionMode = currentIndex
+                                    }
+                                }
+
+                                RowLayout {
+                                    Label {
+                                        text: qsTr("Group")
+                                        font.bold: true
+                                        color: "#FFFFFF"
+                                        Layout.preferredWidth: 60
+                                    }
+
                                     SpinBox {
-                                        id: dmxgroup
                                         from: 0
                                         to: 512
                                         editable: true
                                     }
-                                    Label { text: qsTr("Address"); font.bold: true; color: "#FFFFFF";  Layout.preferredWidth: 60; }
+
+                                    Label {
+                                        text: qsTr("Address")
+                                        font.bold: true
+                                        color: "#FFFFFF"
+                                        Layout.preferredWidth: 60
+                                    }
+
                                     SpinBox {
-                                        id: address
                                         from: 0
                                         to: 512
                                         editable: true
@@ -470,12 +527,19 @@ Item {
                                 }
 
                                 Repeater {
-                                    model: 8
-                                    LabeledSlider {
-                                        text: qsTr("Channel %1").arg(index)
-                                        from: 0; to: 100
-                                        value: audioController.dmxChannels[index]
-                                        onEdited: value => audioController.setDmxChannel(index, value)
+                                    model: modelData.sliders
+
+                                    delegate: DmxSlider {
+                                        required property var modelData
+                                        required property int index
+                                        Layout.fillWidth: true
+                                        name: modelData.name
+                                        value: modelData.value
+                                        regions: modelData.regions
+
+                                        onEdited: value => {
+                                            modelData.value = value
+                                        }
                                     }
                                 }
                             }
@@ -518,7 +582,7 @@ Item {
         }
         TextField {
             id: nameField
-            width: 320
+            width: 120
             placeholderText: qsTr("Preset name")
             selectByMouse: true
         }

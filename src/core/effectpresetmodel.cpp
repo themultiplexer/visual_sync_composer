@@ -1,4 +1,5 @@
 #include "effectpresetmodel.h"
+#include "core/dmxfixture.h"
 #include "core/wifieventprocessor.h"
 #include "qjsonobject.h"
 #include <cstdint>
@@ -16,12 +17,11 @@ EffectPresetModel::EffectPresetModel(std::string name, int id) : preset("empty",
         data->parameter3 = 6;
         data->speed_factor = 4;
     }
-    dmx_config = {0};
     group_mode = 0;
     color_mode = 0;
 }
 
-EffectPresetModel::EffectPresetModel(std::string name, int id, CONFIG_DATA data, CONFIG_DATA data2, DMX_DATA dmx_data, QColor color, int group_mode, int color_mode, std::vector<std::array<float, 2>> colors, TubePresetModel tubepreset) : preset(tubepreset) {
+EffectPresetModel::EffectPresetModel(std::string name, int id, CONFIG_DATA data, CONFIG_DATA data2, std::vector<DmxFixture> dmx_data, QColor color, int group_mode, int color_mode, std::vector<std::array<float, 2>> colors, TubePresetModel tubepreset) : preset(tubepreset) {
     this->name = name;
     this->id = id;
     this->config = data;
@@ -89,10 +89,20 @@ QJsonObject EffectPresetModel::toJson() const {
     }
 
     QJsonArray dmxarray;
-    for (int i = 0; i < 10; i++) {
-        dmxarray << dmx_config.channels[i];
+    for (auto fixture : dmx_config) {
+        QJsonObject fix;
+        fix["name"] = fixture.name;
+        fix["path"] = fixture.path;
+        fix["mode"] = fixture.mode;
+        QJsonArray sliderarray;
+        for (auto slider : fixture.sliders) {
+            sliderarray.push_back(slider.value());
+        }
+        fix["values"] = sliderarray;
+        dmxarray.push_back(fix);
     }
-    obj.insert("dmx_config", dmxarray);
+
+    obj.insert("fixtures", dmxarray);
 
 
     return obj;
@@ -100,7 +110,6 @@ QJsonObject EffectPresetModel::toJson() const {
 
 EffectPresetModel* EffectPresetModel::fromJson(const QJsonObject &obj) {
     CONFIG_DATA config1, config2;
-    DMX_DATA dmx_data;
     std::string name = obj["name"].toString().toStdString();
     std::tuple<CONFIG_DATA *, QJsonValue> items[] = {
         {&config1, obj["config1"]}, {&config2, obj["config2"]}
@@ -115,9 +124,16 @@ EffectPresetModel* EffectPresetModel::fromJson(const QJsonObject &obj) {
         config->modifiers = jsonobj["modifiers"].toInt();
     }
 
-    QJsonArray dmxarray = obj["dmx_config"].toArray();
-    for (int i = 0; i < 10; i++) {
-        dmx_data.channels[i] = (uint8_t)(dmxarray[i].toInt());
+    std::vector<DmxFixture> fixtures;
+    QJsonArray dmxarray = obj["fixtures"].toArray();
+    for (const auto fix : dmxarray) {
+        auto obj = fix.toObject();
+        DmxFixture fixture = loadFixture(obj["path"].toString(), obj["mode"].toString());
+        const auto sliders = obj["values"].toArray();
+        for (int i = 0; i < sliders.count(); i++) {
+            fixture.sliders[i].setValue(sliders[i].toInt());
+        }
+        fixtures.push_back(fixture);
     }
 
     QJsonArray array = obj["button_color"].toArray();
@@ -136,6 +152,6 @@ EffectPresetModel* EffectPresetModel::fromJson(const QJsonObject &obj) {
     int group_mode = obj["group_mode"].toInt();
     int color_mode = obj["color_mode"].toInt();
 
-    auto f = new EffectPresetModel(name, obj["id"].toInt(), config1, config2, dmx_data, color, group_mode, color_mode, colors, *tubepreset);
+    auto f = new EffectPresetModel(name, obj["id"].toInt(), config1, config2, fixtures, color, group_mode, color_mode, colors, *tubepreset);
     return f;
 }

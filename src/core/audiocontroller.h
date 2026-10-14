@@ -1,5 +1,6 @@
 #pragma once
 
+#include "core/dmxfixture.h"
 #include <QObject>
 #include <QColor>
 #include <QElapsedTimer>
@@ -51,6 +52,8 @@ class AudioController final : public QObject
     Q_PROPERTY(int numGroups READ numGroups NOTIFY activeTubePresetChanged)
     Q_PROPERTY(QVariantList modifiers READ modifiers NOTIFY effectConfigurationChanged)
 
+    Q_PROPERTY(QVariantList colors READ colors NOTIFY colorsChanged)
+
     Q_PROPERTY(double sensitivity READ sensitivity WRITE setSensitivity NOTIFY sensitivityChanged)
     Q_PROPERTY(double peakSaturation READ peakSaturation WRITE setPeakSaturation NOTIFY peakSaturationChanged)
     Q_PROPERTY(double spectrumDecay READ spectrumDecay WRITE setSpectrumDecay NOTIFY spectrumDecayChanged)
@@ -62,6 +65,7 @@ class AudioController final : public QObject
     Q_PROPERTY(int colorControlMode READ colorControlMode WRITE setColorControlMode NOTIFY colorControlModeChanged)
 
     Q_PROPERTY(QStringList effectNames READ effectNames CONSTANT)
+    Q_PROPERTY(QStringList fixtureNames READ fixtureNames CONSTANT)
     Q_PROPERTY(QVariantList effectPresets READ effectPresets NOTIFY effectPresetsChanged)
     Q_PROPERTY(QVariantList tubePresets READ tubePresets NOTIFY tubePresetsChanged)
     Q_PROPERTY(QVariantList fixturePresets READ fixturePresets NOTIFY fixturePresetsChanged)
@@ -70,7 +74,7 @@ class AudioController final : public QObject
     Q_PROPERTY(QVariantList leftSpectrum READ leftSpectrum NOTIFY spectrumChanged)
     Q_PROPERTY(QVariantList rightSpectrum READ rightSpectrum NOTIFY spectrumChanged)
     Q_PROPERTY(QVariantList regions READ regions NOTIFY regionsChanged)
-    Q_PROPERTY(QVariantList dmxChannels READ dmxChannels NOTIFY dmxChannelsChanged)
+    Q_PROPERTY(QVariantList fixtures READ fixtures NOTIFY fixturesChanged)
     
 
 public:
@@ -119,6 +123,8 @@ public:
     int ledMode() const noexcept;
     int numGroups() const noexcept;
     QVariantList modifiers() const;
+    QVariantList fixtures() const;
+    QVariantList colors() const;
 
     double sensitivity() const noexcept { return m_sensitivity; }
     double peakSaturation() const noexcept { return m_peakSaturation; }
@@ -133,6 +139,8 @@ public:
     std::vector<EffectPresetModel *> getEffectPresets() const;
 
     const QStringList &effectNames() const noexcept { return m_effectNames; }
+    const QStringList &fixtureNames() const noexcept { return m_fixtureNames; }
+    const QStringList &fixtureManufacturers() const noexcept { return m_fixtureManufacturers; }
     QVariantList effectPresets() const;
     QVariantList tubePresets() const;
     QVariantList fixturePresets() const;
@@ -141,7 +149,6 @@ public:
     const QVariantList &leftSpectrum() const noexcept { return m_leftSpectrum; }
     const QVariantList &rightSpectrum() const noexcept { return m_rightSpectrum; }
     const QVariantList &regions() const noexcept { return m_regions; }
-    const QVariantList &dmxChannels() const noexcept { return m_dmxChannels; }
 
 public slots:
     void start();
@@ -220,7 +227,8 @@ signals:
     void paletteChanged();
     void spectrumChanged();
     void regionsChanged();
-    void dmxChannelsChanged();
+    void fixturesChanged();
+    void colorsChanged();
 
     // Presentation reacts to these events. The controller never calls a visual
     // object directly.
@@ -267,12 +275,16 @@ private:
     std::vector<TubePresetModel *> m_tubePresetModels;
     std::vector<FixturePresetModel *> m_fixturePresetModels;
     std::vector<TubeState> m_tubeStates;
+    std::vector<QColor> m_colors;
+    std::vector<DmxFixture> m_fixtures;
 
     QStringList m_effectNames;
+    QStringList m_fixtureNames;
+    QStringList m_fixtureManufacturers;
     QVariantList m_leftSpectrum;
     QVariantList m_rightSpectrum;
     QVariantList m_regions;
-    QVariantList m_dmxChannels;
+    
 
     bool m_started = false;
     bool m_online = false;
