@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core/dmxfixture.h"
+#include "core/helper.h"
 #include <QObject>
 #include <QColor>
 #include <QElapsedTimer>
@@ -16,6 +17,7 @@
 #include <qcontainerfwd.h>
 #include <random>
 #include <vector>
+#include "beatclock.h"
 
 class AudioAnalyzer;
 class ControllerAbstractor;
@@ -136,6 +138,8 @@ public:
     int colorSelectionMode() const noexcept;
     int colorControlMode() const noexcept;
 
+    void beatTap();
+
     std::vector<EffectPresetModel *> getEffectPresets() const;
 
     const QStringList &effectNames() const noexcept { return m_effectNames; }
@@ -152,6 +156,7 @@ public:
 
 public slots:
     void start();
+    void bpmEvent();
 
     void setActiveBank(int bank);
     void selectEffectPreset(int index);
@@ -201,8 +206,7 @@ public slots:
     Q_INVOKABLE void putAllTubesIntoFirmwareUpdateMode();
     Q_INVOKABLE void putTubeIntoFirmwareUpdateMode(int tubeIndex);
     Q_INVOKABLE void flashFirmware(const QUrl &file);
-    Q_INVOKABLE void setDmxChannels(const QVariantList &channels);
-    Q_INVOKABLE void setDmxChannel(int channel, int value);
+    Q_INVOKABLE void setDmxValue(int fixtureIndex, int sliderIndex, int value);
 
 signals:
     void onlineChanged();
@@ -230,6 +234,8 @@ signals:
     void fixturesChanged();
     void colorsChanged();
 
+    void bpmTapped();
+
     // Presentation reacts to these events. The controller never calls a visual
     // object directly.
     void tubePeakTriggered(int tubeIndex, const QColor &color, int group);
@@ -240,6 +246,7 @@ private slots:
     void processAudioFrame();
     void updateConnectionStatus();
     void sendPendingConfiguration();
+    
 
 private:
     struct TubeState {

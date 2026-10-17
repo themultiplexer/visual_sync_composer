@@ -70,6 +70,7 @@ qt_add_qml_module(VisualSyncComposerQml
         qml/Dev.qml
         qml/components/LabeledSlider.qml
         qml/components/DmxSlider.qml
+        qml/components/BeatIndicator.qml
         qml/components/PresetGrid.qml
         qml/components/SpectrumView.qml
         qml/components/ComplexBox.qml
@@ -79,6 +80,8 @@ qt_add_qml_module(VisualSyncComposerQml
         src/ui/ogltest.h
         src/ui/ogltest.cpp
         src/core/frequencyregion.cpp
+        src/core/beatclock.cpp
+        src/core/beattapper.cpp
     DEPENDENCIES
         QtQuick
 )

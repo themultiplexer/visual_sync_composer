@@ -23,6 +23,7 @@ struct UPDATE_REQUEST {
 };
 
 struct DMX_DATA {
+    //uint8_t address;
     uint8_t channels[9];
 };
 
@@ -90,7 +91,7 @@ public:
     std::vector<int> getTubeGroups() const;
     void setTubeGroups(const std::vector<int> &newTubeGroups);
     void sendSyncConfig();
-    void sendDmx(std::vector<uint8_t> channel);
+    void sendDmx(uint8_t address, std::vector<uint8_t> channel);
     void sendPalette(std::array<uint8_t, 8> palette);
     void sendHelloToAll();
 

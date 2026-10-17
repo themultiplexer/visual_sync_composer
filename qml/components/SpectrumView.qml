@@ -4,6 +4,8 @@ import visual_sync_composer
 OGLTest {
     id: oglwidget
 
+    renderingEnabled: true
+
     property var leftSpectrum: []
     property var rightSpectrum: []
     property var regions: []

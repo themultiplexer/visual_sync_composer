@@ -22,6 +22,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstdint>
 #include <map>
 #include <numeric>
 #include <qcolor.h>
@@ -29,6 +30,7 @@
 #include <vector>
 
 #include "dmxfixture.h"
+#include "beatclock.h"
 
 namespace {
 
@@ -166,8 +168,8 @@ AudioController::AudioController(WifiEventProcessor *eventProcessor, QObject *pa
     //m_frequencyRegions.push_back(new FrequencyRegion(3, 0.3, 0.5, 1024, "mid"));
 
     auto fixture = loadFixture(
-        "../open-fixture-library/fixtures/abstract/twister-4.json",
-        "HP (3ch)"
+        "../open-fixture-library/fixtures/varytec/razor-derby.json",
+        "9-channel"
     );
 
     m_fixtures.push_back(fixture);
@@ -420,8 +422,18 @@ void AudioController::selectEffectPreset(int index)
 
     m_fixtures = preset->dmx_config;
 
-
-    m_eventProcessor->sendDmx(dmxValues);
+    if (m_fixtures.size() == 0) {
+        for (auto fixture : m_fixtures) {
+            std::vector<uint8_t> values;
+            for (auto slider : fixture.sliders) {
+                values.push_back(slider.value());
+            }
+            m_eventProcessor->sendDmx(0, values);
+        }
+    } else {
+        std::vector<uint8_t> values(8, 0);
+        m_eventProcessor->sendDmx(0, values);
+    }
 
     const int row = m_activeEffectWithinBank / 4;
     const int column = m_activeEffectWithinBank % 4;
@@ -668,6 +680,12 @@ void AudioController::setPaletteEntry(int index, double hue, double saturation)
     emit paletteChanged();
 }
 
+void AudioController::bpmEvent() {
+    if (m_controlSurface->getCaptureMode() == 2) {
+        triggerPeak();
+    }
+}
+
 void AudioController::triggerPeak(int region, int tubeIndex, bool chooseNewColor)
 {
     int peakGroup = 0;
@@ -809,17 +827,6 @@ void AudioController::saveEffectPreset(int index, const QString &name)
     emit effectPresetsChanged();
 }
 
-void AudioController::setDmxChannel(int channel, int value)
-{
-    if (channel < 0 || channel >= m_fixtures[0].sliders.count())
-        return;
-
-    value = std::clamp(value, 0, 255);
-
-    m_fixtures[0].sliders[channel].setValue(value);
-    emit fixturesChanged();
-}
-
 void AudioController::moveEffectPreset(int from, int to)
 {
     if (from < 0 || to < 0 || from >= static_cast<int>(m_effectPresetModels.size())
@@ -926,12 +933,9 @@ void AudioController::flashFirmware(const QUrl &file)
     mdnsflasher::flash(filename.toStdString());
 }
 
-void AudioController::setDmxChannels(const QVariantList &channels)
+void AudioController::setDmxValue(int fixtureIndex, int sliderIndex, int value)
 {
-    const qsizetype count = std::min<qsizetype>(channels.size(), 9);
-    for (qsizetype index = 0; index < count; ++index) {
-        m_fixtures[0].sliders[index].setValue(boundedByte(channels[index].toInt()));
-    }
+    m_fixtures[fixtureIndex].sliders[sliderIndex].setValue(value);
 }
 
 void AudioController::processAudioFrame()
@@ -971,7 +975,7 @@ void AudioController::processAudioFrame()
     }
 
     processData(arr, [this](FrequencyRegion &region){
-        if (m_controlSurface->isCaptureToggled()) {
+        if (m_controlSurface->getCaptureMode() == 1) {
             //TODO update statistics with tapper
             //updateBeatStatistics(intervalMs));
             triggerPeak(region.getIndex());
@@ -979,6 +983,10 @@ void AudioController::processAudioFrame()
     });
 
     emit spectrumChanged();
+}
+
+void AudioController::beatTap() {
+    emit bpmTapped();
 }
 
 void AudioController::updateConnectionStatus()

@@ -7,7 +7,7 @@
 #include <algorithm>
 #include <functional>
 
-ControllerAbstractor::ControllerAbstractor(AudioController *window) : shiftMode(false), colorMode(false), syncMode(false), captureToggle(true) {
+ControllerAbstractor::ControllerAbstractor(AudioController *window) : shiftMode(false), colorMode(false), syncMode(false), captureMode(1) {
     rng = new std::mt19937(dev());
     byteRandom = new std::uniform_int_distribution<std::mt19937::result_type>(0, 255);
 
@@ -34,9 +34,9 @@ void ControllerAbstractor::processEvents()
     }
 }
 
-bool ControllerAbstractor::isCaptureToggled()
+int ControllerAbstractor::getCaptureMode()
 {
-    return captureToggle;
+    return captureMode;
 }
 
 void ControllerAbstractor::setStopButtons(std::array<float, 4> buttonBrightness)
@@ -97,6 +97,9 @@ void ControllerAbstractor::onKnobChanged(int index, int value) {
 void ControllerAbstractor::onButtonPress(int index) {
     if (index < 4) {
         flashStopButton(index);
+        if (index == 0) {
+            audiocontroller->beatTap();
+        }
         audiocontroller->triggerPeak(index % 2 + 1);
     } else {
         int specialIndex = index - 4;
@@ -137,12 +140,15 @@ void ControllerAbstractor::onButtonPress(int index) {
             //audiocontroller->ledModifierCheckboxes[4]->setChecked(true);
         } else if (specialIndex == 8)  {
             std::cout << "Button Capture" << std::endl;
-            captureToggle = !captureToggle;
-            if (captureToggle) {
+            captureMode += 1;
+            if (captureMode == 0) {
                 controller->setButton(LEDButton::CAPTURE, brightness);
+            } else if (captureMode == 1) {
+                controller->setButton(LEDButton::CAPTURE, 0.2);
             } else {
                 controller->setButton(LEDButton::CAPTURE, 0.0);
             }
+            captureMode %= 3;
         }
     }
 }
@@ -163,9 +169,12 @@ void ControllerAbstractor::onButtonRelease(int index) {
             controller->setButton(LEDButton::TYPE, 0.0);
             drawMatrixOnController();
 
+            auto buttonColors = matrixColorPattern();
             for (int i = 0; i < pressedButtons.size(); i++) {
                 int button = pressedButtons[i];
-                //audiocontroller->currentPalette[i] = audiocontroller->buttonColors[button / 4][button % 4];
+                auto c = buttonColors[button / 4][button % 4];
+
+                audiocontroller->setPaletteEntry(i, c[0], c[1]);
             }
 
             colorMode = false;
@@ -240,13 +249,24 @@ void ControllerAbstractor::drawMatrixOnController() {
     }
 }
 
-void ControllerAbstractor::drawColors()
-{
+std::array<std::array<std::array<float, 2>, 4>, 4> ControllerAbstractor::matrixColorPattern() {
+    std::array<std::array<std::array<float, 2>, 4>, 4> colors;
     for (int i = 0; i < 4; ++i) {
         for (int j = 0; j < 4; ++j) {
             std::array<float, 2> col = {((i*4 + j) / 15.0f), (i*4 + j) == 15 ? 0.0f : 1.0f};
-            buttonColors[i][j] = col;
+            colors[i][j] = col;
             setMatrixButton(i, j, col, brightness);
+        }
+    }
+    return colors;
+}
+
+void ControllerAbstractor::drawColors()
+{
+    buttonColors = matrixColorPattern();
+    for (int i = 0; i < 4; ++i) {
+        for (int j = 0; j < 4; ++j) {
+            setMatrixButton(i, j, buttonColors[i][j], brightness);
         }
     }
 }

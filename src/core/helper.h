@@ -7,6 +7,9 @@
 #include <iomanip>
 #include <math.h>
 #include <sstream>
+#include <QObject>
+#include <chrono>
+#include <cmath>
 
 static int base = 40;
 
@@ -181,5 +184,7 @@ rgb hsv2rgb(hsv in)
     }
     return out;
 }
+
+
 
 #endif // HELPER_H

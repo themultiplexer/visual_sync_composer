@@ -11,7 +11,26 @@
 class OGLTest : public QQuickFramebufferObject
 {
     Q_OBJECT
+    Q_PROPERTY(bool renderingEnabled
+               READ renderingEnabled
+               WRITE setRenderingEnabled
+               NOTIFY renderingEnabledChanged)
+
 public:
+    bool renderingEnabled() const { return renderingEnabled_; }
+
+    void setRenderingEnabled(bool enabled)
+    {
+        if (renderingEnabled_ == enabled)
+            return;
+
+        renderingEnabled_ = enabled;
+        emit renderingEnabledChanged();
+
+        if (enabled)
+            update();
+    }
+
     explicit OGLTest(QQuickItem *parent = nullptr);
     QQuickFramebufferObject::Renderer *createRenderer() const override;
     void test();
@@ -30,7 +49,11 @@ public slots:
         //update();
     }
 
+signals:
+    void renderingEnabledChanged();
+
 private:
+    bool renderingEnabled_ = true;
     QVector<float> m_spectrum;
     QVector<FrequencyRegion *> m_regions;
     bool eventFilter(QObject *obj, QEvent *event) override;

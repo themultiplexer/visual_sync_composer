@@ -1,3 +1,4 @@
+pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Dialogs
@@ -244,16 +245,17 @@ Item {
                             spacing: 6
 
                             Repeater {
-                                model: 6
+                                model: audioController.palette
 
                                 Rectangle {
+                                    required property var modelData
+                                    required property int index
+
                                     width: 30
                                     height: 30
                                     radius: 3
 
-                                    color: index < 5
-                                        ? audioController.colors[index]
-                                        : "transparent"
+                                    color: modelData.color
 
                                     border.width: 1
                                     border.color: "#808080"
@@ -263,7 +265,38 @@ Item {
 
                         Item { Layout.fillWidth: true }
 
+                        BeatIndicator {}
+
+                        Item { Layout.fillWidth: true }
+
+                        RowLayout {
+                            spacing: 12
+
+                            Label {
+                                text: beatTapper.bpm > 0 ? Math.round(beatTapper.bpm) + " BPM" : "-- BPM"
+                                //text: beatTapper.bpm > 0 ? beatTapper.bpm.toFixed(1) + " BPM" : "-- BPM"
+                                color: "#FFFFFF"
+                                font.pixelSize: 32
+                                Layout.alignment: Qt.AlignLeft
+                                Layout.preferredWidth: 175
+                            }
+
+                            Button {
+                                text: "TAP"
+                                onClicked: beatTapper.tap()
+                            }
+
+                            Button {
+                                text: "Reset"
+                                onClicked: beatTapper.reset()
+                            }
+                        }
+
+                        Item { Layout.fillWidth: true }
+
                         Label { text: qsTr("Lock:"); font.bold: true; color: "#FFFFFF"; }
+
+                        
                         CheckBox {
                             id: compositionLock
                             text: qsTr("Composition")
@@ -445,11 +478,14 @@ Item {
                         anchors.fill: parent
 
                         Button {
-                            Layout.preferredWidth: 50
-                            Layout.preferredHeight: 50
+                            Layout.preferredWidth: 40
+                            Layout.preferredHeight: 40
                             text: qsTr("PEAK")
                             font.bold: true
-                            onPressed: audioController.triggerPeak()
+                            onPressed: function() {
+
+                                audioController.triggerPeak()
+                            }
                         }
 
                         Label { text: qsTr("Tube coordination"); font.bold: true; color: "#FFFFFF"; }
@@ -472,7 +508,9 @@ Item {
                         model: audioController.fixtures
 
                         delegate: Frame {
+                            id: fixture
                             required property var modelData
+                            required property int index
 
                             ColumnLayout {
                                 anchors.fill: parent
@@ -538,7 +576,7 @@ Item {
                                         regions: modelData.regions
 
                                         onEdited: value => {
-                                            modelData.value = value
+                                            audioController.setDmxValue(fixture.index, index, value)
                                         }
                                     }
                                 }

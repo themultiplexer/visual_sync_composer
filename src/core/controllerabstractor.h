@@ -16,7 +16,7 @@ public:
 
     void processEvents();
     bool isCaptureToggled();
-    bool captureToggle;
+    int captureMode;
     ControllerHandler *controller;
     std::random_device dev;
     std::mt19937 *rng;
@@ -36,6 +36,7 @@ public:
 
     void flashStopButton(int index);
     void setStopButtons(std::array<float, 4> buttonBrightness);
+    int getCaptureMode();
     void onWheelChanged(int page);
     void setPage(int page);
     void setMatrixButton(int col, int row, QColor color, float brightness = 1.0);
@@ -44,6 +45,8 @@ public:
 private:
     void drawMatrixOnController();
     std::vector<int> getPressedButtons();
+    std::array<std::array<std::array<float, 2>, 4>, 4> matrixColorPattern();
+
 
     bool shiftMode, colorMode, syncMode;
     float brightness;

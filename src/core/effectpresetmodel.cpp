@@ -131,11 +131,13 @@ EffectPresetModel* EffectPresetModel::fromJson(const QJsonObject &obj) {
         DmxFixture fixture = loadFixture(obj["path"].toString(), obj["mode"].toString());
         const auto sliders = obj["values"].toArray();
         for (int i = 0; i < sliders.count(); i++) {
-            fixture.sliders[i].setValue(sliders[i].toInt());
+            if (i < fixture.sliders.count()) {
+                fixture.sliders[i].setValue(sliders[i].toInt());
+            }
         }
         fixtures.push_back(fixture);
     }
-
+    
     QJsonArray array = obj["button_color"].toArray();
     QColor color = QColor(array[0].toInt(), array[1].toInt(), array[2].toInt());
 
