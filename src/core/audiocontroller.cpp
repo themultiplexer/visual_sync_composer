@@ -34,7 +34,7 @@
 
 namespace {
 
-constexpr int effectPresetCount = 100;
+constexpr int effectPresetCount = 192;
 constexpr int tubePresetCount = 16;
 constexpr int fixturePresetCount = 16;
 constexpr int presetsPerBank = 16;
@@ -95,6 +95,14 @@ QVariantMap presetMap(int id, const std::string &name, const QColor &color)
         {QStringLiteral("id"), id},
         {QStringLiteral("name"), QString::fromStdString(name)},
         {QStringLiteral("color"), color}
+    };
+}
+
+QVariantMap manufacturerMap(const DmxManufacturer *manufacturer)
+{
+    return {
+        {QStringLiteral("key"), manufacturer->key},
+        {QStringLiteral("name"), manufacturer->name},
     };
 }
 
@@ -188,11 +196,13 @@ AudioController::AudioController(WifiEventProcessor *eventProcessor, QObject *pa
     }
 
 
-    m_fixtureNames = { "Eins", "Zwei" };
+    m_fixtureManufacturers = loadManufacturers("../open-fixture-library/fixtures/manufacturers.json");
 
-    QDir dir("../open-fixture-library/fixtures/");
-    for (const QString &filename : dir.entryList(QDir::Dirs)) {
-        m_fixtureManufacturers.push_back(filename);
+    QDir dir("../open-fixture-library/fixtures/varytec/");
+    for (const QString &filename : dir.entryList(QDir::Files)) {
+        qDebug() << dir.filePath(filename);
+        DmxFixture fix = loadFixture(dir.filePath(filename));
+        m_fixtureNames.push_back(fix.name);
     }
 
     m_colors = {
@@ -256,6 +266,15 @@ QVariantList AudioController::fixtures() const
     QVariantList result;
     for (const auto &fixture: m_fixtures) {
         result.push_back(fixtureMap(&fixture));
+    }
+    return result;
+}
+
+QVariantList AudioController::fixtureManufacturers() const
+{
+    QVariantList result;
+    for (const auto &manufacturer: m_fixtureManufacturers) {
+        result.push_back(manufacturerMap(&manufacturer));
     }
     return result;
 }
@@ -365,7 +384,7 @@ QVariantList AudioController::palette() const
 
 void AudioController::setActiveBank(int bank)
 {
-    const int bounded = std::clamp(bank, 0, 4);
+    const int bounded = std::clamp(bank, 0, NUM_BANKS);
     if (m_activeBank == bounded)
         return;
 
@@ -1018,8 +1037,13 @@ void AudioController::loadPersistentState()
 {
     m_effectPresetModels =
         PresetModel::readJson<EffectPresetModel, effectPresetCount>("effects.json");
-    for (int index = 0; index < static_cast<int>(m_effectPresetModels.size()); ++index)
+
+    qDebug() << m_effectPresetModels.size();
+
+    for (int index = 0; index < static_cast<int>(m_effectPresetModels.size()); ++index) {
+        qDebug() << index;
         m_effectPresetModels[index]->id = index;
+    }
 
     m_tubePresetModels.resize(tubePresetCount);
     const auto storedTubePresets =

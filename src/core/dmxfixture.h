@@ -15,6 +15,7 @@
 #include <QString>
 
 #include <stdexcept>
+#include <vector>
 
 struct DmxRegion {
     int start = 0;
@@ -90,9 +91,36 @@ struct DmxFixture {
     QList<DmxSlider> sliders;
 };
 
+struct DmxManufacturer {
+    QString key;
+    QString name;
+};
 
+static std::vector<DmxManufacturer> loadManufacturers(const QString& path)
+{
+    QFile file(path);
 
-static DmxFixture loadFixture(const QString& path, const QString& modeName)
+    if (!file.open(QIODevice::ReadOnly))
+        throw std::runtime_error("Cannot open manufacturer file");
+
+    QJsonParseError error;
+    auto doc = QJsonDocument::fromJson(file.readAll(), &error);
+
+    if (error.error != QJsonParseError::NoError || !doc.isObject())
+        throw std::runtime_error("Invalid fixture JSON");
+
+    const auto root = doc.object();
+
+    std::vector<DmxManufacturer> manufacturers;
+
+    for (auto key : root.keys()) {
+        manufacturers.push_back({key, root.value(key)["name"].toString()});
+    }
+
+    return manufacturers;
+}
+
+static DmxFixture loadFixture(const QString& path, const QString& modeName = "")
 {
     QFile file(path);
 
@@ -117,15 +145,16 @@ static DmxFixture loadFixture(const QString& path, const QString& modeName)
     for (const auto& modeValue : root.value("modes").toArray()) {
         const auto mode = modeValue.toObject();
 
-        if (mode.value("name").toString() == modeName ||
-            mode.value("shortName").toString() == modeName) {
+        if (mode.value("name").toString() == modeName || mode.value("shortName").toString() == modeName) {
             selectedMode = mode;
             break;
         }
     }
 
-    if (selectedMode.isEmpty())
-        throw std::runtime_error("Fixture mode not found");
+    if (selectedMode.isEmpty()) {
+        selectedMode = root.value("modes")[0].toObject();
+        qDebug() << "Fixture mode not found";
+    }
 
     fixture.mode = selectedMode.value("name").toString();
 

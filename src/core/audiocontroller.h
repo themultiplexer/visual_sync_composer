@@ -77,6 +77,7 @@ class AudioController final : public QObject
     Q_PROPERTY(QVariantList rightSpectrum READ rightSpectrum NOTIFY spectrumChanged)
     Q_PROPERTY(QVariantList regions READ regions NOTIFY regionsChanged)
     Q_PROPERTY(QVariantList fixtures READ fixtures NOTIFY fixturesChanged)
+    Q_PROPERTY(QVariantList fixtureManufacturers READ fixtureManufacturers NOTIFY fixturesManufacturersChanged)
     
 
 public:
@@ -126,6 +127,7 @@ public:
     int numGroups() const noexcept;
     QVariantList modifiers() const;
     QVariantList fixtures() const;
+    QVariantList fixtureManufacturers() const;
     QVariantList colors() const;
 
     double sensitivity() const noexcept { return m_sensitivity; }
@@ -144,7 +146,6 @@ public:
 
     const QStringList &effectNames() const noexcept { return m_effectNames; }
     const QStringList &fixtureNames() const noexcept { return m_fixtureNames; }
-    const QStringList &fixtureManufacturers() const noexcept { return m_fixtureManufacturers; }
     QVariantList effectPresets() const;
     QVariantList tubePresets() const;
     QVariantList fixturePresets() const;
@@ -232,6 +233,7 @@ signals:
     void spectrumChanged();
     void regionsChanged();
     void fixturesChanged();
+    void fixturesManufacturersChanged();
     void colorsChanged();
 
     void bpmTapped();
@@ -284,10 +286,10 @@ private:
     std::vector<TubeState> m_tubeStates;
     std::vector<QColor> m_colors;
     std::vector<DmxFixture> m_fixtures;
+    std::vector<DmxManufacturer> m_fixtureManufacturers;
 
     QStringList m_effectNames;
     QStringList m_fixtureNames;
-    QStringList m_fixtureManufacturers;
     QVariantList m_leftSpectrum;
     QVariantList m_rightSpectrum;
     QVariantList m_regions;

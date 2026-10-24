@@ -11,10 +11,19 @@ Rectangle {
     color: "#00e5ff"
     opacity: 0.15
 
+    signal clicked()
+
     function beat() {
         fade.stop()
         opacity = 1.0
         fade.start()
+    }
+
+    MouseArea {
+        anchors.fill: parent
+        onClicked: {
+            beatTapper.tap() 
+        }
     }
 
     NumberAnimation {

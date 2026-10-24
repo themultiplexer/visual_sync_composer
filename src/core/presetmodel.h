@@ -32,12 +32,21 @@ public:
             file.close();
 
             QJsonDocument jsonDoc = QJsonDocument::fromJson(jsonData);
+
+            int max_id = 0;
+
             if (jsonDoc.isArray()) {
                 QJsonArray jsonArray = jsonDoc.array();
                 for (const auto &value : jsonArray) {
                     if (value.isObject()) {
                         ModelType *m = ModelType::fromJson(value.toObject());
-                        presets[m->id] = m;
+                        max_id = std::max(m->id, max_id);
+                        if (presets[m->id]) {
+                            presets[max_id++] = m;
+                        } else {
+                            presets[m->id] = m;
+                        }
+                        
                     }
                 }
             }

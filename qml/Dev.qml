@@ -7,237 +7,444 @@ import QtQuick.Layouts
 import "components"
 
 Item {
+    id: root
     anchors.fill: parent
 
     property bool allowClose: false
     property int editedPresetKind: 0 // 0 = effect, 1 = tube
     property int editedPresetIndex: -1
     property int visualizationMode: 0
+    property bool fullscreen
 
     Component.onCompleted: audioController.start()
 
+    DmxPanel {
+        anchors.fill: parent
+        modelData: audioController.fixtures[0]
+        index: 0
+        detailed: true
+
+        visible: parent.fullscreen
+        onFullscreenRequested: {
+            root.fullscreen = false
+        }
+    }
+
     ScrollView {
+        visible: !parent.fullscreen
         anchors.fill: parent
         contentWidth: availableWidth
 
-        ColumnLayout {
-            width: Math.max(1920, 1060)
-            spacing: 10
+        Layout.fillWidth: true
 
-            Frame {
-                Layout.fillWidth: true
-                Layout.preferredHeight: 175
+        RowLayout {
+            ColumnLayout {
+                width: Math.max(1920, 1060)
+                spacing: 10
 
-                    ScrollView {
-                        id: tubeRow
+                Frame {
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: 175
+
+                        ScrollView {
+                            id: tubeRow
+                            anchors.fill: parent
+                            contentWidth: 500
+
+                            RowLayout {
+                                Repeater {
+                                    model: audioController.tubes
+
+                                    delegate: TubeCard {
+                                        id: tubeCard
+                                        required property int index
+                                        required property var modelData
+
+                                        height: 185
+                                        tubeIndex: index
+                                        tube: modelData
+
+                                        onChanged: function(delay, group) {
+                                            audioController.updateTube(index, delay, group)
+                                        }
+                                        onMoveRequested: function(offset) {
+                                            audioController.moveTube(index, index + offset)
+                                        }
+                                        onFlashFirmwareRequested:
+                                            audioController.putTubeIntoFirmwareUpdateMode(index)
+                                        onPeakRequested:
+                                            audioController.triggerPeak(0, index, true)
+
+                                        Connections {
+                                            target: audioController
+                                            function onTubePeakTriggered(tubeIndex, color, group) {
+                                                if (tubeIndex === tubeCard.index && (group == tube.group || group == 0))
+                                                    tubeCard.flash(color, 0)
+                                            }
+                                            function onAllTubesPeakTriggered(color, group) {
+                                                if (group == tube.group || group == 0)
+                                                    tubeCard.flash(color, tube.delay)
+                                            }
+                                        }
+                                    }
+
+                                }
+                            }
+                            
+                        }
+                }
+
+                Frame {
+                    Layout.fillWidth: true
+
+                    ColumnLayout {
                         anchors.fill: parent
-                        contentWidth: 500
 
                         RowLayout {
-                            Repeater {
-                                model: audioController.tubes
+                            Layout.fillWidth: true
 
-                                delegate: TubeCard {
-                                    id: tubeCard
-                                    required property int index
-                                    required property var modelData
+                            Label { text: qsTr("Group selection"); font.bold: true; color: "#FFFFFF"; }
+                            ComboBox {
+                                model: [qsTr("Count up"), qsTr("Region"), qsTr("Random")]
+                                currentIndex: audioController.groupSelectionMode
+                                onActivated: audioController.groupSelectionMode = currentIndex
+                            }
 
-                                    height: 185
-                                    tubeIndex: index
-                                    tube: modelData
+                            Item { Layout.fillWidth: true }
 
-                                    onChanged: function(delay, group) {
-                                        audioController.updateTube(index, delay, group)
-                                    }
-                                    onMoveRequested: function(offset) {
-                                        audioController.moveTube(index, index + offset)
-                                    }
-                                    onFlashFirmwareRequested:
-                                        audioController.putTubeIntoFirmwareUpdateMode(index)
-                                    onPeakRequested:
-                                        audioController.triggerPeak(0, index, true)
+                            Label { text: qsTr("Color selection"); font.bold: true; color: "#FFFFFF"; }
+                            ComboBox {
+                                model: [qsTr("Count up"), qsTr("Region"), qsTr("Random")]
+                                currentIndex: audioController.colorSelectionMode
+                                onActivated: audioController.colorSelectionMode = currentIndex
+                            }
 
-                                    Connections {
-                                        target: audioController
-                                        function onTubePeakTriggered(tubeIndex, color, group) {
-                                            if (tubeIndex === tubeCard.index && (group == tube.group || group == 0))
-                                                tubeCard.flash(color, 0)
+                            Item { Layout.fillWidth: true }
+
+                            Label { text: qsTr("Color source"); font.bold: true; color: "#FFFFFF"; }
+                            ComboBox {
+                                id: paletteMode
+                                model: [
+                                    qsTr("Maximum frequency"), qsTr("Manual"),
+                                    qsTr("Random hue"), qsTr("Random hue & saturation"),
+                                    qsTr("Red / white"), qsTr("Greenish"), qsTr("Custom")
+                                ]
+                                currentIndex: 4
+                                onActivated: {
+                                    if (currentIndex <= 3)
+                                        audioController.colorControlMode = currentIndex
+                                    else
+                                        audioController.selectBuiltInPalette(currentIndex - 4)
+                                }
+                            }
+
+
+                            Label { text: qsTr("Analysis:"); font.bold: true; color: "#FFFFFF"; }
+                            Label { text: qsTr("Group %1").arg(audioController.beatGroup); color: "#FFFFFF"; }
+                            Label { text: qsTr("%1 bpm").arg(audioController.bpm); color: "#FFFFFF"; }
+                            Label {
+                                text: qsTr("%1 ms").arg(audioController.meanBeatIntervalMs.toFixed(1))
+                            }
+                            CheckBox {
+                                id: audioFilter
+                                text: qsTr("Audio filter")
+                                checked: audioController.audioFilterEnabled
+                                onClicked: audioController.audioFilterEnabled = checked
+                                contentItem: Text {
+                                    text: audioFilter.text
+                                    font: audioFilter.font
+                                    color: "#FFFFFF"
+                                    leftPadding: audioFilter.indicator.width + audioFilter.spacing
+                                }
+                            }
+
+                            Item { Layout.fillWidth: true }
+
+                            Label { text: qsTr("FFT visualization"); font.bold: true; color: "#FFFFFF"; }
+                            ComboBox {
+                                model: [qsTr("Exponential mean"), qsTr("Mean"), qsTr("Variance")]
+                                currentIndex: visualizationMode
+                                onActivated: visualizationMode = currentIndex
+                            }
+                        }
+                    }
+                }
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: 210
+
+                    ColumnLayout {
+                        Layout.preferredWidth: 80
+                        Slider {
+                            Layout.fillHeight: true
+                            orientation: Qt.Vertical
+                            from: 0.001
+                            to: 0.1
+                            value: audioController.spectrumDecay
+                            onMoved: audioController.spectrumDecay = value
+                        }
+                    }
+
+                    SpectrumView {
+                        id: spectrum
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        leftSpectrum: audioController.leftSpectrum
+                        rightSpectrum: audioController.rightSpectrum
+                        regions: audioController.regions
+                        threshold: audioController.sensitivity
+                        decay: audioController.spectrumDecay
+                        visualizationMode: visualizationMode
+                        filterLower: spectrum.filterLower
+                        filterUpper: spectrum.filterUpper
+                        onFilterRangeEdited: function(lower, upper) {
+                            spectrum.filterLower = lower
+                            spectrum.filterUpper = upper
+                            audioController.setFilterRange(lower, upper)
+                        }
+                    }
+
+                    ColumnLayout {
+                        Layout.preferredWidth: 20
+                        Slider {
+                            Layout.fillHeight: true
+                            orientation: Qt.Vertical
+                            from: 0.01
+                            to: 1.0
+                            value: audioController.inputVolume
+                            onMoved: audioController.inputVolume = value
+                        }
+                    }
+                }
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    Layout.alignment: Qt.AlignTop
+                    spacing: 12
+
+                    
+                    Frame {
+                        Layout.alignment: Qt.AlignTop
+
+                        ColumnLayout {
+                            anchors.fill: parent
+
+                            TabBar {
+                                id: bankTabs
+                                currentIndex: audioController.activeBank
+                                onCurrentIndexChanged: {
+                                    if (currentIndex !== audioController.activeBank)
+                                        audioController.activeBank = currentIndex
+                                }
+                                Repeater {
+                                    model: 10
+                                    TabButton { required property int index; text: qsTr("%1").arg(index) }
+                                }
+                            }
+
+                            PresetGrid {
+                                presets: audioController.effectPresets
+                                firstIndex: audioController.activeBank * 16
+                                activeIndex: audioController.activeEffectPreset
+                                onActivated: function(index) {
+                                    automaticEffects.checked = false
+                                    audioController.selectEffectPreset(index)
+                                }
+                                onRenameRequested: index => openRenameDialog(0, index)
+                                onMoveRequested: index => openMoveDialog(0, index)
+                                onColorRequested: index => openColorDialog(0, index)
+                            }
+                        }
+                    }
+
+                    Frame {
+                        Layout.alignment: Qt.AlignTop
+                        ColumnLayout {
+                            anchors.fill: parent
+                            Label { text: qsTr("Fixture group"); font.bold: true; color: "#FFFFFF"; }
+                            PresetGrid {
+                                presets: audioController.fixturePresets
+                                activeIndex: audioController.activeFixtureGroup
+                                editable: false
+                                onActivated: index => audioController.selectFixtureGroup(index)
+                                onRenameRequested: function(index) {}
+                                onMoveRequested: function(index) {}
+                                onColorRequested: function(index) {}
+                            }
+                        }
+                    }
+
+                    Frame {
+                        Layout.alignment: Qt.AlignTop
+
+                        ColumnLayout {
+                            anchors.fill: parent
+
+                            Label { text: qsTr("Tube coordination"); font.bold: true; color: "#FFFFFF"; }
+                            PresetGrid {
+                                presets: audioController.tubePresets
+                                activeIndex: audioController.activeTubePreset
+                                onActivated: function(index) {
+                                    automaticComposition.checked = false
+                                    audioController.selectTubePreset(index)
+                                }
+                                onRenameRequested: index => openRenameDialog(1, index)
+                                onMoveRequested: index => openMoveDialog(1, index)
+                                onColorRequested: index => openColorDialog(1, index)
+                            }
+                        }
+                    }
+
+                    ColumnLayout {
+                        Layout.alignment: Qt.AlignTop
+                        Repeater {
+                            model: audioController.numGroups
+                            Frame {
+                                Layout.preferredWidth: 360
+                                Layout.alignment: Qt.AlignTop
+
+                                ColumnLayout {
+                                    anchors.fill: parent
+
+
+
+                                    ColumnLayout {
+                                        Layout.fillWidth: true
+                                        RowLayout {
+                                            RowLayout {
+                                                Label { text: qsTr("Group"); font.bold: true; color: "#FFFFFF";  Layout.preferredWidth: 60; }
+                                                SpinBox {
+                                                    id: group
+                                                    from: 0
+                                                    to: 512
+                                                    editable: true
+                                                }
+                                            }
+                                            CheckBox {
+                                                id: activeGroup
+                                                text: qsTr("Composition")
+                                                    contentItem: Text {
+                                                    text: activeGroup.text
+                                                    font: activeGroup.font
+                                                    color: "#FFFFFF"
+                                                    leftPadding: activeGroup.indicator.width + activeGroup.spacing
+                                                }
+                                            }
                                         }
-                                        function onAllTubesPeakTriggered(color, group) {
-                                            if (group == tube.group || group == 0)
-                                                tubeCard.flash(color, tube.delay)
+                                        RowLayout {
+                                            ComboBox {
+                                                model: audioController.effectNames
+                                                currentIndex: audioController.ledMode
+                                                onActivated: audioController.ledMode = currentIndex
+                                                Layout.preferredWidth: 190;
+                                            }
+
+                                            ComplexBox {
+                                                
+                                                items: audioController.modifiers
+                                                onClicked: (index, value) => audioController.setModifier(index, value)
+                                            }
+                                        }
+
+                                        
+                                    }
+
+                                    ColumnLayout {
+                                        LabeledSlider {
+                                            text: qsTr("Sensitivity")
+                                            from: 0; to: 100
+                                            value: audioController.sensitivity * 100
+                                            onEdited: value => audioController.sensitivity = value / 100
+                                        }
+                                        LabeledSlider {
+                                            text: qsTr("Brightness")
+                                            from: 0; to: 255
+                                            value: audioController.brightness
+                                            onEdited: value => audioController.brightness = Math.round(value)
+                                        }
+                                        LabeledSlider {
+                                            id: saturationSlider
+                                            text: qsTr("Saturation")
+                                            from: 0; to: 255
+                                            value: audioController.peakSaturation * 255
+                                            onEdited: value => audioController.peakSaturation = value / 255
+                                        }
+                                        LabeledSlider {
+                                            text: qsTr("Speed")
+                                            from: 1; to: 255
+                                            value: audioController.speed
+                                            onEdited: value => audioController.speed = Math.round(value)
+                                        }
+                                        LabeledSlider {
+                                            text: qsTr("Parameter 1")
+                                            from: 1; to: 255
+                                            value: audioController.parameter1
+                                            onEdited: value => audioController.parameter1 = Math.round(value)
+                                        }
+                                        LabeledSlider {
+                                            text: qsTr("Parameter 2")
+                                            from: 1; to: 255
+                                            value: audioController.parameter2
+                                            onEdited: value => audioController.parameter2 = Math.round(value)
+                                        }
+                                        LabeledSlider {
+                                            text: qsTr("Parameter 3")
+                                            from: 1; to: 255
+                                            value: audioController.parameter3
+                                            onEdited: value => audioController.parameter3 = Math.round(value)
+                                        }
+                                        LabeledSlider {
+                                            text: qsTr("Binning")
+                                            from: 1; to: 255
+                                            value: 128
                                         }
                                     }
                                 }
-
                             }
-                        }
-                        
-                    }
-            }
-
-            Frame {
-                Layout.fillWidth: true
-
-                ColumnLayout {
-                    anchors.fill: parent
-
-                    RowLayout {
-                        Layout.fillWidth: true
-
-                        Label { text: qsTr("Group selection"); font.bold: true; color: "#FFFFFF"; }
-                        ComboBox {
-                            model: [qsTr("Count up"), qsTr("Region"), qsTr("Random")]
-                            currentIndex: audioController.groupSelectionMode
-                            onActivated: audioController.groupSelectionMode = currentIndex
-                        }
-
-                        Item { Layout.fillWidth: true }
-
-                        Label { text: qsTr("Color selection"); font.bold: true; color: "#FFFFFF"; }
-                        ComboBox {
-                            model: [qsTr("Count up"), qsTr("Region"), qsTr("Random")]
-                            currentIndex: audioController.colorSelectionMode
-                            onActivated: audioController.colorSelectionMode = currentIndex
-                        }
-
-                        Item { Layout.fillWidth: true }
-
-                        Label { text: qsTr("Color source"); font.bold: true; color: "#FFFFFF"; }
-                        ComboBox {
-                            id: paletteMode
-                            model: [
-                                qsTr("Maximum frequency"), qsTr("Manual"),
-                                qsTr("Random hue"), qsTr("Random hue & saturation"),
-                                qsTr("Red / white"), qsTr("Greenish"), qsTr("Custom")
-                            ]
-                            currentIndex: 4
-                            onActivated: {
-                                if (currentIndex <= 3)
-                                    audioController.colorControlMode = currentIndex
-                                else
-                                    audioController.selectBuiltInPalette(currentIndex - 4)
-                            }
-                        }
-
-
-                        Label { text: qsTr("Analysis:"); font.bold: true; color: "#FFFFFF"; }
-                        Label { text: qsTr("Group %1").arg(audioController.beatGroup); color: "#FFFFFF"; }
-                        Label { text: qsTr("%1 bpm").arg(audioController.bpm); color: "#FFFFFF"; }
-                        Label {
-                            text: qsTr("%1 ms").arg(audioController.meanBeatIntervalMs.toFixed(1))
-                        }
-                        CheckBox {
-                            id: audioFilter
-                            text: qsTr("Audio filter")
-                            checked: audioController.audioFilterEnabled
-                            onClicked: audioController.audioFilterEnabled = checked
-                            contentItem: Text {
-                                text: audioFilter.text
-                                font: audioFilter.font
-                                color: "#FFFFFF"
-                                leftPadding: audioFilter.indicator.width + audioFilter.spacing
-                            }
-                        }
-
-                        Item { Layout.fillWidth: true }
-
-                        Label { text: qsTr("FFT visualization"); font.bold: true; color: "#FFFFFF"; }
-                        ComboBox {
-                            model: [qsTr("Exponential mean"), qsTr("Mean"), qsTr("Variance")]
-                            currentIndex: visualizationMode
-                            onActivated: visualizationMode = currentIndex
                         }
                     }
                 }
             }
 
-            RowLayout {
-                Layout.fillWidth: true
-                Layout.preferredHeight: 210
+            ColumnLayout {
+                Layout.alignment: Qt.AlignTop
 
-                ColumnLayout {
-                    Layout.preferredWidth: 80
-                    Slider {
-                        Layout.fillHeight: true
-                        orientation: Qt.Vertical
-                        from: 0.001
-                        to: 0.1
-                        value: audioController.spectrumDecay
-                        onMoved: audioController.spectrumDecay = value
-                    }
-                }
-
-                SpectrumView {
-                    id: spectrum
-                    Layout.fillWidth: true
-                    Layout.fillHeight: true
-                    leftSpectrum: audioController.leftSpectrum
-                    rightSpectrum: audioController.rightSpectrum
-                    regions: audioController.regions
-                    threshold: audioController.sensitivity
-                    decay: audioController.spectrumDecay
-                    visualizationMode: visualizationMode
-                    filterLower: spectrum.filterLower
-                    filterUpper: spectrum.filterUpper
-                    onFilterRangeEdited: function(lower, upper) {
-                        spectrum.filterLower = lower
-                        spectrum.filterUpper = upper
-                        audioController.setFilterRange(lower, upper)
-                    }
-                }
-
-                ColumnLayout {
-                    Layout.preferredWidth: 20
-                    Slider {
-                        Layout.fillHeight: true
-                        orientation: Qt.Vertical
-                        from: 0.01
-                        to: 1.0
-                        value: audioController.inputVolume
-                        onMoved: audioController.inputVolume = value
-                    }
-                }
-            }
-
-            Frame {
-                Layout.fillWidth: true
-
-                ColumnLayout {
-                    anchors.fill: parent
-
-                    RowLayout {
-                        Layout.fillWidth: true
-
-                        Label { text: qsTr("Auto mode:"); font.bold: true; color: "#FFFFFF"; }
-                        CheckBox {
-                            id: automaticColor
-                            text: qsTr("Color")
-                            contentItem: Text {
-                                text: automaticColor.text
-                                font: automaticColor.font
-                                color: "#FFFFFF"
-                                leftPadding: automaticColor.indicator.width + automaticColor.spacing
+Frame {
+                    ColumnLayout {
+                        RowLayout {
+                            Label { text: qsTr("Auto:"); font.bold: true; color: "#FFFFFF"; }
+                            CheckBox {
+                                id: automaticColor
+                                text: qsTr("Color")
+                                contentItem: Text {
+                                    text: automaticColor.text
+                                    font: automaticColor.font
+                                    color: "#FFFFFF"
+                                    leftPadding: automaticColor.indicator.width + automaticColor.spacing
+                                }
+                            }
+                            CheckBox {
+                                id: automaticEffects;
+                                text: qsTr("Effect")
+                                contentItem: Text {
+                                    text: automaticEffects.text
+                                    font: automaticEffects.font
+                                    color: "#FFFFFF"
+                                    leftPadding: automaticEffects.indicator.width + automaticEffects.spacing
+                                }
+                            }
+                            CheckBox {
+                                id: automaticComposition
+                                text: qsTr("Comp")
+                                contentItem: Text {
+                                    text: automaticComposition.text
+                                    font: automaticComposition.font
+                                    color: "#FFFFFF"
+                                    leftPadding: automaticComposition.indicator.width + automaticComposition.spacing
+                                }
                             }
                         }
-                        CheckBox {
-                            id: automaticEffects;
-                            text: qsTr("Effect")
-                            contentItem: Text {
-                                text: automaticEffects.text
-                                font: automaticEffects.font
-                                color: "#FFFFFF"
-                                leftPadding: automaticEffects.indicator.width + automaticEffects.spacing
-                            }
-                        }
-                        CheckBox { id: automaticComposition
-                        text: qsTr("Composition")
-                                                    contentItem: Text {
-                                text: automaticComposition.text
-                                font: automaticComposition.font
-                                color: "#FFFFFF"
-                                leftPadding: automaticComposition.indicator.width + automaticComposition.spacing
-                            } }
 
                         Item { Layout.fillWidth: true }
 
@@ -265,220 +472,29 @@ Item {
 
                         Item { Layout.fillWidth: true }
 
-                        BeatIndicator {}
-
-                        Item { Layout.fillWidth: true }
 
                         RowLayout {
                             spacing: 12
+
+                            BeatIndicator { }
 
                             Label {
                                 text: beatTapper.bpm > 0 ? Math.round(beatTapper.bpm) + " BPM" : "-- BPM"
                                 //text: beatTapper.bpm > 0 ? beatTapper.bpm.toFixed(1) + " BPM" : "-- BPM"
                                 color: "#FFFFFF"
-                                font.pixelSize: 32
+                                font.pixelSize: 28
                                 Layout.alignment: Qt.AlignLeft
-                                Layout.preferredWidth: 175
+                                Layout.preferredWidth: 100
                             }
 
                             Button {
-                                text: "TAP"
-                                onClicked: beatTapper.tap()
-                            }
-
-                            Button {
-                                text: "Reset"
+                                text: "X"
                                 onClicked: beatTapper.reset()
                             }
                         }
 
-                        Item { Layout.fillWidth: true }
-
-                        Label { text: qsTr("Lock:"); font.bold: true; color: "#FFFFFF"; }
-
-                        
-                        CheckBox {
-                            id: compositionLock
-                            text: qsTr("Composition")
-                                contentItem: Text {
-                                text: compositionLock.text
-                                font: compositionLock.font
-                                color: "#FFFFFF"
-                                leftPadding: compositionLock.indicator.width + compositionLock.spacing
-                            }
-                        }
-                    }
-                }
-            }
-
-            RowLayout {
-                Layout.fillWidth: true
-                Layout.alignment: Qt.AlignTop
-                spacing: 12
-
-                ColumnLayout {
-                    Layout.alignment: Qt.AlignTop
-                    Repeater {
-                        model: audioController.numGroups
-                        Frame {
-                            Layout.preferredWidth: 360
-                            Layout.alignment: Qt.AlignTop
-
-                            ColumnLayout {
-                                anchors.fill: parent
-
-                                RowLayout {
-                                    Label { text: qsTr("Group"); font.bold: true; color: "#FFFFFF";  Layout.preferredWidth: 60; }
-                                    SpinBox {
-                                        id: group
-                                        from: 0
-                                        to: 512
-                                        editable: true
-                                    }
-                                }
-
-                                ColumnLayout {
-                                    Layout.fillWidth: true
-
-                                    CheckBox {
-                                        id: activeGroup
-                                        text: qsTr("Composition")
-                                            contentItem: Text {
-                                            text: activeGroup.text
-                                            font: activeGroup.font
-                                            color: "#FFFFFF"
-                                            leftPadding: activeGroup.indicator.width + activeGroup.spacing
-                                        }
-                                    }
-
-                                    ComboBox {
-                                        model: audioController.effectNames
-                                        currentIndex: audioController.ledMode
-                                        onActivated: audioController.ledMode = currentIndex
-                                        Layout.preferredWidth: 150;
-                                    }
-
-                                    ComplexBox {
-                                        items: audioController.modifiers
-                                        onClicked: (index, value) => audioController.setModifier(index, value)
-                                    }
-
-                                    
-                                }
-
-                                ColumnLayout {
-                                    LabeledSlider {
-                                        text: qsTr("Sensitivity")
-                                        from: 0; to: 100
-                                        value: audioController.sensitivity * 100
-                                        onEdited: value => audioController.sensitivity = value / 100
-                                    }
-                                    LabeledSlider {
-                                        text: qsTr("Brightness")
-                                        from: 0; to: 255
-                                        value: audioController.brightness
-                                        onEdited: value => audioController.brightness = Math.round(value)
-                                    }
-                                    LabeledSlider {
-                                        id: saturationSlider
-                                        text: qsTr("Saturation")
-                                        from: 0; to: 255
-                                        value: audioController.peakSaturation * 255
-                                        onEdited: value => audioController.peakSaturation = value / 255
-                                    }
-                                    LabeledSlider {
-                                        text: qsTr("Speed")
-                                        from: 1; to: 255
-                                        value: audioController.speed
-                                        onEdited: value => audioController.speed = Math.round(value)
-                                    }
-                                    LabeledSlider {
-                                        text: qsTr("Parameter 1")
-                                        from: 1; to: 255
-                                        value: audioController.parameter1
-                                        onEdited: value => audioController.parameter1 = Math.round(value)
-                                    }
-                                    LabeledSlider {
-                                        text: qsTr("Parameter 2")
-                                        from: 1; to: 255
-                                        value: audioController.parameter2
-                                        onEdited: value => audioController.parameter2 = Math.round(value)
-                                    }
-                                    LabeledSlider {
-                                        text: qsTr("Parameter 3")
-                                        from: 1; to: 255
-                                        value: audioController.parameter3
-                                        onEdited: value => audioController.parameter3 = Math.round(value)
-                                    }
-                                    LabeledSlider {
-                                        text: qsTr("Parameter 4")
-                                        from: 1; to: 255
-                                        value: 128
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                Frame {
-                    Layout.alignment: Qt.AlignTop
-
-                    ColumnLayout {
-                        anchors.fill: parent
-
-                        TabBar {
-                            id: bankTabs
-                            currentIndex: audioController.activeBank
-                            onCurrentIndexChanged: {
-                                if (currentIndex !== audioController.activeBank)
-                                    audioController.activeBank = currentIndex
-                            }
-                            Repeater {
-                                model: 5
-                                TabButton { required property int index; text: qsTr("%1").arg(index) }
-                            }
-                        }
-
-                        PresetGrid {
-                            presets: audioController.effectPresets
-                            firstIndex: audioController.activeBank * 16
-                            activeIndex: audioController.activeEffectPreset
-                            onActivated: function(index) {
-                                automaticEffects.checked = false
-                                audioController.selectEffectPreset(index)
-                            }
-                            onRenameRequested: index => openRenameDialog(0, index)
-                            onMoveRequested: index => openMoveDialog(0, index)
-                            onColorRequested: index => openColorDialog(0, index)
-                        }
-                    }
-                }
-
-                Frame {
-                    Layout.alignment: Qt.AlignTop
-                    ColumnLayout {
-                        anchors.fill: parent
-                        Label { text: qsTr("Fixture group"); font.bold: true; color: "#FFFFFF"; }
-                        PresetGrid {
-                            presets: audioController.fixturePresets
-                            activeIndex: audioController.activeFixtureGroup
-                            editable: false
-                            onActivated: index => audioController.selectFixtureGroup(index)
-                            onRenameRequested: function(index) {}
-                            onMoveRequested: function(index) {}
-                            onColorRequested: function(index) {}
-                        }
-                    }
-                }
-
-                Frame {
-                    Layout.alignment: Qt.AlignTop
-
-                    ColumnLayout {
-                        anchors.fill: parent
-
                         Button {
-                            Layout.preferredWidth: 40
+                            Layout.preferredWidth: 80
                             Layout.preferredHeight: 40
                             text: qsTr("PEAK")
                             font.bold: true
@@ -488,99 +504,63 @@ Item {
                             }
                         }
 
-                        Label { text: qsTr("Tube coordination"); font.bold: true; color: "#FFFFFF"; }
-                        PresetGrid {
-                            presets: audioController.tubePresets
-                            activeIndex: audioController.activeTubePreset
-                            onActivated: function(index) {
-                                automaticComposition.checked = false
-                                audioController.selectTubePreset(index)
+                        Item { Layout.fillWidth: true }
+
+                        RowLayout {
+                            Label { text: qsTr("Lock:"); font.bold: true; color: "#FFFFFF"; }
+
+                            CheckBox {
+                                id: brightnessLock
+                                text: qsTr("Brightness")
+                                    contentItem: Text {
+                                    text: brightnessLock.text
+                                    font: brightnessLock.font
+                                    color: "#FFFFFF"
+                                    leftPadding: brightnessLock.indicator.width + brightnessLock.spacing
+                                }
                             }
-                            onRenameRequested: index => openRenameDialog(1, index)
-                            onMoveRequested: index => openMoveDialog(1, index)
-                            onColorRequested: index => openColorDialog(1, index)
+                            
+                            CheckBox {
+                                id: compositionLock
+                                text: qsTr("Composition")
+                                    contentItem: Text {
+                                    text: compositionLock.text
+                                    font: compositionLock.font
+                                    color: "#FFFFFF"
+                                    leftPadding: compositionLock.indicator.width + compositionLock.spacing
+                                }
+                            }
+                        }
+                    }
+
+                }
+
+                Frame {
+                    RowLayout {
+                        ComboBox {
+                            model: audioController.fixtureManufacturers
+                            textRole: "name"
+                            valueRole: "key"
+                            onActivated: audioController.updateFixtures()
+                        }
+                        ComboBox {
+                            model: audioController.fixtureNames
+                            //onActivated: audioController.groupSelectionMode = currentIndex
+                        }
+                        Button {
+                            text: qsTr("+")
+                            onClicked: audioController.addFixture()
                         }
                     }
                 }
-                ColumnLayout {
-                    Layout.alignment: Qt.AlignTop
-                    Repeater {
-                        model: audioController.fixtures
 
-                        delegate: Frame {
-                            id: fixture
-                            required property var modelData
-                            required property int index
+                Repeater {
+                    model: audioController.fixtures
 
-                            ColumnLayout {
-                                anchors.fill: parent
-
-                                RowLayout {
-                                    Label {
-                                        text: modelData.name
-                                        color: "#FFFFFF"
-                                        font.bold: true
-                                    }
-                                    Item {
-                                        Layout.fillWidth: true
-                                    }
-                                    ComboBox {
-                                        model: audioController.fixtureManufacturers
-                                        //currentIndex: audioController.groupSelectionMode
-                                        //onActivated: audioController.groupSelectionMode = currentIndex
-                                    }
-                                    ComboBox {
-                                        model: audioController.fixtureNames
-                                        //currentIndex: audioController.groupSelectionMode
-                                        //onActivated: audioController.groupSelectionMode = currentIndex
-                                    }
-                                }
-
-                                RowLayout {
-                                    Label {
-                                        text: qsTr("Group")
-                                        font.bold: true
-                                        color: "#FFFFFF"
-                                        Layout.preferredWidth: 60
-                                    }
-
-                                    SpinBox {
-                                        from: 0
-                                        to: 512
-                                        editable: true
-                                    }
-
-                                    Label {
-                                        text: qsTr("Address")
-                                        font.bold: true
-                                        color: "#FFFFFF"
-                                        Layout.preferredWidth: 60
-                                    }
-
-                                    SpinBox {
-                                        from: 0
-                                        to: 512
-                                        editable: true
-                                    }
-                                }
-
-                                Repeater {
-                                    model: modelData.sliders
-
-                                    delegate: DmxSlider {
-                                        required property var modelData
-                                        required property int index
-                                        Layout.fillWidth: true
-                                        name: modelData.name
-                                        value: modelData.value
-                                        regions: modelData.regions
-
-                                        onEdited: value => {
-                                            audioController.setDmxValue(fixture.index, index, value)
-                                        }
-                                    }
-                                }
-                            }
+                    delegate: DmxPanel {
+                        detailed: false
+                        onFullscreenRequested: {
+                            root.fullscreen = true
                         }
                     }
                 }

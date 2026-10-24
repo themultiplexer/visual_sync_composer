@@ -7,6 +7,8 @@
 #include <random>
 #include <vector>
 
+#define NUM_BANKS 12
+
 class AudioWindow;
 
 class ControllerAbstractor : ControllerDelegate

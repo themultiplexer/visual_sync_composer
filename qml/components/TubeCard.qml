@@ -38,7 +38,7 @@ Frame {
                 strokeWidth: root.peakColor.a > 0 ? 4 : 1
 
                 strokeStyle: ShapePath.DashLine
-                dashPattern: [4, 4]
+                //dashPattern: [4, 4]
 
                 fillColor: "transparent"
 
@@ -116,20 +116,20 @@ Frame {
                 text: "◀"
                 enabled: root.tubeIndex > 0
                 onClicked: root.moveRequested(-1)
-                implicitWidth: 40
+                implicitWidth: 30
                 padding: 0
             }
             Button {
-                text: qsTr("Peak")
+                text: qsTr("P")
                 padding: 0
                 onClicked: root.peakRequested()
-                implicitWidth: 40
+                implicitWidth: 30
             }
             Button {
                 text: "▶"
                 padding: 0
                 onClicked: root.moveRequested(1)
-                implicitWidth: 40
+                implicitWidth: 30
             }
         }
 

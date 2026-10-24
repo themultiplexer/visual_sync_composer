@@ -4,11 +4,12 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 
-ColumnLayout {
+RowLayout {
     id: root
     property string name: ""
     property alias value: slider.value
     property var regions: []
+    property bool regionLabels
 
     signal edited(int value)
 
@@ -16,7 +17,7 @@ ColumnLayout {
 
     Label {
         text: root.name
-        Layout.fillWidth: true
+        Layout.preferredWidth: 120
         color: "#FFFFFF"
     }
 
@@ -72,6 +73,32 @@ ColumnLayout {
                     radius: 2
                 }
             }
+
+            Repeater {
+                model: root.regions
+
+                Label {
+                    required property var modelData
+                    required property var index
+
+                    visible: root.regionLabels
+
+                    x: (modelData.start / 256) * parent.width
+                    y: (index % 2) * 15 + 10
+                    width: Math.max(
+                        0,
+                        ((modelData.end - modelData.start + 1) / 256)
+                        * parent.width
+                    )
+
+                    text: modelData.name
+                    Layout.fillWidth: true
+                    color: "#FFFFFF"
+                }
+            }
+
+
+
         }
 
         handle: Rectangle {

@@ -8,6 +8,7 @@ RowLayout {
     signal clicked(int index, int value)
 
     ComboBox {
+        displayText: qsTr("Modifiers")
         id: comboboxId
         width: parent.width / 2
 

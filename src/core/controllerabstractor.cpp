@@ -63,7 +63,7 @@ void ControllerAbstractor::flashStopButton(int index) {
 }
 
 void ControllerAbstractor::onWheelChanged(int page) {
-    audiocontroller->setActiveBank(std::clamp(page - 1, 0, 5 ));
+    audiocontroller->setActiveBank(std::clamp(page - 1, 0, NUM_BANKS ));
 }
 
 void ControllerAbstractor::setPage(int page)
