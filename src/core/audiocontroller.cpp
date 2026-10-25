@@ -481,12 +481,13 @@ void AudioController::selectEffectPreset(int index)
 }
 
 void AudioController::sendDmx() {
-    if (m_fixtures.size() == 0) {
+    if (m_fixtures.size() > 0) {
         for (auto fixture : m_fixtures) {
             std::vector<uint8_t> values;
             for (auto slider : fixture.sliders) {
                 values.push_back(slider.value());
             }
+            fixture.address = 0;
             qDebug() << fixture.address << " " << values.size();
             m_eventProcessor->sendDmx(fixture.address, values);
         }

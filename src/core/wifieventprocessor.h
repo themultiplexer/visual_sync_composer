@@ -25,7 +25,7 @@ struct UPDATE_REQUEST {
 struct DMX_DATA {
     uint8_t offset;
     uint8_t len;
-    uint8_t channels[32];
+    uint8_t channels[40];
 };
 
 struct PALETTE_DATA {

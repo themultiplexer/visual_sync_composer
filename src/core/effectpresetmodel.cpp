@@ -141,7 +141,7 @@ EffectPresetModel* EffectPresetModel::fromJson(const QJsonObject &obj) {
         fixture.address = obj["group"].toInt();
         fixtures.push_back(fixture);
     }
-    
+
     QJsonArray array = obj["button_color"].toArray();
     QColor color = QColor(array[0].toInt(), array[1].toInt(), array[2].toInt());
 
