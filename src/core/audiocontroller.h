@@ -67,7 +67,7 @@ class AudioController final : public QObject
     Q_PROPERTY(int colorControlMode READ colorControlMode WRITE setColorControlMode NOTIFY colorControlModeChanged)
 
     Q_PROPERTY(QStringList effectNames READ effectNames CONSTANT)
-    Q_PROPERTY(QStringList fixtureNames READ fixtureNames CONSTANT)
+    Q_PROPERTY(QStringList modeSelection READ modeSelection CONSTANT)
     Q_PROPERTY(QVariantList effectPresets READ effectPresets NOTIFY effectPresetsChanged)
     Q_PROPERTY(QVariantList tubePresets READ tubePresets NOTIFY tubePresetsChanged)
     Q_PROPERTY(QVariantList fixturePresets READ fixturePresets NOTIFY fixturePresetsChanged)
@@ -78,7 +78,7 @@ class AudioController final : public QObject
     Q_PROPERTY(QVariantList regions READ regions NOTIFY regionsChanged)
     Q_PROPERTY(QVariantList fixtures READ fixtures NOTIFY fixturesChanged)
     Q_PROPERTY(QVariantList fixtureManufacturers READ fixtureManufacturers NOTIFY fixturesManufacturersChanged)
-    
+    Q_PROPERTY(QVariantList fixtureSelection READ fixtureSelection NOTIFY fixtureSelectionChanged)
 
 public:
     enum class GroupSelection {
@@ -128,6 +128,7 @@ public:
     QVariantList modifiers() const;
     QVariantList fixtures() const;
     QVariantList fixtureManufacturers() const;
+    QVariantList fixtureSelection() const;
     QVariantList colors() const;
 
     double sensitivity() const noexcept { return m_sensitivity; }
@@ -145,7 +146,7 @@ public:
     std::vector<EffectPresetModel *> getEffectPresets() const;
 
     const QStringList &effectNames() const noexcept { return m_effectNames; }
-    const QStringList &fixtureNames() const noexcept { return m_fixtureNames; }
+    const QStringList &modeSelection() const noexcept { return m_fixtureModes; }
     QVariantList effectPresets() const;
     QVariantList tubePresets() const;
     QVariantList fixturePresets() const;
@@ -158,6 +159,7 @@ public:
 public slots:
     void start();
     void bpmEvent();
+    void sendDmx();
 
     void setActiveBank(int bank);
     void selectEffectPreset(int index);
@@ -170,6 +172,7 @@ public slots:
     void setParameter2(int value);
     void setParameter3(int value);
     void setLedMode(int index);
+    Q_INVOKABLE void setFixtureManufacturer(QString manufacturerKey);
     Q_INVOKABLE void setModifier(int index, bool enabled);
 
     void setSensitivity(double value);
@@ -208,6 +211,10 @@ public slots:
     Q_INVOKABLE void putTubeIntoFirmwareUpdateMode(int tubeIndex);
     Q_INVOKABLE void flashFirmware(const QUrl &file);
     Q_INVOKABLE void setDmxValue(int fixtureIndex, int sliderIndex, int value);
+    Q_INVOKABLE void setDmxGroup(int fixtureIndex, int value);
+    Q_INVOKABLE void setDmxAddress(int fixtureIndex, int value);
+    Q_INVOKABLE void addFixture(int selectionIndex);
+    Q_INVOKABLE void removeFixture(int fixtureIndex);
 
 signals:
     void onlineChanged();
@@ -234,6 +241,7 @@ signals:
     void regionsChanged();
     void fixturesChanged();
     void fixturesManufacturersChanged();
+    void fixtureSelectionChanged();
     void colorsChanged();
 
     void bpmTapped();
@@ -287,9 +295,10 @@ private:
     std::vector<QColor> m_colors;
     std::vector<DmxFixture> m_fixtures;
     std::vector<DmxManufacturer> m_fixtureManufacturers;
+    std::vector<DmxFixture> m_fixtureSelection;
 
     QStringList m_effectNames;
-    QStringList m_fixtureNames;
+    QStringList m_fixtureModes;
     QVariantList m_leftSpectrum;
     QVariantList m_rightSpectrum;
     QVariantList m_regions;

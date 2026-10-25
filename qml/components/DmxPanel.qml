@@ -25,7 +25,7 @@ Frame {
             }
             Button {
                 text: qsTr("-")
-                onClicked: fixture.fullscreenRequested()
+                onClicked: audioController.removeFixture(fixture.index)
             }
             Button {
                 text: qsTr("[ ]")
@@ -44,6 +44,13 @@ Frame {
             SpinBox {
                 from: 0
                 to: 512
+
+                value: modelData.group
+
+                onValueModified: {
+                    audioController.setDmxGroup(fixture.index, value)
+                }
+
                 editable: true
             }
 
@@ -57,6 +64,13 @@ Frame {
             SpinBox {
                 from: 0
                 to: 512
+
+                value: modelData.address
+
+                onValueModified: {
+                    audioController.setDmxAddress(fixture.index, value)
+                }
+
                 editable: true
             }
         }

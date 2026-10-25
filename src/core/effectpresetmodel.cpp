@@ -94,6 +94,8 @@ QJsonObject EffectPresetModel::toJson() const {
         fix["name"] = fixture.name;
         fix["path"] = fixture.path;
         fix["mode"] = fixture.mode;
+        fix["address"] = fixture.address;
+        fix["group"] = fixture.group;
         QJsonArray sliderarray;
         for (auto slider : fixture.sliders) {
             sliderarray.push_back(slider.value());
@@ -135,6 +137,8 @@ EffectPresetModel* EffectPresetModel::fromJson(const QJsonObject &obj) {
                 fixture.sliders[i].setValue(sliders[i].toInt());
             }
         }
+        fixture.address = obj["address"].toInt();
+        fixture.address = obj["group"].toInt();
         fixtures.push_back(fixture);
     }
     

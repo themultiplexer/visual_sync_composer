@@ -409,8 +409,9 @@ Item {
 
             ColumnLayout {
                 Layout.alignment: Qt.AlignTop
+                Layout.preferredWidth: 150
 
-Frame {
+                Frame {
                     ColumnLayout {
                         RowLayout {
                             Label { text: qsTr("Auto:"); font.bold: true; color: "#FFFFFF"; }
@@ -493,14 +494,24 @@ Frame {
                             }
                         }
 
-                        Button {
-                            Layout.preferredWidth: 80
-                            Layout.preferredHeight: 40
-                            text: qsTr("PEAK")
-                            font.bold: true
-                            onPressed: function() {
-
-                                audioController.triggerPeak()
+                        RowLayout {
+                            Button {
+                                Layout.preferredWidth: 80
+                                Layout.preferredHeight: 40
+                                text: qsTr("PEAK")
+                                font.bold: true
+                                onPressed: function() {
+                                    audioController.triggerPeak()
+                                }
+                            }
+                            Button {
+                                Layout.preferredWidth: 80
+                                Layout.preferredHeight: 40
+                                text: qsTr("SEND DMX")
+                                font.bold: true
+                                onPressed: function() {
+                                    audioController.sendDmx()
+                                }
                             }
                         }
 
@@ -541,15 +552,22 @@ Frame {
                             model: audioController.fixtureManufacturers
                             textRole: "name"
                             valueRole: "key"
-                            onActivated: audioController.updateFixtures()
+                            onActivated: audioController.setFixtureManufacturer(currentValue)
                         }
                         ComboBox {
-                            model: audioController.fixtureNames
-                            //onActivated: audioController.groupSelectionMode = currentIndex
+                            id: fixtureSelector
+                            model: audioController.fixtureSelection
+                            textRole: "name"
+                            //onActivated: audioController.setFixture(currentIndex)
+                        }
+                        ComboBox {
+                            id: modeSelector
+                            model: audioController.modeSelection
+                            //onActivated: audioController.setFixtureManufacturer(currentIndex)
                         }
                         Button {
                             text: qsTr("+")
-                            onClicked: audioController.addFixture()
+                            onClicked: audioController.addFixture(fixtureSelector.currentIndex)
                         }
                     }
                 }

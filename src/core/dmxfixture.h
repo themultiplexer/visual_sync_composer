@@ -88,6 +88,8 @@ struct DmxFixture {
     QString path;
     QString name;
     QString mode;
+    int group;
+    int address;
     QList<DmxSlider> sliders;
 };
 
@@ -152,8 +154,8 @@ static DmxFixture loadFixture(const QString& path, const QString& modeName = "")
     }
 
     if (selectedMode.isEmpty()) {
-        selectedMode = root.value("modes")[0].toObject();
-        qDebug() << "Fixture mode not found";
+        auto modes = root.value("modes").toArray();
+        selectedMode = modes[modes.count() - 1].toObject();
     }
 
     fixture.mode = selectedMode.value("name").toString();
