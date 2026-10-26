@@ -118,11 +118,13 @@ void WifiEventProcessor::sendIndividualPeak(std::array<uint8_t, 6> mac, uint8_t 
     handler->send(reinterpret_cast<uint8_t*>(&peak), sizeof(PEAK_DATA), mac);
 }
 
-void WifiEventProcessor::sendDmx(uint8_t address, std::vector<uint8_t> channels) {
+void WifiEventProcessor::sendDmx(uint8_t address, uint8_t group, uint8_t program, std::vector<uint8_t> channels) {
     qDebug() << "Sending DMX data to " << address;
     DMX_DATA dmx;
     dmx.len = channels.size();
     dmx.offset = address;
+    dmx.group = group;
+    dmx.program = program;
     for (size_t i = 0; i < channels.size(); ++i) {
         dmx.channels[i] = channels[i];
     }

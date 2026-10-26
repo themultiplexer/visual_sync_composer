@@ -38,10 +38,10 @@ Frame {
                 text: qsTr("Group")
                 font.bold: true
                 color: "#FFFFFF"
-                Layout.preferredWidth: 60
             }
 
             SpinBox {
+                Layout.preferredWidth: 50
                 from: 0
                 to: 512
 
@@ -58,10 +58,10 @@ Frame {
                 text: qsTr("Address")
                 font.bold: true
                 color: "#FFFFFF"
-                Layout.preferredWidth: 60
             }
 
             SpinBox {
+                Layout.preferredWidth: 50
                 from: 0
                 to: 512
 
@@ -73,22 +73,64 @@ Frame {
 
                 editable: true
             }
+
+            Label {
+                text: qsTr("Delay")
+                font.bold: true
+                color: "#FFFFFF"
+            }
+
+            SpinBox {
+                Layout.preferredWidth: 50
+                from: 0
+                to: 512
+
+                value: modelData.delay
+
+                onValueModified: {
+                    audioController.setDmxDelay(fixture.index, value)
+                }
+
+                editable: true
+            }
+
+            Label {
+                text: qsTr("Program")
+                font.bold: true
+                color: "#FFFFFF"
+            }
+
+            SpinBox {
+                Layout.preferredWidth: 50
+                from: 0
+                to: 512
+
+                value: modelData.program
+
+                onValueModified: {
+                    audioController.setDmxProgram(fixture.index, value)
+                }
+
+                editable: true
+            }
         }
+        ColumnLayout {
+            spacing: 0
+            Repeater {
+                model: modelData.sliders
 
-        Repeater {
-            model: modelData.sliders
+                delegate: DmxSlider {
+                    required property var modelData
+                    required property int index
+                    Layout.fillWidth: true
+                    name: modelData.name
+                    value: modelData.value
+                    regions: modelData.regions
+                    regionLabels: fixture.detailed
 
-            delegate: DmxSlider {
-                required property var modelData
-                required property int index
-                Layout.fillWidth: true
-                name: modelData.name
-                value: modelData.value
-                regions: modelData.regions
-                regionLabels: fixture.detailed
-
-                onEdited: value => {
-                    audioController.setDmxValue(fixture.index, index, value)
+                    onEdited: value => {
+                        audioController.setDmxValue(fixture.index, index, value)
+                    }
                 }
             }
         }

@@ -558,16 +558,16 @@ Item {
                             id: fixtureSelector
                             model: audioController.fixtureSelection
                             textRole: "name"
-                            //onActivated: audioController.setFixture(currentIndex)
+                            valueRole: "path"
+                            onActivated: audioController.setFixture(currentValue)
                         }
                         ComboBox {
                             id: modeSelector
                             model: audioController.modeSelection
-                            //onActivated: audioController.setFixtureManufacturer(currentIndex)
                         }
                         Button {
                             text: qsTr("+")
-                            onClicked: audioController.addFixture(fixtureSelector.currentIndex)
+                            onClicked: audioController.addFixture(fixtureSelector.currentValue, modeSelector.currentValue)
                         }
                     }
                 }

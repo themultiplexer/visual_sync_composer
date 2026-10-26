@@ -12,6 +12,11 @@ struct HELLO_DATA {
     uint8_t tube_id;
 };
 
+struct DMX_CONFIG {
+    uint8_t group;
+    uint8_t delay;
+};
+
 struct PEAK_DATA {
     uint8_t hue;
     uint8_t sat;
@@ -20,12 +25,6 @@ struct PEAK_DATA {
 
 struct UPDATE_REQUEST {
     uint32_t a;
-};
-
-struct DMX_DATA {
-    uint8_t offset;
-    uint8_t len;
-    uint8_t channels[40];
 };
 
 struct PALETTE_DATA {
@@ -46,6 +45,14 @@ struct CONFIG_DATA {
     {
         return "[led_mode = " + std::to_string(led_mode) + ", group = " + std::to_string(group) + "]";
     }
+};
+
+struct DMX_DATA {
+    uint8_t offset;
+    uint8_t len;
+    uint8_t group;
+    uint8_t program;
+    uint8_t channels[40];
 };
 
 struct SYNC_DATA {
@@ -92,7 +99,7 @@ public:
     std::vector<int> getTubeGroups() const;
     void setTubeGroups(const std::vector<int> &newTubeGroups);
     void sendSyncConfig();
-    void sendDmx(uint8_t address, std::vector<uint8_t> channel);
+    void sendDmx(uint8_t address, uint8_t group, uint8_t program, std::vector<uint8_t> channel);
     void sendPalette(std::array<uint8_t, 8> palette);
     void sendHelloToAll();
 

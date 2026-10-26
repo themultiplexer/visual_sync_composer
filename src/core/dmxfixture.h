@@ -88,6 +88,8 @@ struct DmxFixture {
     QString path;
     QString name;
     QString mode;
+    int delay;
+    int program;
     int group;
     int address;
     QList<DmxSlider> sliders;
@@ -126,6 +128,8 @@ static DmxFixture loadFixture(const QString& path, const QString& modeName = "")
 {
     QFile file(path);
 
+    qDebug() << "Loading " << path << " " << modeName;
+
     if (!file.open(QIODevice::ReadOnly))
         throw std::runtime_error("Cannot open fixture file");
 
@@ -136,6 +140,13 @@ static DmxFixture loadFixture(const QString& path, const QString& modeName = "")
         throw std::runtime_error("Invalid fixture JSON");
 
     const auto root = doc.object();
+
+    if (root.contains("redirectTo")) {
+        DmxFixture fixture;
+        fixture.path = path;
+        fixture.name = "RENAMED" + root.value("name").toString();
+        return fixture;
+    }
 
     DmxFixture fixture;
     fixture.path = path;
@@ -155,7 +166,9 @@ static DmxFixture loadFixture(const QString& path, const QString& modeName = "")
 
     if (selectedMode.isEmpty()) {
         auto modes = root.value("modes").toArray();
+        qDebug() << path << "Modes" << modes;
         selectedMode = modes[modes.count() - 1].toObject();
+        //selectedMode = modes[0].toObject();
     }
 
     fixture.mode = selectedMode.value("name").toString();
@@ -222,4 +235,33 @@ static DmxFixture loadFixture(const QString& path, const QString& modeName = "")
     }
 
     return fixture;
+}
+
+static std::vector<std::string> loadFixtureModes(const QString& path, const QString& modeName = "")
+{
+    std::vector<std::string> modes;
+    QFile file(path);
+
+    if (!file.open(QIODevice::ReadOnly))
+        throw std::runtime_error("Cannot open fixture file");
+
+    QJsonParseError error;
+    auto doc = QJsonDocument::fromJson(file.readAll(), &error);
+
+    if (error.error != QJsonParseError::NoError || !doc.isObject())
+        throw std::runtime_error("Invalid fixture JSON");
+
+    const auto root = doc.object();
+
+    if (root.contains("redirectTo")) {
+        return {};
+    }
+
+    for (const auto& modeValue : root.value("modes").toArray()) {
+        const auto mode = modeValue.toObject();
+
+        modes.push_back(mode.value("name").toString().toStdString());
+    }
+
+    return modes;
 }

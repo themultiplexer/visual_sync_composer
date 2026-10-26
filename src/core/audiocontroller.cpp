@@ -130,9 +130,12 @@ QVariantMap fixtureMap(const DmxFixture *fixture)
 
     return {
         {QStringLiteral("name"), fixture->name},
+        {QStringLiteral("path"), fixture->path},
         {QStringLiteral("mode"), fixture->mode},
         {QStringLiteral("group"), fixture->group},
         {QStringLiteral("address"), fixture->address},
+        {QStringLiteral("delay"), fixture->delay},
+        {QStringLiteral("program"), fixture->program},
         {QStringLiteral("sliders"), sliders}
     };
 }
@@ -183,8 +186,6 @@ AudioController::AudioController(WifiEventProcessor *eventProcessor, QObject *pa
     );
 
     m_fixtures.push_back(fixture);
-
-    m_fixtureModes = {"asd"};
 
     for (const auto& slider : fixture.sliders) {
         qDebug() << "Channel:" << slider.channel()
@@ -285,6 +286,15 @@ QVariantList AudioController::fixtureSelection() const
     return result;
 }
 
+QStringList AudioController::modeSelection() const
+{
+    QStringList result;
+    for (const auto &manufacturer: m_fixtureModes) {
+        result.push_back(QString(manufacturer.c_str()));
+    }
+    return result;
+}
+
 void AudioController::setFixtureManufacturer(QString manufacturerKey)
 {
     m_fixtureSelection.clear();
@@ -296,13 +306,13 @@ void AudioController::setFixtureManufacturer(QString manufacturerKey)
     emit fixtureSelectionChanged();
 }
 
-/*
-void AudioController::setFixtureManufacturer(QString manufacturerKey)
-{
 
-    emit fixtureModesChanged();
+void AudioController::setFixture(QString fixturePath)
+{
+    m_fixtureModes = loadFixtureModes(fixturePath);
+    emit modeSelectionChanged();
 }
-    */
+
 
 QVariantList AudioController::colors() const
 {
@@ -487,13 +497,12 @@ void AudioController::sendDmx() {
             for (auto slider : fixture.sliders) {
                 values.push_back(slider.value());
             }
-            fixture.address = 0;
             qDebug() << fixture.address << " " << values.size();
-            m_eventProcessor->sendDmx(fixture.address, values);
+            m_eventProcessor->sendDmx(fixture.address, fixture.delay, fixture.program, values);
         }
     } else {
         std::vector<uint8_t> values(32, 0);
-        m_eventProcessor->sendDmx(0, values);
+        m_eventProcessor->sendDmx(0, 0, 0, values);
     }
 }
 
@@ -859,6 +868,7 @@ void AudioController::saveEffectPreset(int index, const QString &name)
         return;
 
     model->setConfig(m_eventProcessor->getMasterconfig());
+    model->dmx_config.clear();
     for (auto fixture : m_fixtures) {
         model->dmx_config.push_back(fixture);
     }
@@ -987,11 +997,10 @@ void AudioController::setDmxValue(int fixtureIndex, int sliderIndex, int value)
     sendDmx();
 }
 
-void AudioController::addFixture(int selectionIndex)
+void AudioController::addFixture(QString path, QString mode)
 {
-    m_fixtureModes = {"gfh"};
     if (m_fixtureSelection.size() > 0) {
-        m_fixtures.push_back(m_fixtureSelection[selectionIndex]);
+        m_fixtures.push_back(loadFixture(path, mode));
         sendDmx();
         emit fixturesChanged();
     }
@@ -1013,6 +1022,19 @@ void AudioController::setDmxGroup(int fixtureIndex, int value)
 void AudioController::setDmxAddress(int fixtureIndex, int value)
 {
     m_fixtures[fixtureIndex].address = value;
+    sendDmx();
+}
+
+void AudioController::setDmxProgram(int fixtureIndex, int value)
+{
+    m_fixtures[fixtureIndex].program = value;
+    sendDmx();
+}
+
+void AudioController::setDmxDelay(int fixtureIndex, int value)
+{
+    m_fixtures[fixtureIndex].delay = value;
+    sendDmx();
 }
 
 void AudioController::processAudioFrame()
