@@ -30,7 +30,7 @@ EffectPresetModel::EffectPresetModel(std::string name, int id, CONFIG_DATA data,
     this->color = color;
 }
 
-TubePresetModel* EffectPresetModel::getPresets()
+TubePresetModel* EffectPresetModel::getCoordinations()
 {
     return &preset;
 }
@@ -96,6 +96,7 @@ QJsonObject EffectPresetModel::toJson() const {
         fix["mode"] = fixture.mode;
         fix["address"] = fixture.address;
         fix["group"] = fixture.group;
+        qDebug() << "XX"  << fixture.group;
         fix["delay"] = fixture.delay;
         fix["program"] = fixture.program;
         QJsonArray sliderarray;

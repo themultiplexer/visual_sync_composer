@@ -87,6 +87,7 @@ public:
     void textEvent(std::string data);
     void sendBroadcastPeak(uint8_t hue, uint8_t sat, uint8_t group);
     void sendIndividualPeak(std::array<uint8_t, 6> mac, uint8_t hue, uint8_t sat);
+    void sendIndividualDmxConfig(std::array<uint8_t, 6> mac, uint8_t group, uint8_t delay);
     void sendConfig(uint8_t group = 0);
     void sendUpdateMessage();
     void registerReceiver(WifiTextEventReceiver *receiver);

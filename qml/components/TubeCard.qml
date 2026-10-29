@@ -26,7 +26,7 @@ Frame {
 
     background: Rectangle {
         radius: 6
-        color: "#26292e"
+        color: root.tube.type == 2 ? '#ff5500' : '#2e2b26'
         Shape {
             anchors.fill: parent
 
@@ -73,7 +73,7 @@ Frame {
 
     ColumnLayout {
         anchors.fill: parent
-        spacing: 5
+        spacing: 0
 
         Label {
             Layout.fillWidth: true

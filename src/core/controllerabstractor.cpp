@@ -7,7 +7,7 @@
 #include <algorithm>
 #include <functional>
 
-ControllerAbstractor::ControllerAbstractor(AudioController *window) : shiftMode(false), colorMode(false), syncMode(false), captureMode(1) {
+ControllerAbstractor::ControllerAbstractor(AudioController *window) : shiftMode(false), colorMode(false), syncMode(false), captureMode(0) {
     rng = new std::mt19937(dev());
     byteRandom = new std::uniform_int_distribution<std::mt19937::result_type>(0, 255);
 
@@ -141,14 +141,14 @@ void ControllerAbstractor::onButtonPress(int index) {
         } else if (specialIndex == 8)  {
             std::cout << "Button Capture" << std::endl;
             captureMode += 1;
-            if (captureMode == 0) {
-                controller->setButton(LEDButton::CAPTURE, brightness);
-            } else if (captureMode == 1) {
-                controller->setButton(LEDButton::CAPTURE, 0.2);
-            } else {
-                controller->setButton(LEDButton::CAPTURE, 0.0);
-            }
             captureMode %= 3;
+            if (captureMode == 0) {
+                controller->setButton(LEDButton::CAPTURE, 0.0);
+            } else if (captureMode == 1) {
+                controller->setButton(LEDButton::CAPTURE, 0.5);
+            } else {
+                controller->setButton(LEDButton::CAPTURE, brightness);
+            }
         }
     }
 }

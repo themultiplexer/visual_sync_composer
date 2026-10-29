@@ -165,6 +165,7 @@ public slots:
     void selectEffectPreset(int index);
     void selectTubePreset(int index);
     void selectFixtureGroup(int index);
+    
 
     void setBrightness(int value);
     void setSpeed(int value);
@@ -176,6 +177,8 @@ public slots:
     Q_INVOKABLE void setFixtureManufacturer(QString manufacturerKey);
     Q_INVOKABLE void setModifier(int index, bool enabled);
     Q_INVOKABLE void setFixture(QString fixturePath);
+    Q_INVOKABLE void copyFixtures();
+    Q_INVOKABLE void pasteFixtures();
 
     void setSensitivity(double value);
     void setPeakSaturation(double value);
@@ -200,6 +203,7 @@ public slots:
     Q_INVOKABLE void updateTube(int index, int delay, int group);
     Q_INVOKABLE void moveTube(int from, int to);
     Q_INVOKABLE void synchronizeTubes();
+    Q_INVOKABLE void synchronizeDmx();
 
     Q_INVOKABLE void saveEffectPreset(int index, const QString &name);
     Q_INVOKABLE void moveEffectPreset(int from, int to);
@@ -267,7 +271,9 @@ private slots:
 
 private:
     struct TubeState {
-        QString mac;
+        std::array<uint8_t, 6> mac;
+        std::string mac_string;
+        int type = 0;
         int delay = 0;
         int group = 0;
     };
@@ -301,6 +307,7 @@ private:
     std::vector<TubeState> m_tubeStates;
     std::vector<QColor> m_colors;
     std::vector<DmxFixture> m_fixtures;
+    std::vector<DmxFixture> m_fixtureClipboard;
     std::vector<DmxManufacturer> m_fixtureManufacturers;
     std::vector<DmxFixture> m_fixtureSelection;
     std::vector<std::string> m_fixtureModes;

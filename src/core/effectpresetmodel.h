@@ -30,7 +30,7 @@ public:
     static EffectPresetModel * fromJson(const QJsonObject &obj);
     CONFIG_DATA getConfig() const;
     void setConfig(const CONFIG_DATA &newConfig);
-    TubePresetModel* getPresets();
+    TubePresetModel* getCoordinations();
     void setPresets(TubePresetModel newPresets);
 };
 

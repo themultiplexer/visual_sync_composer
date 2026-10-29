@@ -110,6 +110,14 @@ void WifiEventProcessor::sendBroadcastPeak(uint8_t hue, uint8_t sat, uint8_t gro
     handler->send(reinterpret_cast<uint8_t*>(&peak), sizeof(PEAK_DATA), {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF});
 }
 
+void WifiEventProcessor::sendIndividualDmxConfig(std::array<uint8_t, 6> mac, uint8_t group, uint8_t delay) {
+    qDebug() << "Send DMX Config " << group << " " << delay;
+    DMX_CONFIG dmx_config;
+    dmx_config.group = group;
+    dmx_config.delay = delay;
+    handler->send(reinterpret_cast<uint8_t*>(&dmx_config), sizeof(DMX_CONFIG), mac);
+}
+
 void WifiEventProcessor::sendIndividualPeak(std::array<uint8_t, 6> mac, uint8_t hue, uint8_t sat) {
     PEAK_DATA peak;
     peak.hue = hue;
@@ -119,7 +127,7 @@ void WifiEventProcessor::sendIndividualPeak(std::array<uint8_t, 6> mac, uint8_t 
 }
 
 void WifiEventProcessor::sendDmx(uint8_t address, uint8_t group, uint8_t program, std::vector<uint8_t> channels) {
-    qDebug() << "Sending DMX data to " << address;
+    qDebug() << "Sending DMX data to " << address << " " << group;
     DMX_DATA dmx;
     dmx.len = channels.size();
     dmx.offset = address;
@@ -140,7 +148,6 @@ void WifiEventProcessor::sendConfig(uint8_t group)
 void WifiEventProcessor::sendSyncConfig()
 {
     qDebug() << "Sending Sync Config";
-    auto macs = devicereqistry::macs();
     SYNC_DATA sync_config = {{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}};
     for (int i = 0; i < tubeOffsets.size(); i++) {
         sync_config.offset[i] = tubeOffsets[i];

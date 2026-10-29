@@ -21,12 +21,14 @@
 #include <QDir>
 
 #include <algorithm>
+#include <chrono>
 #include <cmath>
 #include <cstdint>
 #include <map>
 #include <numeric>
 #include <qcolor.h>
 #include <qcontainerfwd.h>
+#include <thread>
 #include <vector>
 
 #include "dmxfixture.h"
@@ -41,6 +43,26 @@ constexpr int presetsPerBank = 16;
 constexpr int spectrumSize = FRAMES / 2;
 
 const QStringList standardEffectNames{
+    QStringLiteral("Hue"),
+    QStringLiteral("Pump"),
+    QStringLiteral("Tube"),
+    QStringLiteral("Pump Limiter"),
+    QStringLiteral("Duck"),
+    QStringLiteral("FadeToColor"),
+    QStringLiteral("Sparkle"),
+    QStringLiteral("Fire"),
+    QStringLiteral("Bounce"),
+    QStringLiteral("Colorcycle"),
+    QStringLiteral("11"),
+    QStringLiteral("Strobe"),
+    QStringLiteral("Random Flicker"),
+    QStringLiteral("Tunnel"),
+    QStringLiteral("Tunnel2"),
+    QStringLiteral("Placeholder"),
+    QStringLiteral("confetti"),
+    QStringLiteral("sinelon"),
+    QStringLiteral("bpm"),
+    QStringLiteral("juggle"),
     QStringLiteral("Static"), QStringLiteral("Blink"),
     QStringLiteral("Breath"), QStringLiteral("Color Wipe"),
     QStringLiteral("Color Wipe Inverse"), QStringLiteral("Color Wipe Reverse"),
@@ -395,7 +417,8 @@ QVariantList AudioController::tubes() const
     result.reserve(static_cast<qsizetype>(m_tubeStates.size()));
     for (const TubeState &tube : m_tubeStates) {
         result.push_back(QVariantMap{
-            {QStringLiteral("mac"), tube.mac},
+            {QStringLiteral("mac"), QString::fromStdString(tube.mac_string)},
+            {QStringLiteral("type"), tube.type},
             {QStringLiteral("delay"), tube.delay},
             {QStringLiteral("group"), tube.group}
         });
@@ -419,7 +442,7 @@ QVariantList AudioController::palette() const
 
 void AudioController::setActiveBank(int bank)
 {
-    const int bounded = std::clamp(bank, 0, NUM_BANKS);
+    const int bounded = std::clamp(bank, 0, NUM_BANKS - 1);
     if (m_activeBank == bounded)
         return;
 
@@ -471,6 +494,8 @@ void AudioController::selectEffectPreset(int index)
     }
     emit colorsChanged();
 
+    selectTubePreset(preset->getCoordinations()->index);
+
     m_fixtures.clear();
     m_fixtures = m_effectPresetModels[m_activeEffectPreset]->dmx_config;
     sendDmx();
@@ -491,6 +516,7 @@ void AudioController::selectEffectPreset(int index)
 }
 
 void AudioController::sendDmx() {
+    std::vector<uint8_t> groups;
     if (m_fixtures.size() > 0) {
         for (auto fixture : m_fixtures) {
             std::vector<uint8_t> values;
@@ -498,11 +524,16 @@ void AudioController::sendDmx() {
                 values.push_back(slider.value());
             }
             qDebug() << fixture.address << " " << values.size();
-            m_eventProcessor->sendDmx(fixture.address, fixture.delay, fixture.program, values);
+            m_eventProcessor->sendDmx(fixture.address, fixture.group, fixture.program, values);
+            groups.push_back(fixture.group);
         }
-    } else {
-        std::vector<uint8_t> values(32, 0);
-        m_eventProcessor->sendDmx(0, 0, 0, values);
+    }
+
+    for (int i = 1; i < 5; i++) {
+        if (std::find(groups.begin(), groups.end(), i) == groups.end()) {
+            std::vector<uint8_t> values(32, 0);
+            m_eventProcessor->sendDmx(0, i, 0, values);
+        }
     }
 }
 
@@ -517,7 +548,7 @@ void AudioController::selectTubePreset(int index)
     for (const auto &[mac, preset] : presetModel->getTubePresets()) {
         const auto tube = std::find_if(m_tubeStates.begin(), m_tubeStates.end(),
             [&mac](const TubeState &candidate) {
-                return candidate.mac.toStdString() == mac;
+                return candidate.mac_string == mac;
             });
         if (tube != m_tubeStates.end()) {
             tube->delay = preset.delay;
@@ -540,6 +571,19 @@ void AudioController::selectFixtureGroup(int index)
 
     m_activeFixtureGroup = index;
     emit activeFixtureGroupChanged();
+}
+
+void AudioController::copyFixtures()
+{
+    m_fixtureClipboard.clear();
+    m_fixtureClipboard.insert(m_fixtureClipboard.end(), m_fixtures.begin(), m_fixtures.end());
+}
+
+void AudioController::pasteFixtures()
+{
+    m_fixtures.insert(m_fixtures.end(), m_fixtureClipboard.begin(), m_fixtureClipboard.end());
+    m_fixtureClipboard.clear();
+    emit fixturesChanged();
 }
 
 void AudioController::setBrightness(int value)
@@ -584,6 +628,17 @@ void AudioController::setParameter2(int value)
 
 void AudioController::setParameter3(int value)
 {
+
+    for (auto fixture : m_fixtures) {
+        for (DmxSlider s : fixture.sliders) {
+            if (s.name() == "Dimmer") {
+                qDebug() << s.name() << value;
+                s.setValue(value);
+            }
+        }
+    }
+    emit fixturesChanged();
+
     value = std::clamp(value, 1, 255);
     if (m_parameter3 == value)
         return;
@@ -837,6 +892,16 @@ void AudioController::moveTube(int from, int to)
     synchronizeTubes();
 }
 
+void AudioController::synchronizeDmx()
+{
+    for (const TubeState &tube : m_tubeStates) {
+        if (tube.type == 2) {
+            m_eventProcessor->sendIndividualDmxConfig(tube.mac, tube.group, tube.delay);
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        }
+    }
+}
+
 void AudioController::synchronizeTubes()
 {
     std::vector<int> offsets;
@@ -846,9 +911,11 @@ void AudioController::synchronizeTubes()
 
     m_numGroups = 1;
     for (const TubeState &tube : m_tubeStates) {
-        offsets.push_back(tube.delay);
-        groups.push_back(tube.group);
-        m_numGroups = std::max(m_numGroups, tube.group);
+        if (tube.type == 1) {
+            offsets.push_back(tube.delay);
+            groups.push_back(tube.group);
+            m_numGroups = std::max(m_numGroups, tube.group);
+        }
     }
 
     m_eventProcessor->setTubeGroups(groups);
@@ -924,7 +991,7 @@ void AudioController::saveTubePreset(int index, const QString &name)
         TubePreset preset;
         preset.delay = tube.delay;
         preset.group = tube.group;
-        presets[tube.mac.toStdString()] = preset;
+        presets[tube.mac_string] = preset;
     }
 
     TubePresetModel *model = m_tubePresetModels[index];
@@ -1139,8 +1206,10 @@ void AudioController::loadPersistentState()
     for (int index = 0; index < static_cast<int>(m_fixturePresetModels.size()); ++index)
         m_fixturePresetModels[index]->id = index;
 
-    for (const auto &mac : devicereqistry::macs())
-        m_tubeStates.push_back({QString::fromStdString(arrayToHexString(mac)), 0, 0});
+    for (const auto &device : devicereqistry::devices()) {
+        auto mac = std::get<0>(device);
+        m_tubeStates.push_back({mac, arrayToHexString(mac), std::get<1>(device), 0});
+    }
 }
 
 void AudioController::rebuildEffectNames()

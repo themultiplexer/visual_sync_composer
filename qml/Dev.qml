@@ -39,19 +39,25 @@ Item {
 
         RowLayout {
             ColumnLayout {
-                width: Math.max(1920, 1060)
                 spacing: 10
 
                 Frame {
-                    Layout.fillWidth: true
-                    Layout.preferredHeight: 175
+                    Layout.preferredHeight: 200
+                    Layout.maximumWidth: 1400
 
                         ScrollView {
                             id: tubeRow
                             anchors.fill: parent
-                            contentWidth: 500
+                            contentWidth: tubesRow.width
 
-                            RowLayout {
+                            clip: true
+                            ScrollBar.vertical.policy: ScrollBar.AlwaysOff
+                            ScrollBar.horizontal.policy: ScrollBar.AlwaysOn
+
+                            Row {
+                                id : tubesRow
+                                spacing: 8
+
                                 Repeater {
                                     model: audioController.tubes
 
@@ -172,7 +178,7 @@ Item {
 
                 RowLayout {
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 210
+                    Layout.maximumHeight: 210
 
                     ColumnLayout {
                         Layout.preferredWidth: 80
@@ -238,8 +244,13 @@ Item {
                                         audioController.activeBank = currentIndex
                                 }
                                 Repeater {
-                                    model: 10
-                                    TabButton { required property int index; text: qsTr("%1").arg(index) }
+                                    model: 12
+                                    TabButton {
+                                        required property int index
+                                        text: qsTr("%1").arg(index + 1)
+                                        //background: index == audioController.activeBank ? "#ff0000" : "#eeeeee"
+                                        font.pixelSize: 20
+                                    }
                                 }
                             }
 
@@ -298,6 +309,152 @@ Item {
 
                     ColumnLayout {
                         Layout.alignment: Qt.AlignTop
+
+                        Frame {
+                            ColumnLayout {
+                                RowLayout {
+                                    Label { text: qsTr("Auto:"); font.bold: true; color: "#FFFFFF"; }
+                                    CheckBox {
+                                        id: automaticColor
+                                        text: qsTr("Color")
+                                        contentItem: Text {
+                                            text: automaticColor.text
+                                            font: automaticColor.font
+                                            color: "#FFFFFF"
+                                            leftPadding: automaticColor.indicator.width + automaticColor.spacing
+                                        }
+                                    }
+                                    CheckBox {
+                                        id: automaticEffects;
+                                        text: qsTr("Effect")
+                                        contentItem: Text {
+                                            text: automaticEffects.text
+                                            font: automaticEffects.font
+                                            color: "#FFFFFF"
+                                            leftPadding: automaticEffects.indicator.width + automaticEffects.spacing
+                                        }
+                                    }
+                                    CheckBox {
+                                        id: automaticComposition
+                                        text: qsTr("Comp")
+                                        contentItem: Text {
+                                            text: automaticComposition.text
+                                            font: automaticComposition.font
+                                            color: "#FFFFFF"
+                                            leftPadding: automaticComposition.indicator.width + automaticComposition.spacing
+                                        }
+                                    }
+                                }
+
+                                Item { Layout.fillWidth: true }
+
+                                Row {
+                                    spacing: 6
+
+                                    Repeater {
+                                        model: audioController.palette
+
+                                        Rectangle {
+                                            required property var modelData
+                                            required property int index
+
+                                            width: 30
+                                            height: 30
+                                            radius: 3
+
+                                            color: modelData.color
+
+                                            border.width: 1
+                                            border.color: "#808080"
+                                        }
+                                    }
+                                }
+
+                                Item { Layout.fillWidth: true }
+
+
+                                RowLayout {
+                                    spacing: 12
+
+                                    BeatIndicator { }
+
+                                    Label {
+                                        text: beatTapper.bpm > 0 ? Math.round(beatTapper.bpm) + " BPM" : "-- BPM"
+                                        //text: beatTapper.bpm > 0 ? beatTapper.bpm.toFixed(1) + " BPM" : "-- BPM"
+                                        color: "#FFFFFF"
+                                        font.pixelSize: 28
+                                        Layout.alignment: Qt.AlignLeft
+                                        Layout.preferredWidth: 100
+                                    }
+
+                                    Button {
+                                        text: "X"
+                                        onClicked: beatTapper.reset()
+                                    }
+                                }
+
+                                RowLayout {
+                                    Button {
+                                        Layout.preferredWidth: 80
+                                        Layout.preferredHeight: 40
+                                        text: qsTr("PEAK")
+                                        font.bold: true
+                                        onPressed: function() {
+                                            audioController.triggerPeak()
+                                        }
+                                    }
+                                    Button {
+                                        Layout.preferredWidth: 120
+                                        Layout.preferredHeight: 40
+                                        text: qsTr("SEND DMX")
+                                        font.bold: true
+                                        onPressed: function() {
+                                            audioController.sendDmx()
+                                        }
+                                    }
+                                    Button {
+                                        Layout.preferredWidth: 80
+                                        Layout.preferredHeight: 40
+                                        text: qsTr("SYNC")
+                                        font.bold: true
+                                        onPressed: function() {
+                                            audioController.synchronizeDmx()
+                                        }
+                                    }
+                                }
+
+                                Item { Layout.fillWidth: true }
+
+                                RowLayout {
+                                    Label { text: qsTr("Lock:"); font.bold: true; color: "#FFFFFF"; }
+
+                                    CheckBox {
+                                        id: brightnessLock
+                                        text: qsTr("Brightness")
+                                            contentItem: Text {
+                                            text: brightnessLock.text
+                                            font: brightnessLock.font
+                                            color: "#FFFFFF"
+                                            leftPadding: brightnessLock.indicator.width + brightnessLock.spacing
+                                        }
+                                    }
+                                    
+                                    CheckBox {
+                                        id: compositionLock
+                                        text: qsTr("Composition")
+                                            contentItem: Text {
+                                            text: compositionLock.text
+                                            font: compositionLock.font
+                                            color: "#FFFFFF"
+                                            leftPadding: compositionLock.indicator.width + compositionLock.spacing
+                                        }
+                                    }
+                                }
+                            }
+
+                        }
+
+
                         Repeater {
                             model: audioController.numGroups
                             Frame {
@@ -306,8 +463,6 @@ Item {
 
                                 ColumnLayout {
                                     anchors.fill: parent
-
-
 
                                     ColumnLayout {
                                         Layout.fillWidth: true
@@ -407,178 +562,64 @@ Item {
                 }
             }
 
-            ColumnLayout {
-                Layout.alignment: Qt.AlignTop
-                Layout.preferredWidth: 150
+            Frame {
+                Layout.maximumHeight: 1080
+                ScrollView {
+                    Layout.alignment: Qt.AlignTop
+                    contentHeight: dmxFixtures.height
 
-                Frame {
+                    clip: true
+                    ScrollBar.vertical.policy: ScrollBar.AsNeeded
+                    ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
+
                     ColumnLayout {
-                        RowLayout {
-                            Label { text: qsTr("Auto:"); font.bold: true; color: "#FFFFFF"; }
-                            CheckBox {
-                                id: automaticColor
-                                text: qsTr("Color")
-                                contentItem: Text {
-                                    text: automaticColor.text
-                                    font: automaticColor.font
-                                    color: "#FFFFFF"
-                                    leftPadding: automaticColor.indicator.width + automaticColor.spacing
+                        id: dmxFixtures
+                        Frame {
+                            RowLayout {
+                                ComboBox {
+                                    model: audioController.fixtureManufacturers
+                                    textRole: "name"
+                                    valueRole: "key"
+                                    onActivated: audioController.setFixtureManufacturer(currentValue)
                                 }
-                            }
-                            CheckBox {
-                                id: automaticEffects;
-                                text: qsTr("Effect")
-                                contentItem: Text {
-                                    text: automaticEffects.text
-                                    font: automaticEffects.font
-                                    color: "#FFFFFF"
-                                    leftPadding: automaticEffects.indicator.width + automaticEffects.spacing
+                                ComboBox {
+                                    id: fixtureSelector
+                                    model: audioController.fixtureSelection
+                                    textRole: "name"
+                                    valueRole: "path"
+                                    onActivated: audioController.setFixture(currentValue)
                                 }
-                            }
-                            CheckBox {
-                                id: automaticComposition
-                                text: qsTr("Comp")
-                                contentItem: Text {
-                                    text: automaticComposition.text
-                                    font: automaticComposition.font
-                                    color: "#FFFFFF"
-                                    leftPadding: automaticComposition.indicator.width + automaticComposition.spacing
+                                ComboBox {
+                                    id: modeSelector
+                                    model: audioController.modeSelection
                                 }
-                            }
-                        }
-
-                        Item { Layout.fillWidth: true }
-
-                        Row {
-                            spacing: 6
-
-                            Repeater {
-                                model: audioController.palette
-
-                                Rectangle {
-                                    required property var modelData
-                                    required property int index
-
-                                    width: 30
-                                    height: 30
-                                    radius: 3
-
-                                    color: modelData.color
-
-                                    border.width: 1
-                                    border.color: "#808080"
+                                Button {
+                                    text: qsTr("+")
+                                    onClicked: audioController.addFixture(fixtureSelector.currentValue, modeSelector.currentValue)
                                 }
-                            }
-                        }
-
-                        Item { Layout.fillWidth: true }
-
-
-                        RowLayout {
-                            spacing: 12
-
-                            BeatIndicator { }
-
-                            Label {
-                                text: beatTapper.bpm > 0 ? Math.round(beatTapper.bpm) + " BPM" : "-- BPM"
-                                //text: beatTapper.bpm > 0 ? beatTapper.bpm.toFixed(1) + " BPM" : "-- BPM"
-                                color: "#FFFFFF"
-                                font.pixelSize: 28
-                                Layout.alignment: Qt.AlignLeft
-                                Layout.preferredWidth: 100
-                            }
-
-                            Button {
-                                text: "X"
-                                onClicked: beatTapper.reset()
                             }
                         }
 
                         RowLayout {
                             Button {
-                                Layout.preferredWidth: 80
-                                Layout.preferredHeight: 40
-                                text: qsTr("PEAK")
-                                font.bold: true
-                                onPressed: function() {
-                                    audioController.triggerPeak()
-                                }
+                                text: "Copy"
+                                onClicked: audioController.copyFixtures()
                             }
                             Button {
-                                Layout.preferredWidth: 80
-                                Layout.preferredHeight: 40
-                                text: qsTr("SEND DMX")
-                                font.bold: true
-                                onPressed: function() {
-                                    audioController.sendDmx()
-                                }
+                                text: "Paste"
+                                onClicked: audioController.pasteFixtures()
                             }
                         }
 
-                        Item { Layout.fillWidth: true }
+                        Repeater {
+                            model: audioController.fixtures
 
-                        RowLayout {
-                            Label { text: qsTr("Lock:"); font.bold: true; color: "#FFFFFF"; }
-
-                            CheckBox {
-                                id: brightnessLock
-                                text: qsTr("Brightness")
-                                    contentItem: Text {
-                                    text: brightnessLock.text
-                                    font: brightnessLock.font
-                                    color: "#FFFFFF"
-                                    leftPadding: brightnessLock.indicator.width + brightnessLock.spacing
+                            delegate: DmxPanel {
+                                detailed: false
+                                onFullscreenRequested: {
+                                    root.fullscreen = true
                                 }
                             }
-                            
-                            CheckBox {
-                                id: compositionLock
-                                text: qsTr("Composition")
-                                    contentItem: Text {
-                                    text: compositionLock.text
-                                    font: compositionLock.font
-                                    color: "#FFFFFF"
-                                    leftPadding: compositionLock.indicator.width + compositionLock.spacing
-                                }
-                            }
-                        }
-                    }
-
-                }
-
-                Frame {
-                    RowLayout {
-                        ComboBox {
-                            model: audioController.fixtureManufacturers
-                            textRole: "name"
-                            valueRole: "key"
-                            onActivated: audioController.setFixtureManufacturer(currentValue)
-                        }
-                        ComboBox {
-                            id: fixtureSelector
-                            model: audioController.fixtureSelection
-                            textRole: "name"
-                            valueRole: "path"
-                            onActivated: audioController.setFixture(currentValue)
-                        }
-                        ComboBox {
-                            id: modeSelector
-                            model: audioController.modeSelection
-                        }
-                        Button {
-                            text: qsTr("+")
-                            onClicked: audioController.addFixture(fixtureSelector.currentValue, modeSelector.currentValue)
-                        }
-                    }
-                }
-
-                Repeater {
-                    model: audioController.fixtures
-
-                    delegate: DmxPanel {
-                        detailed: false
-                        onFullscreenRequested: {
-                            root.fullscreen = true
                         }
                     }
                 }
