@@ -62,6 +62,7 @@ class AudioController final : public QObject
     Q_PROPERTY(double inputVolume READ inputVolume WRITE setInputVolume NOTIFY inputVolumeChanged)
     Q_PROPERTY(bool audioFilterEnabled READ audioFilterEnabled WRITE setAudioFilterEnabled NOTIFY audioFilterEnabledChanged)
 
+    Q_PROPERTY(int manualMode READ manualMode WRITE setManualMode NOTIFY manualModeChanged)
     Q_PROPERTY(int groupSelectionMode READ groupSelectionMode WRITE setGroupSelectionMode NOTIFY groupSelectionModeChanged)
     Q_PROPERTY(int colorSelectionMode READ colorSelectionMode WRITE setColorSelectionMode NOTIFY colorSelectionModeChanged)
     Q_PROPERTY(int colorControlMode READ colorControlMode WRITE setColorControlMode NOTIFY colorControlModeChanged)
@@ -137,6 +138,7 @@ public:
     double spectrumDecay() const noexcept { return m_spectrumDecay; }
     double inputVolume() const noexcept { return m_inputVolume; }
     bool audioFilterEnabled() const noexcept { return m_audioFilterEnabled; }
+    bool manualMode() const noexcept { return m_manualMode; }
 
     int groupSelectionMode() const noexcept;
     int colorSelectionMode() const noexcept;
@@ -189,6 +191,7 @@ public slots:
 
     void setGroupSelectionMode(int mode);
     void setColorSelectionMode(int mode);
+    void setManualMode(int mode);
     void setColorControlMode(int mode);
     Q_INVOKABLE void selectBuiltInPalette(int index);
     Q_INVOKABLE void setPaletteEntry(int index, double hue, double saturation);
@@ -241,6 +244,7 @@ signals:
     void audioFilterEnabledChanged();
     void groupSelectionModeChanged();
     void colorSelectionModeChanged();
+    void manualModeChanged();
     void colorControlModeChanged();
     void effectPresetsChanged();
     void tubePresetsChanged();
@@ -342,6 +346,7 @@ private:
     int m_parameter2 = 5;
     int m_parameter3 = 128;
     int m_ledMode = 0;
+    int m_manualMode = 0;
 
     GroupSelection m_groupSelection = GroupSelection::Regions;
     ColorSelection m_colorSelection = ColorSelection::Regions;

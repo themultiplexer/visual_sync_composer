@@ -7,7 +7,7 @@
 #include <algorithm>
 #include <functional>
 
-ControllerAbstractor::ControllerAbstractor(AudioController *window) : shiftMode(false), colorMode(false), syncMode(false), captureMode(0) {
+ControllerAbstractor::ControllerAbstractor(AudioController *window) : shiftMode(false), colorMode(false), syncMode(false), captureMode(1) {
     rng = new std::mt19937(dev());
     byteRandom = new std::uniform_int_distribution<std::mt19937::result_type>(0, 255);
 

@@ -309,8 +309,6 @@ void MainWindow::load() {
     QString filePath = QFileDialog::getOpenFileName(this, tr("Load Composition"), QDir::currentPath(), tr("Visual Sync Composition (*.vsc)"));
 
     if (!filePath.isEmpty()) {
-        qDebug() << "gotFile";
-
         timeline->clear();
 
         ProjectModel project;

@@ -57,6 +57,7 @@ QJsonObject EffectPresetModel::toJson() const {
     QJsonObject tubes;
     obj["tubepresets"] = preset.toJson();
     obj["name"] = name.c_str();
+    obj["manual"] = manual;
     obj["id"] = id;
     QJsonArray array;
     array << color.red() << color.green() << color.blue();
@@ -98,7 +99,6 @@ QJsonObject EffectPresetModel::toJson() const {
         fix["mode"] = fixture.mode;
         fix["address"] = fixture.address;
         fix["group"] = fixture.group;
-        qDebug() << "XX"  << fixture.group;
         fix["delay"] = fixture.delay;
         fix["program"] = fixture.program;
         QJsonArray sliderarray;
@@ -159,13 +159,12 @@ EffectPresetModel* EffectPresetModel::fromJson(const QJsonObject &obj) {
     std::vector<std::array<float, 2>> colors;
 
     for (QJsonValueRef obj : jcolors) {
-        qDebug() << obj[0].toDouble();
         colors.push_back({static_cast<float>(obj[0].toDouble()), static_cast<float>(obj[1].toDouble()) });
     }
 
     int group_mode = obj["group_mode"].toInt();
     int color_mode = obj["color_mode"].toInt();
 
-    auto f = new EffectPresetModel(name, obj["id"].toInt(), config1, config2, fixtures, color, group_mode, color_mode, false, colors, *tubepreset);
+    auto f = new EffectPresetModel(name, obj["id"].toInt(), config1, config2, fixtures, color, group_mode, color_mode, obj["manual"].toBool(), colors, *tubepreset);
     return f;
 }

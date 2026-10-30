@@ -202,27 +202,6 @@ AudioController::AudioController(WifiEventProcessor *eventProcessor, QObject *pa
     m_frequencyRegions.push_back(new FrequencyRegion(2, 0.6, 0.7, 1024,"hi"));
     //m_frequencyRegions.push_back(new FrequencyRegion(3, 0.3, 0.5, 1024, "mid"));
 
-    auto fixture = loadFixture(
-        "../open-fixture-library/fixtures/varytec/razor-derby.json",
-        "9-channel"
-    );
-
-    m_fixtures.push_back(fixture);
-
-    for (const auto& slider : fixture.sliders) {
-        qDebug() << "Channel:" << slider.channel()
-                << "Name:" << slider.name();
-
-        for (const auto& region : slider.regions()) {
-            qDebug() << "  Range:"
-                    << region.start << "-"
-                    << region.end
-                    << "Type:" << region.type
-                    << "Name:" << region.name;
-        }
-    }
-
-
     m_fixtureManufacturers = loadManufacturers("../open-fixture-library/fixtures/manufacturers.json");
 
     m_colors = {
@@ -486,7 +465,6 @@ void AudioController::selectEffectPreset(int index)
 
     m_colors.clear();
     if (preset->colors.size() > 0) {
-        qDebug() << "Got colors!";
         for (auto color : preset->colors) {        
             rgb c = hsv2rgb({color[0], color[1], 1.0});
             m_colors.push_back(QColor(c.r, c.g, c.b));
@@ -506,6 +484,10 @@ void AudioController::selectEffectPreset(int index)
     m_controlSurface->setMatrixButton(row, column, preset->getColor());
     m_midiController->send(column, row, false);
 
+    m_manualMode = preset->manual;
+    
+    qDebug() << m_manualMode;
+    emit manualModeChanged();
     emit activeEffectPresetChanged();
     emit effectConfigurationChanged();
     emit paletteChanged();
@@ -729,6 +711,15 @@ void AudioController::setFilterRange(double normalizedLower,
     m_audioAnalyzer->setFilter(new audiofilter());
     m_audioAnalyzer->getFilter()->setLower(normalizedLower * 24000.0);
     m_audioAnalyzer->getFilter()->setUpper(normalizedUpper * 24000.0);
+}
+
+void AudioController::setManualMode(int mode)
+{
+    if (m_manualMode == mode)
+        return;
+    m_manualMode = mode;
+    m_effectPresetModels[m_activeEffectPreset]->manual = m_manualMode;
+    emit manualModeChanged();
 }
 
 void AudioController::setGroupSelectionMode(int mode)
@@ -1140,7 +1131,7 @@ void AudioController::processAudioFrame()
     }
 
     processData(arr, [this](FrequencyRegion &region){
-        if (m_controlSurface->getCaptureMode() == 1) {
+        if (m_controlSurface->getCaptureMode() == 1 && ! m_manualMode) {
             //TODO update statistics with tapper
             //updateBeatStatistics(intervalMs));
             triggerPeak(region.getIndex());

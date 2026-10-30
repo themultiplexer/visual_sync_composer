@@ -109,6 +109,21 @@ Item {
                         RowLayout {
                             Layout.fillWidth: true
 
+                            CheckBox {
+                                id: manualMode
+                                text: qsTr("Manual")
+                                checked: audioController.manualMode
+                                onClicked: audioController.manualMode = checked
+                                contentItem: Text {
+                                    text: manualMode.text
+                                    font: manualMode.font
+                                    color: "#FFFFFF"
+                                    leftPadding: manualMode.indicator.width + manualMode.spacing
+                                }
+                            }
+
+                            Item { Layout.fillWidth: true }
+
                             Label { text: qsTr("Group selection"); font.bold: true; color: "#FFFFFF"; }
                             ComboBox {
                                 model: [qsTr("Count up"), qsTr("Region"), qsTr("Random")]
