@@ -21,13 +21,15 @@ EffectPresetModel::EffectPresetModel(std::string name, int id) : preset("empty",
     color_mode = 0;
 }
 
-EffectPresetModel::EffectPresetModel(std::string name, int id, CONFIG_DATA data, CONFIG_DATA data2, std::vector<DmxFixture> dmx_data, QColor color, int group_mode, int color_mode, std::vector<std::array<float, 2>> colors, TubePresetModel tubepreset) : preset(tubepreset) {
+EffectPresetModel::EffectPresetModel(std::string name, int id, CONFIG_DATA data, CONFIG_DATA data2, std::vector<DmxFixture> dmx_data, QColor color, int group_mode, int color_mode, bool manual, std::vector<std::array<float, 2>> colors, TubePresetModel tubepreset) : preset(tubepreset) {
     this->name = name;
     this->id = id;
     this->config = data;
     this->secondary_config = data2;
     this->dmx_config = dmx_data;
     this->color = color;
+    this->colors = colors;
+    this->manual = manual;
 }
 
 TubePresetModel* EffectPresetModel::getCoordinations()
@@ -157,12 +159,13 @@ EffectPresetModel* EffectPresetModel::fromJson(const QJsonObject &obj) {
     std::vector<std::array<float, 2>> colors;
 
     for (QJsonValueRef obj : jcolors) {
+        qDebug() << obj[0].toDouble();
         colors.push_back({static_cast<float>(obj[0].toDouble()), static_cast<float>(obj[1].toDouble()) });
     }
 
     int group_mode = obj["group_mode"].toInt();
     int color_mode = obj["color_mode"].toInt();
 
-    auto f = new EffectPresetModel(name, obj["id"].toInt(), config1, config2, fixtures, color, group_mode, color_mode, colors, *tubepreset);
+    auto f = new EffectPresetModel(name, obj["id"].toInt(), config1, config2, fixtures, color, group_mode, color_mode, false, colors, *tubepreset);
     return f;
 }

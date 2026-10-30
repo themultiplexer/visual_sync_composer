@@ -14,11 +14,12 @@ class EffectPresetModel : public PresetModel
 {
 public:
     EffectPresetModel(std::string name, int id);
-    EffectPresetModel(std::string name, int id, CONFIG_DATA data, CONFIG_DATA data2, std::vector<DmxFixture> dmx_data, QColor color, int group_mode, int color_mode, std::vector<std::array<float, 2>> colors, TubePresetModel presets);
+    EffectPresetModel(std::string name, int id, CONFIG_DATA data, CONFIG_DATA data2, std::vector<DmxFixture> dmx_data, QColor color, int group_mode, int color_mode, bool manual, std::vector<std::array<float, 2>> colors, TubePresetModel presets);
 
     int id;
     int group_mode;
     int color_mode;
+    bool manual;
     std::vector<std::array<float, 2>> colors;
     struct CONFIG_DATA config;
     struct CONFIG_DATA secondary_config;

@@ -631,8 +631,7 @@ void AudioController::setParameter3(int value)
 
     for (auto fixture : m_fixtures) {
         for (DmxSlider s : fixture.sliders) {
-            if (s.name() == "Dimmer") {
-                qDebug() << s.name() << value;
+            if (s.name().contains("Dimmer")) {
                 s.setValue(value);
             }
         }
